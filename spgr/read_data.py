@@ -1,3 +1,4 @@
+from logging import getLogger
 from os import listdir, makedirs
 from os.path import isdir, join, expanduser, basename, splitext
 from pickle import dump
@@ -6,6 +7,8 @@ from re import match
 from phypno import Dataset
 from phypno.attr import Scores
 from phypno.trans import Filter
+
+lg = getLogger('spgr')
 
 HOME = expanduser('~')
 
@@ -71,27 +74,24 @@ def read_score_per_subj(subj, save_data=False):
         for one_xml in all_xml:
             score = Scores(join(score_dir, one_xml))
 
+            lg.info(one_xml)
             epochs = {}
             enough_epochs = True
             for stage_name, stages in STAGES.items():
-                epochs[stage_name] = score.get_epochs(stages)[:MIN_EPOCHS]
+                epochs_in_stage = score.get_epochs(stages)
+                lg.info('    %s has % 5.1f min', stage_name,
+                        len(epochs_in_stage) / 2.)
 
+                epochs[stage_name] = epochs_in_stage[:MIN_EPOCHS]
                 if len(epochs[stage_name]) < MIN_EPOCHS:
                     enough_epochs = False
 
             if enough_epochs and first_dataset:
                 xltek_file = join(rec_dir, subj, xltek_path, one_xml[:-11])
                 if save_data:
+                    lg.info('Enough epochs, saving data')
                     save_wake_sleep_data(xltek_file, subj, epochs)
                 first_dataset = False
                 good_xltek = xltek_file
 
     return good_xltek
-
-
-"""
-print('enough data for ' + subj)
-print('{0} has{1: 5.1f} minutes of {2} and{3: 5.1f} minutes of {4}.'
-''.format(one_xml, len(sleep_epochs)/2, ', '.join(sleep_stages),
-             len(wake_epochs)/2, ', '.join(wake_stages)))
-"""
