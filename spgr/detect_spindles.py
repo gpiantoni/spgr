@@ -1,12 +1,9 @@
 from glob import glob
-from os import mkdir
-from os.path import join, exists
+from os.path import join
 from pickle import load, dump
 
-from lsf import map_lsf
-
 from phypno.detect import DetectSpindle
-from phypno.trans import Select, Math
+from lsf import map_lsf
 
 from .read_data import DATA_DIR, REC_FOLDER, STAGES
 
@@ -14,33 +11,36 @@ from .read_data import DATA_DIR, REC_FOLDER, STAGES
 STAGE = 'sleep'
 
 
-def det_sp_in_one_epoch(one_trial_data=None, detection_options=None):
+def det_sp_in_one_epoch(one_trial_data=None):
+    from phypno.trans import Select, Math
 
     calc_std = Math(operator_name='std', axis='time')
     std_per_chan = calc_std(one_trial_data)
     good_chan = where((std_per_chan(trial=0) > .001) & (std_per_chan(trial=0) < thresh))[0]
     normal_chan = Select(chan=one_trial_data.axis['chan'][0][good_chan])
 
-    detsp = DetectSpindle(**detection_options)
+    one_trial_data = normal_chan(one_trial_data)
 
     spindles = detsp(one_trial_data)
     return spindles.spindle
 
 
-def calc_spindle_values(subj):
+def calc_spindle_values(subj=None, detection_options=None):
 
     assert STAGE in STAGES.keys()
 
     subj_dir = join(DATA_DIR, subj, REC_FOLDER)
-    data_file = glob(join(subj_dir, '*_' + STAGE + '.pkl'))[0]  # possible multiple files
+    data_file = glob(join(subj_dir, '*_' + STAGE + '.pkl'))[0]  # multiple files
 
     with open(data_file, 'rb') as f:
         data = load(f)
 
+    detsp = DetectSpindle(**detection_options)
+
     all_sp = map_lsf(det_sp_in_one_epoch, iter(data),
                      queue='short',
                      variables={'detsp': detsp, 'thresh': 2},
-                     imports={'phypno.trans': ('Math', 'Select'), 'numpy': 'where'})
+                     imports={'numpy': 'where'})
 
     spindles = [x for sp in all_sp for x in sp]
     return spindles
