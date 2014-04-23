@@ -12,12 +12,16 @@ STAGE = 'sleep'
 
 
 def det_sp_in_one_epoch(one_trial_data=None):
-    from phypno.trans import Select, Math
+    from phypno.trans import Select, Math, Montage
 
     calc_std = Math(operator_name='std', axis='time')
     std_per_chan = calc_std(one_trial_data)
     good_chan = where((std_per_chan(trial=0) > .001) & (std_per_chan(trial=0) < thresh))[0]
     normal_chan = Select(chan=one_trial_data.axis['chan'][0][good_chan])
+
+    if ref_to_avg:
+        reref = Montage(ref_to_avg=True)
+        one_trial_data = reref(one_trial_data)
 
     one_trial_data = normal_chan(one_trial_data)
 
@@ -25,7 +29,7 @@ def det_sp_in_one_epoch(one_trial_data=None):
     return spindles.spindle
 
 
-def calc_spindle_values(subj=None, detection_options=None):
+def calc_spindle_values(subj=None, detection_options=None, ref_to_avg=None):
 
     assert STAGE in STAGES.keys()
 
@@ -39,7 +43,9 @@ def calc_spindle_values(subj=None, detection_options=None):
 
     all_sp = map_lsf(det_sp_in_one_epoch, iter(data),
                      queue='short',
-                     variables={'detsp': detsp, 'thresh': 2},
+                     variables={'detsp': detsp,
+                                'thresh': 2,
+                                'ref_to_avg': ref_to_avg},
                      imports={'numpy': 'where'})
 
     spindles = [x for sp in all_sp for x in sp]
