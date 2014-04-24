@@ -12,12 +12,11 @@ lg = getLogger('spgr')
 
 HOME = expanduser('~')
 
-rec_dir = join(HOME, 'recordings')
+REC_DIR = join(HOME, 'recordings')
 xltek_path = 'eeg/raw/xltek'
 score_path = 'doc/scores'
 
 STAGES = {'sleep': ('NREM2', 'NREM3'),
-          'wake': ('Wake', )
           }
 DATA_DIR = join(HOME, 'projects/spgr/subjects')
 
@@ -63,7 +62,7 @@ def save_wake_sleep_data(xltek_file, subj, epochs):
 
 def read_score_per_subj(subj, save_data=False):
 
-    score_dir = join(rec_dir, subj, score_path)
+    score_dir = join(REC_DIR, subj, score_path)
     all_xml = listdir(score_dir)
 
     good_xltek = None
@@ -87,7 +86,7 @@ def read_score_per_subj(subj, save_data=False):
                     enough_epochs = False
 
             if enough_epochs and first_dataset:
-                xltek_file = join(rec_dir, subj, xltek_path, one_xml[:-11])
+                xltek_file = join(REC_DIR, subj, xltek_path, one_xml[:-11])
                 if save_data:
                     lg.info('Enough epochs, saving data')
                     save_wake_sleep_data(xltek_file, subj, epochs)
