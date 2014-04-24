@@ -1,11 +1,20 @@
 from numpy import zeros, sum
-from matplotlib.pyplot import hist, plot, imshow, subplots
+from matplotlib.pyplot import subplots
+
+
+SUBPLOT_ROW = 3
+SUBPLOT_COL = 2
+
+SUBPLOT_HEIGHT = 6
+SUBPLOT_WIDTH = 6
 
 
 def hist_values(all_subj, all_spindles,
                 get_value, x_lim, nbin):
 
-    f, subp = subplots(3, 2, figsize=(18, 12))
+    f, subp = subplots(SUBPLOT_ROW, SUBPLOT_COL,
+                       figsize=(SUBPLOT_HEIGHT * SUBPLOT_ROW,
+                                SUBPLOT_WIDTH * SUBPLOT_COL))
 
     for ax, subj, spindles in zip(subp.flatten(), all_subj, all_spindles):
         value = [get_value(x) for x in spindles]
@@ -19,7 +28,9 @@ def hist_values(all_subj, all_spindles,
 
 def channel_count(all_subj, all_spindles):
 
-    f, subp = subplots(3, 2, figsize=(18, 12))
+    f, subp = subplots(SUBPLOT_ROW, SUBPLOT_COL,
+                       figsize=(SUBPLOT_HEIGHT * SUBPLOT_ROW,
+                                SUBPLOT_WIDTH * SUBPLOT_COL))
 
     for ax, subj, spindles in zip(subp.flatten(), all_subj, all_spindles):
 
