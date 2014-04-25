@@ -50,12 +50,3 @@ def calc_spindle_values(subj=None, detection_options=None, ref_to_avg=None):
 
     spindles = [x for sp in all_sp for x in sp]
     return spindles
-
-
-"""
-multiprocessing works sometimes, not clear when it does and when it doesn't.
-Maybe in a new kernel, you need to be really clean about starting subprocesses
-and closing them.
-
-all_spindles = list(map(calc_spindle_values, all_subj))
-"""
