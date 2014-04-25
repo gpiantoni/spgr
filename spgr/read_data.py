@@ -1,11 +1,12 @@
+from glob import glob
 from logging import getLogger
 from os import listdir, makedirs
-from os.path import isdir, join, expanduser, basename, splitext
-from pickle import dump
+from os.path import isdir, join, expanduser, basename, splitext, exists
+from pickle import dump, load
 from re import match
 
 from phypno import Dataset
-from phypno.attr import Scores
+from phypno.attr import Scores, Channels
 from phypno.trans import Filter
 
 lg = getLogger('spgr')
@@ -44,6 +45,12 @@ def save_wake_sleep_data(xltek_file, subj, epochs):
     subj_dir = join(DATA_DIR, subj, REC_FOLDER)
     if not isdir(subj_dir):
         makedirs(subj_dir)
+
+    # save channels used in the analysis
+    pkl_file = join(subj_dir, splitext(basename(xltek_file))[0] + '_' +
+                    'chan' + '.pkl')
+    with open(pkl_file, 'wb') as f:
+        dump(gr_chan, f)
 
     for stage, epochs_in_stage in epochs.items():
         start_time = [x['start_time'] for x in epochs_in_stage]
@@ -94,3 +101,27 @@ def read_score_per_subj(subj, save_data=False):
                 good_xltek = xltek_file
 
     return good_xltek
+
+
+def get_chan_used_in_analysis(all_subj):
+
+    all_chan = []
+
+    for subj in all_subj:
+        chan_file = join(REC_DIR, subj, 'doc/elec/elec_pos_adjusted_renamed.csv')
+        if not exists(chan_file):
+            chan_file = join(REC_DIR, subj, 'doc/elec/elec_pos_adjusted.csv')
+        chan = Channels(chan_file)
+
+        subj_dir = join(DATA_DIR, subj, REC_FOLDER)
+        gr_chan_file = glob(join(subj_dir, '*_' + 'chan' + '.pkl'))[0]
+
+        with open(gr_chan_file, 'rb') as f:
+            gr_chan = load(f)
+
+        chosen_chan = chan(lambda x: x.label in gr_chan)
+        lg.info('%s analysis chan %d, with location %d',
+                subj, len(gr_chan), chosen_chan.n_chan)
+        all_chan.append(chosen_chan)
+
+    return all_chan
