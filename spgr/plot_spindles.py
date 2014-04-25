@@ -1,6 +1,9 @@
-from numpy import zeros, sum, min, max, mean, meshgrid, linspace
+import warnings
+
+from numpy import zeros, min, max, mean, meshgrid, linspace, NaN, isinf
 from scipy.interpolate import griddata
 from matplotlib.pyplot import subplots, colorbar
+
 
 SUBPLOT_ROW = 3
 SUBPLOT_COL = 2
@@ -28,7 +31,8 @@ def hist_values(all_subj, all_spindles,
         ax.set_xlim(x_lim)
 
 
-def channel_count(all_subj, all_chan, all_spindles):
+def topo_values(all_subj, all_chan, all_spindles, get_value, take_mean,
+                v_lim=None):
 
     f, subp = subplots(SUBPLOT_ROW, SUBPLOT_COL,
                        figsize=(SUBPLOT_HEIGHT * SUBPLOT_ROW,
@@ -38,8 +42,18 @@ def channel_count(all_subj, all_chan, all_spindles):
                                         all_spindles):
 
         values = zeros(chan.n_chan)
+        n_spindles = zeros(chan.n_chan)
         for i, i_chan in enumerate(chan.chan):
-            values[i] = sum([1 for sp in spindles if sp['chan'] == i_chan.label])
+            for sp in spindles:
+                if sp['chan'] == i_chan.label:
+                    n_spindles[i] += 1
+                    values[i] += get_value(sp)
+
+        if take_mean:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                values /= n_spindles
+                values[isinf(values)] = 0
 
         xyz = chan.return_xyz()
 
@@ -52,7 +66,10 @@ def channel_count(all_subj, all_chan, all_spindles):
 
         zi = griddata(xy, values, (x_grid, y_grid), method='linear')
 
-        img = ax.imshow(zi, vmin=0, vmax=values.max(), origin='lower',
+        if v_lim is None:
+            vlim = (0, max(values))
+
+        img = ax.imshow(zi, vmin=vlim[0], vmax=vlim[1], origin='lower',
                         aspect='equal',
                         extent=[min_xy[0], max_xy[0], min_xy[1], max_xy[1]])
 
