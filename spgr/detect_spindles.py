@@ -44,7 +44,7 @@ def calc_spindle_values(subj=None, detection_options=None, ref_to_avg=None):
     all_sp = map_lsf(det_sp_in_one_epoch, iter(data),
                      queue='short',
                      variables={'detsp': detsp,
-                                'thresh': 2,
+                                'thresh': 300,
                                 'ref_to_avg': ref_to_avg},
                      imports={'numpy': 'where'})
 
