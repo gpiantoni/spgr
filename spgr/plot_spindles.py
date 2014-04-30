@@ -68,6 +68,8 @@ def topo_values(all_subj, all_chan, all_spindles, get_value, take_mean,
 
         if v_lim is None:
             vlim = (0, max(values))
+        else:
+            vlim = v_lim
 
         img = ax.imshow(zi, vmin=vlim[0], vmax=vlim[1], origin='lower',
                         aspect='equal',
