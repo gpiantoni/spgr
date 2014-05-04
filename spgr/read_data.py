@@ -5,9 +5,11 @@ from os.path import isdir, join, expanduser, basename, splitext, exists
 from pickle import dump, load
 from re import match
 
+from numpy import where
+
 from phypno import Dataset
 from phypno.attr import Scores, Channels
-from phypno.trans import Filter
+from phypno.trans import Filter, Select, Math, Montage
 
 lg = getLogger('spgr')
 
@@ -60,11 +62,23 @@ def save_wake_sleep_data(xltek_file, subj, epochs):
         hp_filt = Filter(low_cut=HP_FILTER, s_freq=data.s_freq)
         lp_filt = Filter(high_cut=LP_FILTER, s_freq=data.s_freq)
         data = lp_filt(hp_filt(data))
+        # remove bad channels
+        calc_std = Math(operator_name='std', axis='time')
+        std_per_chan = calc_std(data)
+        good_chan = where((std_per_chan(trial=0) > .001) & (std_per_chan(trial=0) < thresh))[0]
+        normal_chan = Select(chan=data.axis['chan'][0][good_chan])
 
-        pkl_file = join(subj_dir, splitext(basename(xltek_file))[0] + '_' +
-                        stage + '.pkl')
-        with open(pkl_file, 'wb') as f:
-            dump(data, f)
+        data = normal_chan(data)
+
+        for reref in ('', '_avg'):
+            if reref == '_avg':
+                reref = Montage(ref_to_avg=True)
+                data = reref(data)
+
+            pkl_file = join(subj_dir, splitext(basename(xltek_file))[0] + '_' +
+                            stage + reref + '.pkl')
+            with open(pkl_file, 'wb') as f:
+                dump(data, f)
 
 
 def read_score_per_subj(subj, save_data=False):
