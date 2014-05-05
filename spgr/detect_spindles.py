@@ -9,7 +9,6 @@ from phypno.detect import DetectSpindle
 from .read_data import DATA_DIR, REC_FOLDER, STAGES
 
 STAGE = 'sleep'
-thresh = 300
 
 
 def calc_spindle_values(subj=None, detection_options=None, ref_to_avg=None):
@@ -29,6 +28,3 @@ def calc_spindle_values(subj=None, detection_options=None, ref_to_avg=None):
 
     spindles = detsp(data)
     return spindles
-
-
-

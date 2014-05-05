@@ -5,11 +5,11 @@ from os.path import isdir, join, expanduser, basename, splitext, exists
 from pickle import dump, load
 from re import match
 
-from numpy import where
+from numpy import where, mean, std, min, max
 
 from phypno import Dataset
 from phypno.attr import Scores, Channels
-from phypno.trans import Filter, Select, Math, Montage
+from phypno.trans import Filter, Select, Math, Montage, Resample
 
 lg = getLogger('spgr')
 
@@ -28,6 +28,10 @@ MIN_EPOCHS = 60
 
 HP_FILTER = 1
 LP_FILTER = 40
+
+RESAMPLE_FREQ = 100
+
+thresh = 300
 
 
 def is_grid(label):
@@ -48,12 +52,6 @@ def save_wake_sleep_data(xltek_file, subj, epochs):
     if not isdir(subj_dir):
         makedirs(subj_dir)
 
-    # save channels used in the analysis
-    pkl_file = join(subj_dir, splitext(basename(xltek_file))[0] + '_' +
-                    'chan' + '.pkl')
-    with open(pkl_file, 'wb') as f:
-        dump(gr_chan, f)
-
     for stage, epochs_in_stage in epochs.items():
         start_time = [x['start_time'] for x in epochs_in_stage]
         end_time = [x['end_time'] for x in epochs_in_stage]
@@ -62,18 +60,34 @@ def save_wake_sleep_data(xltek_file, subj, epochs):
         hp_filt = Filter(low_cut=HP_FILTER, s_freq=data.s_freq)
         lp_filt = Filter(high_cut=LP_FILTER, s_freq=data.s_freq)
         data = lp_filt(hp_filt(data))
+
+        res = Resample(s_freq=RESAMPLE_FREQ)
+        data = res(data)
+
         # remove bad channels
         calc_std = Math(operator_name='std', axis='time')
         std_per_chan = calc_std(data)
-        good_chan = where((std_per_chan(trial=0) > .001) & (std_per_chan(trial=0) < thresh))[0]
-        normal_chan = Select(chan=data.axis['chan'][0][good_chan])
+
+        chan_val = std_per_chan(trial=0)
+        lg.debug('Channels values: m %f, std %f, min %f, max %f',
+                 mean(chan_val), std(chan_val), min(chan_val), max(chan_val))
+
+        good_chan_idx = where((chan_val > .001) & (chan_val < thresh))[0]
+        good_chan = data.axis['chan'][0][good_chan_idx]
+        normal_chan = Select(chan=good_chan)
+
+        # save channels used in the analysis
+        pkl_file = join(subj_dir, splitext(basename(xltek_file))[0] + '_' +
+                        stage + '_chan' + '.pkl')
+        with open(pkl_file, 'wb') as f:
+            dump(good_chan, f)
 
         data = normal_chan(data)
 
         for reref in ('', '_avg'):
             if reref == '_avg':
-                reref = Montage(ref_to_avg=True)
-                data = reref(data)
+                to_avg = Montage(ref_to_avg=True)
+                data = to_avg(data)
 
             pkl_file = join(subj_dir, splitext(basename(xltek_file))[0] + '_' +
                             stage + reref + '.pkl')
@@ -102,7 +116,7 @@ def read_score_per_subj(subj, save_data=False):
                 lg.info('    %s has % 5.1f min', stage_name,
                         len(epochs_in_stage) / 2.)
 
-                epochs[stage_name] = epochs_in_stage[:MIN_EPOCHS]
+                epochs[stage_name] = epochs_in_stage[:MIN_EPOCHS]  # REMOVE THIS
                 if len(epochs[stage_name]) < MIN_EPOCHS:
                     enough_epochs = False
 
@@ -118,7 +132,10 @@ def read_score_per_subj(subj, save_data=False):
 
 
 def get_chan_used_in_analysis(all_subj):
+    """If we use multiple datasets, we need to take into account, also above
+    at: dump(good_chan, f)
 
+    """
     all_chan = []
 
     for subj in all_subj:
