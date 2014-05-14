@@ -1,9 +1,10 @@
 import warnings
 
-from numpy import zeros, min, max, mean, meshgrid, linspace, NaN, isinf
+from numpy import zeros, min, max, mean, meshgrid, linspace, NaN, isinf, asarray, sum
 from scipy.interpolate import griddata
 from matplotlib.pyplot import subplots, colorbar
 
+from .stats_on_spindles import estimate_overlap
 
 SUBPLOT_ROW = 3
 SUBPLOT_COL = 2
@@ -80,3 +81,18 @@ def topo_values(all_subj, all_chan, all_spindles, get_value, take_mean,
 
         if mean(xyz[:, 0]) < 0:
             ax.invert_xaxis()
+
+
+def hist_overlap(all_subj, all_spindles):
+    f, subp = subplots(3, 2, figsize=(18, 12))
+
+    x_lim = (0, 60)
+
+    for ax, subj, spindles in zip(subp.flatten(), all_subj, all_spindles):
+        s = asarray([x['start_time'] for x in spindles])
+        e = asarray([x['end_time'] for x in spindles])
+        ov = estimate_overlap(s, e)
+        ax.hist(sum(ov, axis=1), bins=(x_lim[1] - x_lim[0]),
+                range=x_lim, align='left')
+        ax.set_title(subj)
+        ax.set_xlim(x_lim)
