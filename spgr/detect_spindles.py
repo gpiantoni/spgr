@@ -58,7 +58,9 @@ def calc_spindle_values(subj=None, detsp=None, ref_to_avg=None):
     all_sp = map_lsf(det_sp_in_one_chan, get_one_chan(data),
                      queue='short',
                      variables={'detsp': detsp})
-    return [item for sublist in all_sp for item in sublist]
+
+    sp = [item for sublist in all_sp for item in sublist]
+    return sorted(sp, key=lambda x:x['start_time'])
 
 
 def det_sp_in_one_epoch(one_trial_data=None):
