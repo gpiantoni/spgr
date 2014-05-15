@@ -6,7 +6,7 @@ from glob import glob
 from os.path import join
 from pickle import load
 
-from numpy import asarray
+from numpy import asarray, hstack
 
 from phypno.detect import DetectSpindle
 
@@ -17,13 +17,27 @@ from .read_data import DATA_DIR, REC_FOLDER, STAGES
 STAGE = 'sleep'
 
 def get_one_chan(data):
-    """This could also work but it's very slow:
+    """Generator that returns one channel at the time.
 
-    def get_one_chan(data):
-        for i, chan in enumerate(data.axis['chan'][0]):
+    Parameters
+    ----------
+    data : instance of DataTime
+        recordings with multiple channels
 
-            sel_one_chan = Select(chan=(chan, ))
-            yield sel_one_chan(data)
+    Returns
+    -------
+    instance of DataTime
+        recording of only one channel.
+
+    Notes
+    -----
+    This could also work but it's very slow:
+
+    >>> def get_one_chan(data):
+    >>>     for i, chan in enumerate(data.axis['chan'][0]):
+    >>>         sel_one_chan = Select(chan=(chan, ))
+    >>>         yield sel_one_chan(data)
+
     """
     for i_chan in range(data.number_of('chan')[0]):
         one_chan = deepcopy(data)
@@ -35,12 +49,44 @@ def get_one_chan(data):
 
 
 def det_sp_in_one_chan(data):
+    """Detect spindles in one channel. This is a convenience function for lsf.
+
+    Parameters
+    ----------
+    data : instance of DataTime
+        data of only one channel
+
+    Returns
+    -------
+    instance of Spindles
+        info about spindles, data and thresholds
+
+    """
     spindles = detsp(data)
-    return spindles.spindle
+    return spindles
 
 
-def calc_spindle_values(subj=None, detsp=None, ref_to_avg=None):
+def calc_spindle_values(subj=None, detsp=None, ref_to_avg=None, lsf=True):
+    """Detect spindles one channel in parallel with lsf.
 
+    Parameters
+    ----------
+    subj : str
+        code of patient
+    detsp : instance of DetectSpindle
+        detection parameters as DetectSpindle
+    ref_to_avg : bool
+        if true, use the data that was referenced to average.
+    lsf : bool
+        run on lsf or as normal loop
+
+    Returns
+    -------
+    dict
+        with 'spindles' (list of detected spindles), 'chan' (channel labels),
+        'mean' (mean of values used for detection)
+
+    """
     assert STAGE in STAGES.keys()
 
     subj_dir = join(DATA_DIR, subj, REC_FOLDER)
@@ -53,15 +99,30 @@ def calc_spindle_values(subj=None, detsp=None, ref_to_avg=None):
     with open(data_file, 'rb') as f:
         data = load(f)
 
-    lg.info('Subj %s, ready to submit %d jobs', subj,
-            data.number_of('chan')[0])
-    all_sp = map_lsf(det_sp_in_one_chan, get_one_chan(data),
-                     queue='short',
-                     variables={'detsp': detsp})
+    if lsf:
+        lg.info('Subj %s, ready to submit %d jobs', subj,
+                data.number_of('chan')[0])
+        all_sp = map_lsf(det_sp_in_one_chan, get_one_chan(data),
+                         queue='short',
+                         variables={'detsp': detsp})
+    else:
+        all_sp = []
+        for one_chan in get_one_chan(data):
+            spindles = detsp(data)
+            all_sp.append(spindles)
 
-    sp = [item for sublist in all_sp for item in sublist]
-    return sorted(sp, key=lambda x:x['start_time'])
+    spindles = [item for sublist in all_sp for item in sublist.spindle]
+    spindles = sorted(spindles, key=lambda x:x['start_time'])
 
+    sp = {'spindles': spindles,
+          'chan': hstack([x.chan_name for x in all_sp]),
+          'mean': hstack([x.mean for x in all_sp]),
+          'std': hstack([x.std for x in all_sp]),
+          'det_value': hstack([x.det_value for x in all_sp]),
+          'sel_value': hstack([x.sel_value for x in all_sp]),
+          }
+
+    return sp
 
 def det_sp_in_one_epoch(one_trial_data=None):
     from phypno.trans import Select, Math, Montage

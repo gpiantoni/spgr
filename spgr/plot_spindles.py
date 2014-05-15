@@ -23,8 +23,12 @@ def hist_values(all_subj, all_spindles,
                                 SUBPLOT_WIDTH * SUBPLOT_COL))
 
     for ax, subj, spindles in zip(subp.flatten(), all_subj, all_spindles):
-        value = [get_value(x) for x in spindles]
-        value = [x for x in value if x is not None]
+        if isinstance(spindles, dict):
+            value = get_value(spindles)
+        else:
+            value = [get_value(x) for x in spindles]
+            value = [x for x in value if x is not None]
+
         ax.hist(value, range=x_lim,
                 bins=(x_lim[1] - x_lim[0]) * nbin,
                 align='left')

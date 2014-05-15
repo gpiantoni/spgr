@@ -5,7 +5,7 @@ from os.path import isdir, join, expanduser, basename, splitext, exists
 from pickle import dump, load
 from re import match
 
-from numpy import where, mean, std, min, max
+from numpy import hstack, max, mean, min, std, where
 
 from phypno import Dataset
 from phypno.attr import Scores, Channels
@@ -34,69 +34,27 @@ RESAMPLE_FREQ = 100
 thresh = 300
 
 
-def is_grid(label):
-    """Determine if a channel is a grid channel based on simple heuristics."""
-    G1 = match('.*G[0-9]{1,2}$', label)
-    CING1 = match('.*CING[0-9]$', label)
-    EMG1 = match('.*EMG[0-9]$', label)
-    GR1 = match('.*GR[0-9]{1,2}$', label.upper())
-    return (G1 and not CING1 and not EMG1) or GR1
-
-
-def save_wake_sleep_data(xltek_file, subj, epochs):
-
-    d = Dataset(xltek_file)
-    gr_chan = [x for x in d.header['chan_name'] if is_grid(x)]
-
-    subj_dir = join(DATA_DIR, subj, REC_FOLDER)
-    if not isdir(subj_dir):
-        makedirs(subj_dir)
-
-    for stage, epochs_in_stage in epochs.items():
-        start_time = [x['start_time'] for x in epochs_in_stage]
-        end_time = [x['end_time'] for x in epochs_in_stage]
-        data = d.read_data(begtime=start_time, endtime=end_time, chan=gr_chan)
-
-        hp_filt = Filter(low_cut=HP_FILTER, s_freq=data.s_freq)
-        lp_filt = Filter(high_cut=LP_FILTER, s_freq=data.s_freq)
-        data = lp_filt(hp_filt(data))
-
-        res = Resample(s_freq=RESAMPLE_FREQ)
-        data = res(data)
-
-        # remove bad channels
-        calc_std = Math(operator_name='std', axis='time')
-        std_per_chan = calc_std(data)
-
-        chan_val = std_per_chan(trial=0)
-        lg.debug('Channels values: m %f, std %f, min %f, max %f',
-                 mean(chan_val), std(chan_val), min(chan_val), max(chan_val))
-
-        good_chan_idx = where((chan_val > .001) & (chan_val < thresh))[0]
-        good_chan = data.axis['chan'][0][good_chan_idx]
-        normal_chan = Select(chan=good_chan)
-
-        # save channels used in the analysis
-        pkl_file = join(subj_dir, splitext(basename(xltek_file))[0] + '_' +
-                        stage + '_chan' + '.pkl')
-        with open(pkl_file, 'wb') as f:
-            dump(good_chan, f)
-
-        data = normal_chan(data)
-
-        for reref in ('', '_avg'):
-            if reref == '_avg':
-                to_avg = Montage(ref_to_avg=True)
-                data = to_avg(data)
-
-            pkl_file = join(subj_dir, splitext(basename(xltek_file))[0] + '_' +
-                            stage + reref + '.pkl')
-            with open(pkl_file, 'wb') as f:
-                dump(data, f)
-
-
 def read_score_per_subj(subj, save_data=False):
+    """Read the data of specified stages on disk, if there are enough epochs.
 
+    Parameters
+    ----------
+    subj : str
+        subject code
+    save_data : bool
+        if data should be saved on disk
+
+    Returns
+    -------
+    str
+        path to xltek file that has enough recordings in some stages
+
+    Notes
+    -----
+    Function is not very flexible. Stages and minimal durations are hard-coded
+    in the module.
+
+    """
     score_dir = join(REC_DIR, subj, score_path)
     all_xml = listdir(score_dir)
 
@@ -129,6 +87,99 @@ def read_score_per_subj(subj, save_data=False):
                 good_xltek = xltek_file
 
     return good_xltek
+
+
+def is_grid(label):
+    """Determine if a channel is a grid channel based on simple heuristics.
+
+    Parameters
+    ----------
+    label : str
+        name of the channel
+
+    Returns
+    -------
+    bool
+        if the channel belongs to the grid or not
+
+    """
+    G1 = match('.*G[0-9]{1,2}$', label)
+    CING1 = match('.*CING[0-9]$', label)
+    EMG1 = match('.*EMG[0-9]$', label)
+    GR1 = match('.*GR[0-9]{1,2}$', label.upper())
+    return (G1 and not CING1 and not EMG1) or GR1
+
+
+def save_wake_sleep_data(xltek_file, subj, epochs):
+    """Read and save data for one recording.
+
+    Parameters
+    ----------
+    xltek_file : str
+        path to xltek file
+    subj : str
+        subject code
+    epochs : dict
+        where key is the name of the stage ('wake' or 'sleep') and the value is
+        a list of dict with 'start_time' and 'end_time'
+
+    Notes
+    -----
+    It does some basic filtering, to avoid weird effects (and so that detecting
+    the peak in the PSD is more meaningful).
+
+    We should reject channels and not analyze them if they are not good. The
+    current method for rejecting channels is very minimal. We could implement
+    methods such as those used by Nir et al. 2011.
+
+    """
+    d = Dataset(xltek_file)
+    gr_chan = [x for x in d.header['chan_name'] if is_grid(x)]
+
+    subj_dir = join(DATA_DIR, subj, REC_FOLDER)
+    if not isdir(subj_dir):
+        makedirs(subj_dir)
+
+    for stage, epochs_in_stage in epochs.items():
+        start_time = [x['start_time'] for x in epochs_in_stage]
+        end_time = [x['end_time'] for x in epochs_in_stage]
+        data = d.read_data(begtime=start_time, endtime=end_time, chan=gr_chan)
+
+        hp_filt = Filter(low_cut=HP_FILTER, s_freq=data.s_freq)
+        lp_filt = Filter(high_cut=LP_FILTER, s_freq=data.s_freq)
+        data = lp_filt(hp_filt(data))
+
+        res = Resample(s_freq=RESAMPLE_FREQ)
+        data = res(data)
+
+        # remove bad channels
+        dat = hstack(data())
+        chan_val = std(dat, axis=1)
+        lg.debug('Channels values: m %f, std %f, min %f, max %f',
+                 mean(chan_val), std(chan_val), min(chan_val), max(chan_val))
+
+        good_chan_idx = where((chan_val > .001) & (chan_val < thresh))[0]
+        good_chan = data.axis['chan'][0][good_chan_idx]
+        normal_chan = Select(chan=good_chan)
+
+        # save channels used in the analysis
+        pkl_file = join(subj_dir, splitext(basename(xltek_file))[0] + '_' +
+                        stage + '_chan' + '.pkl')
+        with open(pkl_file, 'wb') as f:
+            dump(good_chan, f)
+
+        data = normal_chan(data)
+
+        for reref in ('', '_avg'):
+            if reref == '_avg':
+                to_avg = Montage(ref_to_avg=True)
+                data = to_avg(data)
+
+            pkl_file = join(subj_dir, splitext(basename(xltek_file))[0] + '_' +
+                            stage + reref + '.pkl')
+            with open(pkl_file, 'wb') as f:
+                dump(data, f)
+
 
 
 def get_chan_used_in_analysis(all_subj):
