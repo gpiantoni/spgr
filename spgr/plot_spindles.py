@@ -1,43 +1,77 @@
 import warnings
+from tempfile import mkstemp, mkdtemp
+tmpdir = mkdtemp()
 
 from numpy import zeros, min, max, mean, meshgrid, linspace, NaN, isinf, asarray, sum
 from scipy.interpolate import griddata
-from matplotlib.pyplot import subplots, colorbar
+from visvis import subplot, figure, hist, screenshot, title
 
 from .stats_on_spindles import estimate_overlap
 
 SUBPLOT_ROW = 3
 SUBPLOT_COL = 2
 
-SUBPLOT_HEIGHT = 6
-SUBPLOT_WIDTH = 6
+SUBPLOT_HEIGHT = 400
+SUBPLOT_WIDTH = 400
 
 RESOLUTION = 200
 
+def plot_inline(fig):
+    """Easy work-around to plot figures in
 
-def hist_values(all_subj, all_spindles,
-                get_value, x_lim, nbin):
+    Parameters
+    ----------
+    fig : instance of visvis.BaseFigure
+        figure to plot inline
 
-    f, subp = subplots(SUBPLOT_ROW, SUBPLOT_COL,
-                       figsize=(SUBPLOT_HEIGHT * SUBPLOT_ROW,
-                                SUBPLOT_WIDTH * SUBPLOT_COL))
+    """
+    fig.relativeFontSize = 1
+    fig.DrawNow()
+    plot_file = mkstemp(suffix='.png', dir=tmpdir)[1]
+    screenshot(plot_file, sf=1, bg='w')
+    fig.Destroy()
 
-    for ax, subj, spindles in zip(subp.flatten(), all_subj, all_spindles):
+    return plot_file
+
+
+def hist_values(all_subj, all_spindles, get_value, x_lim):
+    """Plot an histogram of the values.
+
+    Parameters
+    ----------
+    all_subj : list of str
+        list with the name of the subjects (for the title)
+    all_spindles : list
+        it can be a list of spindles or of values
+    get_value : funct
+        function to get values from spindles or values
+    x_lim : tuple of two float
+        min and max values for the x-axis
+
+    """
+    f = figure()
+    f.position = (0, 0, SUBPLOT_HEIGHT * SUBPLOT_ROW,
+                  SUBPLOT_WIDTH * SUBPLOT_COL)
+
+    for i, spindles in enumerate(all_spindles):
+        subplot(SUBPLOT_ROW, SUBPLOT_COL, i + 1)
+
         if isinstance(spindles, dict):
             value = get_value(spindles)
         else:
             value = [get_value(x) for x in spindles]
             value = [x for x in value if x is not None]
 
-        ax.hist(value, range=x_lim,
-                bins=(x_lim[1] - x_lim[0]) * nbin,
-                align='left')
-        ax.set_title(subj)
-        ax.set_xlim(x_lim)
+        hist(value, drange=x_lim, bins=100)
+        title(all_subj[i])
+
+    return plot_inline(f)
 
 
 def topo_values(all_subj, all_chan, all_spindles, get_value, take_mean,
                 v_lim=None):
+    raise NotImplementedError('do not use matplotlib')
+
 
     f, subp = subplots(SUBPLOT_ROW, SUBPLOT_COL,
                        figsize=(SUBPLOT_HEIGHT * SUBPLOT_ROW,
@@ -88,6 +122,8 @@ def topo_values(all_subj, all_chan, all_spindles, get_value, take_mean,
 
 
 def hist_overlap(all_subj, all_spindles):
+    raise NotImplementedError('do not use matplotlib')
+
     f, subp = subplots(3, 2, figsize=(18, 12))
 
     x_lim = (0, 60)
