@@ -24,7 +24,7 @@ STAGES = {'sleep': ('NREM2', 'NREM3'),
 DATA_DIR = join(HOME, 'projects/spgr/subjects')
 
 REC_FOLDER = 'rec'
-MIN_EPOCHS = 60
+MIN_EPOCHS = 60 * 2
 
 HP_FILTER = 1
 LP_FILTER = 40
@@ -74,7 +74,7 @@ def read_score_per_subj(subj, save_data=False):
                 lg.info('    %s has % 5.1f min', stage_name,
                         len(epochs_in_stage) / 2.)
 
-                epochs[stage_name] = epochs_in_stage[:MIN_EPOCHS]  # REMOVE THIS
+                epochs[stage_name] = epochs_in_stage
                 if len(epochs[stage_name]) < MIN_EPOCHS:
                     enough_epochs = False
 
