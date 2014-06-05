@@ -181,7 +181,6 @@ def save_wake_sleep_data(xltek_file, subj, epochs):
                 dump(data, f)
 
 
-
 def get_chan_used_in_analysis(all_subj):
     """If we use multiple datasets, we need to take into account, also above
     at: dump(good_chan, f)

@@ -16,6 +16,7 @@ SUBPLOT_WIDTH = 400
 
 RESOLUTION = 200
 
+
 def plot_inline(fig):
     """Easy work-around to plot figures in
 
