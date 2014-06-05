@@ -10,11 +10,17 @@ from numpy import asarray, hstack
 
 from phypno.detect import DetectSpindle
 
-from lsf import map_lsf
+try:
+    from lsf import map_lsf
+    FORCE_LOCAL = False
+except ImportError:
+    FORCE_LOCAL = True
+    lg.info('Could not import LSF, running local jobs only')
 
 from .read_data import DATA_DIR, REC_FOLDER, STAGES
 
 STAGE = 'sleep'
+
 
 def get_one_chan(data):
     """Generator that returns one channel at the time.
@@ -99,7 +105,7 @@ def calc_spindle_values(subj=None, detsp=None, ref_to_avg=None, lsf=True):
     with open(data_file, 'rb') as f:
         data = load(f)
 
-    if lsf:
+    if lsf and not FORCE_LOCAL:
         lg.info('Subj %s, ready to submit %d jobs', subj,
                 data.number_of('chan')[0])
         all_sp = map_lsf(det_sp_in_one_chan, get_one_chan(data),
@@ -112,7 +118,7 @@ def calc_spindle_values(subj=None, detsp=None, ref_to_avg=None, lsf=True):
             all_sp.append(spindles)
 
     spindles = [item for sublist in all_sp for item in sublist.spindle]
-    spindles = sorted(spindles, key=lambda x:x['start_time'])
+    spindles = sorted(spindles, key=lambda x: x['start_time'])
 
     sp = {'spindles': spindles,
           'chan': hstack([x.chan_name for x in all_sp]),
@@ -123,6 +129,7 @@ def calc_spindle_values(subj=None, detsp=None, ref_to_avg=None, lsf=True):
           }
 
     return sp
+
 
 def det_sp_in_one_epoch(one_trial_data=None):
     from phypno.trans import Select, Math, Montage
