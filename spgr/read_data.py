@@ -33,6 +33,8 @@ RESAMPLE_FREQ = 100
 
 thresh = 300
 
+SUBSELECTION_CHAN = 5
+
 
 def read_score_per_subj(subj, save_data=False):
     """Read the data of specified stages on disk, if there are enough epochs.
@@ -160,6 +162,9 @@ def save_wake_sleep_data(xltek_file, subj, epochs):
 
         good_chan_idx = where((chan_val > .001) & (chan_val < thresh))[0]
         good_chan = data.axis['chan'][0][good_chan_idx]
+
+        good_chan = good_chan[::SUBSELECTION_CHAN]
+
         normal_chan = Select(chan=good_chan)
 
         # save channels used in the analysis

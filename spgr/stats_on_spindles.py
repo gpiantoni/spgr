@@ -24,11 +24,13 @@ def estimate_overlap(s, e):
     overlap = (s <= e.T) & (s.T <= e)
     return triu(overlap)
 
+
 def fake_dist(i, s, e):
     seed(i)
     fake_s = uniform(0, total_duration, len(s))
     fake_e = fake_s + (e - s)
     return sum(estimate_overlap(fake_s, fake_e))
+
 
 def bootstrap_overlap(all_subj, all_spindles):
     for subj, spindles in zip(all_subj, all_spindles):
