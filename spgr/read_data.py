@@ -29,11 +29,11 @@ MIN_EPOCHS = 60 * 2
 HP_FILTER = 1
 LP_FILTER = 40
 
-RESAMPLE_FREQ = 100
+RESAMPLE_FREQ = None
 
 thresh = 300
 
-SUBSELECTION_CHAN = 5
+SUBSELECTION_CHAN = 1
 
 
 def read_score_per_subj(subj, save_data=False):
@@ -108,8 +108,9 @@ def is_grid(label):
     G1 = match('.*G[0-9]{1,2}$', label)
     CING1 = match('.*CING[0-9]$', label)
     EMG1 = match('.*EMG[0-9]$', label)
+    TRIG1 = match('.*TRIG[0-9]$', label)
     GR1 = match('.*GR[0-9]{1,2}$', label.upper())
-    return (G1 and not CING1 and not EMG1) or GR1
+    return (G1 and not CING1 and not EMG1 and not TRIG1) or GR1
 
 
 def save_wake_sleep_data(xltek_file, subj, epochs):
@@ -151,8 +152,9 @@ def save_wake_sleep_data(xltek_file, subj, epochs):
         lp_filt = Filter(high_cut=LP_FILTER, s_freq=data.s_freq)
         data = lp_filt(hp_filt(data))
 
-        res = Resample(s_freq=RESAMPLE_FREQ)
-        data = res(data)
+        if RESAMPLE_FREQ is not None:
+            res = Resample(s_freq=RESAMPLE_FREQ)
+            data = res(data)
 
         # remove bad channels
         dat = hstack(data())
@@ -191,12 +193,12 @@ def get_chan_used_in_analysis(all_subj):
     at: dump(good_chan, f)
 
     """
+    SESS = 'A'
     all_chan = []
 
     for subj in all_subj:
-        chan_file = join(REC_DIR, subj, 'doc/elec/elec_pos_adjusted_renamed.csv')
-        if not exists(chan_file):
-            chan_file = join(REC_DIR, subj, 'doc/elec/elec_pos_adjusted.csv')
+        chan_file = join(REC_DIR, subj, 'doc', 'elec',
+                         subj + '_elec_pos-names_sess' + SESS + '.csv')
         chan = Channels(chan_file)
 
         subj_dir = join(DATA_DIR, subj, REC_FOLDER)
