@@ -29,7 +29,7 @@ MIN_EPOCHS = 60 * 2
 HP_FILTER = 1
 LP_FILTER = 40
 
-RESAMPLE_FREQ = None
+RESAMPLE_FREQ = 256
 
 thresh = 300
 
@@ -188,13 +188,43 @@ def save_wake_sleep_data(xltek_file, subj, epochs):
                 dump(data, f)
 
 
+def get_data(subj, ref_to_avg=False, stage='sleep'):
+    """Get the data for one subject quickly.
+
+    Parameters
+    ----------
+    subj : str
+        patient code
+    ref_to_avg : bool, optional
+        read the data which are rereferenced to the average
+    stage : str, optional
+        stage to read
+
+    Returns
+    -------
+    instance of DataTime
+
+    """
+    subj_dir = join(DATA_DIR, subj, REC_FOLDER)
+    if ref_to_avg:
+        data_file = glob(join(subj_dir, '*_' + stage + '_avg.pkl'))[0]
+    else:
+        data_file = glob(join(subj_dir, '*_' + stage + '.pkl'))[0]
+
+    lg.info('Subj %s, reading data: %s', subj, data_file)
+    with open(data_file, 'rb') as f:
+        data = load(f)
+
+    return data
+
+
 def get_chan_used_in_analysis(all_subj):
     """If we use multiple datasets, we need to take into account, also above
     at: dump(good_chan, f)
 
     """
     SESS = 'A'
-    all_chan = []
+    all_chan = {}
 
     for subj in all_subj:
         chan_file = join(REC_DIR, subj, 'doc', 'elec',
@@ -210,6 +240,6 @@ def get_chan_used_in_analysis(all_subj):
         chosen_chan = chan(lambda x: x.label in gr_chan)
         lg.info('%s analysis chan %d, with location %d',
                 subj, len(gr_chan), chosen_chan.n_chan)
-        all_chan.append(chosen_chan)
+        all_chan[subj] = chosen_chan
 
     return all_chan
