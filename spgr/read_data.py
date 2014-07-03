@@ -1,7 +1,7 @@
 from glob import glob
-from logging import getLogger
+from logging import getLogger, DEBUG
 from os import listdir, makedirs
-from os.path import isdir, join, expanduser, basename, splitext, exists
+from os.path import isdir, join, expanduser, basename, splitext
 from pickle import dump, load
 from re import match
 
@@ -9,9 +9,10 @@ from numpy import hstack, max, mean, min, std, where
 
 from phypno import Dataset
 from phypno.attr import Scores, Channels
-from phypno.trans import Filter, Select, Math, Montage, Resample
+from phypno.trans import Filter, Select, Montage, Resample
 
 lg = getLogger('spgr')
+lg.setLevel(DEBUG)
 
 HOME = expanduser('~')
 
@@ -22,6 +23,7 @@ score_path = 'doc/scores'
 STAGES = {'sleep': ('NREM2', 'NREM3'),
           }
 DATA_DIR = join(HOME, 'projects/spgr/subjects')
+GROUP_DIR = join(HOME, 'projects/spgr/group')
 
 REC_FOLDER = 'rec'
 MIN_EPOCHS = 60 * 2
@@ -36,7 +38,7 @@ thresh = 300
 SUBSELECTION_CHAN = 1
 
 
-def read_score_per_subj(subj, save_data=False):
+def read_recordings_based_on_score(subj, save_data=False):
     """Read the data of specified stages on disk, if there are enough epochs.
 
     Parameters
@@ -219,8 +221,17 @@ def get_data(subj, ref_to_avg=False, stage='sleep'):
 
 
 def get_chan_used_in_analysis(all_subj):
-    """If we use multiple datasets, we need to take into account, also above
-    at: dump(good_chan, f)
+    """Read quickly the channels used in the analysis
+
+    Parameters
+    ----------
+    all_subj : list of str
+        list of subject codes to read
+
+    Returns
+    -------
+    list of instance of Channels
+        the channels for all the patients
 
     """
     SESS = 'A'
