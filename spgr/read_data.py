@@ -220,37 +220,35 @@ def get_data(subj, ref_to_avg=False, stage='sleep'):
     return data
 
 
-def get_chan_used_in_analysis(all_subj):
+def get_chan_used_in_analysis(subj):
     """Read quickly the channels used in the analysis
 
     Parameters
     ----------
-    all_subj : list of str
-        list of subject codes to read
+    all_subj : str
+        subject code to read
 
     Returns
     -------
-    list of instance of Channels
-        the channels for all the patients
+    instance of Channels
+        the channels for the patient of interest
 
     """
     SESS = 'A'
-    all_chan = {}
 
-    for subj in all_subj:
-        chan_file = join(REC_DIR, subj, 'doc', 'elec',
-                         subj + '_elec_pos-names_sess' + SESS + '.csv')
-        chan = Channels(chan_file)
+    chan_file = join(REC_DIR, subj, 'doc', 'elec',
+                     subj + '_elec_pos-names_sess' + SESS + '.csv')
+    chan = Channels(chan_file)
 
-        subj_dir = join(DATA_DIR, subj, REC_FOLDER)
-        gr_chan_file = glob(join(subj_dir, '*_' + 'chan' + '.pkl'))[0]
+    subj_dir = join(DATA_DIR, subj, REC_FOLDER)
+    gr_chan_file = glob(join(subj_dir, '*_' + 'chan' + '.pkl'))[0]
 
-        with open(gr_chan_file, 'rb') as f:
-            gr_chan = load(f)
+    with open(gr_chan_file, 'rb') as f:
+        gr_chan = load(f)
 
-        chosen_chan = chan(lambda x: x.label in gr_chan)
-        lg.info('%s analysis chan %d, with location %d',
-                subj, len(gr_chan), chosen_chan.n_chan)
-        all_chan[subj] = chosen_chan
+    chosen_chan = chan(lambda x: x.label in gr_chan)
+    lg.info('%s analysis chan %d, with location %d',
+            subj, len(gr_chan), chosen_chan.n_chan)
+    chosen_chan
 
-    return all_chan
+    return chosen_chan
