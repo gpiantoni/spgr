@@ -8,7 +8,7 @@ from re import match
 from numpy import hstack, max, mean, min, std, where
 
 from phypno import Dataset
-from phypno.attr import Scores, Channels
+from phypno.attr import Annotations, Channels
 from phypno.trans import Filter, Select, Montage, Resample
 
 lg = getLogger('spgr')
@@ -26,7 +26,7 @@ DATA_DIR = join(HOME, 'projects/spgr/subjects')
 GROUP_DIR = join(HOME, 'projects/spgr/group')
 
 REC_FOLDER = 'rec'
-MIN_EPOCHS = 60 * 2
+MIN_DUR = 60 * 60  # at least enough sleep, in seconds
 
 HP_FILTER = 1
 LP_FILTER = 40
@@ -68,18 +68,24 @@ def read_recordings_based_on_score(subj, save_data=False):
         first_dataset = True  # save only one dataset per subject
 
         for one_xml in all_xml:
-            score = Scores(join(score_dir, one_xml))
+            score = Annotations(join(score_dir, one_xml))
 
             lg.info(one_xml)
             epochs = {}
             enough_epochs = True
             for stage_name, stages in STAGES.items():
-                epochs_in_stage = score.get_epochs(stages)
+                time_in_stage = sum(score.time_in_stage(x) for x in stages)
+
                 lg.info('    %s has % 5.1f min', stage_name,
-                        len(epochs_in_stage) / 2.)
+                        time_in_stage / 60)
+
+                epochs_in_stage = []
+                for one_epoch in score.epochs:
+                    if one_epoch['stage'] in stages:
+                        epochs_in_stage.append(one_epoch)
 
                 epochs[stage_name] = epochs_in_stage
-                if len(epochs[stage_name]) < MIN_EPOCHS:
+                if time_in_stage < MIN_DUR:
                     enough_epochs = False
 
             if enough_epochs and first_dataset:
@@ -146,8 +152,8 @@ def save_wake_sleep_data(xltek_file, subj, epochs):
         makedirs(subj_dir)
 
     for stage, epochs_in_stage in epochs.items():
-        start_time = [x['start_time'] for x in epochs_in_stage]
-        end_time = [x['end_time'] for x in epochs_in_stage]
+        start_time = [x['start'] for x in epochs_in_stage]
+        end_time = [x['end'] for x in epochs_in_stage]
         data = d.read_data(begtime=start_time, endtime=end_time, chan=gr_chan)
 
         hp_filt = Filter(low_cut=HP_FILTER, s_freq=data.s_freq)

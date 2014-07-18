@@ -10,7 +10,7 @@ from phypno.viz.plot_3d import plot_surf, plot_chan, make_movie
 from .read_data import REC_DIR, GROUP_DIR, get_chan_used_in_analysis
 
 from base64 import b64encode
-from IPython.display import HTML
+from IPython.display import HTML, Image
 
 tmpdir = mkdtemp()
 
