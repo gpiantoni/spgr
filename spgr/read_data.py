@@ -1,229 +1,391 @@
 from glob import glob
+from hashlib import md5
+from json import load as json_load
 from logging import getLogger, DEBUG
-from os import listdir, makedirs
-from os.path import isdir, join, expanduser, basename, splitext
+from os import listdir, makedirs, sep
+from os.path import isdir, join, exists, expanduser, splitext, basename
 from pickle import dump, load
-from re import match
 
-from numpy import hstack, max, mean, min, std, where
+from matplotlib.pyplot import plot, figure, subplot, xlim, ylim, ylabel
 
 from phypno import Dataset
 from phypno.attr import Annotations, Channels
-from phypno.trans import Filter, Select, Montage, Resample
+from phypno.trans import Filter, Montage, Resample
 
-lg = getLogger('spgr')
+lg = getLogger(__file__)
 lg.setLevel(DEBUG)
 
+PROJECT = 'cosp'
 HOME = expanduser('~')
 
 REC_DIR = join(HOME, 'recordings')
-xltek_path = 'eeg/raw/xltek'
-score_path = 'doc/scores'
+XLTEK_PATH = 'eeg/raw/xltek'
+SCORE_PATH = 'doc/scores'
+ELEC_PATH = 'doc/elec'
 
-STAGES = {'sleep': ('NREM2', 'NREM3'),
-          }
-DATA_DIR = join(HOME, 'projects/spgr/subjects')
-GROUP_DIR = join(HOME, 'projects/spgr/group')
+DATA_DIR = join(HOME, 'projects', PROJECT, 'subjects')
+GROUP_DIR = join(HOME, 'projects', PROJECT, 'group')
 
 REC_FOLDER = 'rec'
-MIN_DUR = 60 * 60  # at least enough sleep, in seconds
-
 HP_FILTER = 1
 LP_FILTER = 40
-
 RESAMPLE_FREQ = 256
+REREF = ''
+REC_NAME = ('{subj}_{period}_{chan_types}_hp{hp:03d}_lp{lp:03d}{reref}'
+            '_rs{resample:03d}.pkl')
 
-thresh = 300
 
-SUBSELECTION_CHAN = 1
+def select_scores(stages, duration, all_subj, choose='max'):
+    """Select subjects/nights depending on some criteria.
+
+    Parameters
+    ----------
+    stages : tuple of str
+        list of stages to analyze
+    duration : int
+        minimal duration to include an epoch, in seconds
+    all_subj : list of str
+        list of all the subjects
+    choose : str, optional
+        criterion to choose best night ('max': period with longest duration in
+        stage, 'latest': the last possible period)
+
+    Returns
+    -------
+    dict
+        where key is the subject code and the value is the path to scoring file
+        with the longest duration in the stage(s) of interest.
+
+    """
+    scores = {}
+    for subj in all_subj:
+        try:
+            scores[subj] = _select_scores_per_subj(stages, duration, subj,
+                                                   choose)
+            lg.info(subj + ' has ' + scores[subj])
+        except IndexError:
+            lg.debug(subj + ': no scored recordings')
+        except ValueError:
+            lg.info(subj + ': duration not sufficient')
+
+    return scores
 
 
-def read_recordings_based_on_score(subj, save_data=False):
-    """Read the data of specified stages on disk, if there are enough epochs.
+def save_data(subj, score_file, period_name, stages, chan_type=(),
+              hp_filter=HP_FILTER, lp_filter=LP_FILTER,
+              resample_freq=RESAMPLE_FREQ, reref=REREF, to_plot=False):
+    """Save recordings for one subject, based on some parameters
 
     Parameters
     ----------
     subj : str
         subject code
-    save_data : bool
-        if data should be saved on disk
-
-    Returns
-    -------
-    str
-        path to xltek file that has enough recordings in some stages
-
-    Notes
-    -----
-    Function is not very flexible. Stages and minimal durations are hard-coded
-    in the module.
-
-    """
-    score_dir = join(REC_DIR, subj, score_path)
-    all_xml = listdir(score_dir)
-
-    good_xltek = None
-
-    if all_xml:
-        first_dataset = True  # save only one dataset per subject
-
-        for one_xml in all_xml:
-            score = Annotations(join(score_dir, one_xml))
-
-            lg.info(one_xml)
-            epochs = {}
-            enough_epochs = True
-            for stage_name, stages in STAGES.items():
-                time_in_stage = sum(score.time_in_stage(x) for x in stages)
-
-                lg.info('    %s has % 5.1f min', stage_name,
-                        time_in_stage / 60)
-
-                epochs_in_stage = []
-                for one_epoch in score.epochs:
-                    if one_epoch['stage'] in stages:
-                        epochs_in_stage.append(one_epoch)
-
-                epochs[stage_name] = epochs_in_stage
-                if time_in_stage < MIN_DUR:
-                    enough_epochs = False
-
-            if enough_epochs and first_dataset:
-                xltek_file = join(REC_DIR, subj, xltek_path, one_xml[:-11])
-                if save_data:
-                    lg.info('Enough epochs, saving data')
-                    save_wake_sleep_data(xltek_file, subj, epochs)
-                first_dataset = False
-                good_xltek = xltek_file
-
-    return good_xltek
-
-
-def is_grid(label):
-    """Determine if a channel is a grid channel based on simple heuristics.
-
-    Parameters
-    ----------
-    label : str
-        name of the channel
-
-    Returns
-    -------
-    bool
-        if the channel belongs to the grid or not
-
-    """
-    G1 = match('.*G[0-9]{1,2}$', label)
-    CING1 = match('.*CING[0-9]$', label)
-    EMG1 = match('.*EMG[0-9]$', label)
-    TRIG1 = match('.*TRIG[0-9]$', label)
-    GR1 = match('.*GR[0-9]{1,2}$', label.upper())
-    return (G1 and not CING1 and not EMG1 and not TRIG1) or GR1
-
-
-def save_wake_sleep_data(xltek_file, subj, epochs):
-    """Read and save data for one recording.
-
-    Parameters
-    ----------
-    xltek_file : str
-        path to xltek file
-    subj : str
-        subject code
-    epochs : dict
-        where key is the name of the stage ('wake' or 'sleep') and the value is
-        a list of dict with 'start_time' and 'end_time'
+    score_file : path to file
+        file with sleep scoring and annotations
+    period_name : str
+        name of the period, used to idenfity it (not important)
+    stages : tuple of str
+        list of stages to analyze
+    hp_filter : float, optional
+        high-pass filter
+    lp_filter : float, optional
+        low-pass filter
+    resample_freq : int, optional
+        frequency to resample to
+    reref : None or str, optional
+        if data should be rereferenced to the average ('avg')
+    chan_type : tuple
+        tuple of str to select channel groups, among 'depth', 'grid', 'scalp'
+    to_plot : bool
+        if you want a plot of an epoch in the middle of the recordings
 
     Notes
     -----
-    It does some basic filtering, to avoid weird effects (and so that detecting
-    the peak in the PSD is more meaningful).
-
-    We should reject channels and not analyze them if they are not good. The
-    current method for rejecting channels is very minimal. We could implement
-    methods such as those used by Nir et al. 2011.
-
+    It saves the data to disk. The name of the file contains the parameters.
     """
-    d = Dataset(xltek_file)
-    gr_chan = [x for x in d.header['chan_name'] if is_grid(x)]
-
+    lg.info(subj + ' ' + score_file)
     subj_dir = join(DATA_DIR, subj, REC_FOLDER)
     if not isdir(subj_dir):
         makedirs(subj_dir)
 
-    for stage, epochs_in_stage in epochs.items():
-        start_time = [x['start'] for x in epochs_in_stage]
-        end_time = [x['end'] for x in epochs_in_stage]
-        data = d.read_data(begtime=start_time, endtime=end_time, chan=gr_chan)
+    xltek_file = join(REC_DIR, subj, XLTEK_PATH, score_file[:-11])
+    d = Dataset(xltek_file)
 
-        hp_filt = Filter(low_cut=HP_FILTER, s_freq=data.s_freq)
-        lp_filt = Filter(high_cut=LP_FILTER, s_freq=data.s_freq)
-        data = lp_filt(hp_filt(data))
+    score_dir = join(REC_DIR, subj, SCORE_PATH)
+    score = Annotations(join(score_dir, score_file))
+    
+    chan_file = join(REC_DIR, subj, ELEC_PATH, 
+                     basename(score_file).replace('_scores.xml', 
+                                                  '_channels.json'))
 
-        if RESAMPLE_FREQ is not None:
-            res = Resample(s_freq=RESAMPLE_FREQ)
-            data = res(data)
+    selected_chan = _select_channels(chan_file, chan_type)
+    lg.debug('Channels: ' + ', '.join(selected_chan))
 
-        # remove bad channels
-        dat = hstack(data())
-        chan_val = std(dat, axis=1)
-        lg.debug('Channels values: m %f, std %f, min %f, max %f',
-                 mean(chan_val), std(chan_val), min(chan_val), max(chan_val))
+    start_time = [x['start'] for x in score.epochs if x['stage'] in stages]
+    end_time = [x['end'] for x in score.epochs if x['stage'] in stages]
+    duration = sum([x1 - x0 for x0, x1 in zip(start_time, end_time)])
+    lg.debug('Duration: {0: 3.1f} min'.format(duration / 60))
 
-        good_chan_idx = where((chan_val > .001) & (chan_val < thresh))[0]
-        good_chan = data.axis['chan'][0][good_chan_idx]
+    data = d.read_data(begtime=start_time, endtime=end_time,
+                       chan=selected_chan)
 
-        good_chan = good_chan[::SUBSELECTION_CHAN]
+    # first re-reference, and then filter
+    if reref == 'avg':
+        to_avg = Montage(ref_to_avg=True)
+        data = to_avg(data)
+        reref = '_avg'
+    else:
+        reref = ''
 
-        normal_chan = Select(chan=good_chan)
+    if hp_filter is not None:
+        hp_filt = Filter(low_cut=hp_filter, s_freq=data.s_freq)
+        data = hp_filt(data)
 
-        # save channels used in the analysis
-        pkl_file = join(subj_dir, splitext(basename(xltek_file))[0] + '_' +
-                        stage + '_chan' + '.pkl')
-        with open(pkl_file, 'wb') as f:
-            dump(good_chan, f)
+    if lp_filter is not None:
+        lp_filt = Filter(high_cut=lp_filter, s_freq=data.s_freq)
+        data = lp_filt(data)
 
-        data = normal_chan(data)
+    if resample_freq is not None:
+        res = Resample(s_freq=resample_freq)
+        data = res(data)
 
-        for reref in ('', '_avg'):
-            if reref == '_avg':
-                to_avg = Montage(ref_to_avg=True)
-                data = to_avg(data)
+    if to_plot:
+        TRIAL = int(data.number_of('trial') / 3)
+        n_chan = data.number_of('chan')[TRIAL]
+        figure(figsize=(16, 1 * n_chan), dpi=160)
 
-            pkl_file = join(subj_dir, splitext(basename(xltek_file))[0] + '_' +
-                            stage + reref + '.pkl')
-            with open(pkl_file, 'wb') as f:
-                dump(data, f)
+        for i, chan in enumerate(data.axis['chan'][TRIAL]):
+
+            subplot(n_chan, 1, i + 1)
+            plot(data.axis['time'][TRIAL], data(trial=TRIAL, chan=chan), 'k')
+            xlim((data.axis['time'][TRIAL][0], data.axis['time'][TRIAL][-1]))
+            ylim((-200, 200))
+            ylabel(chan)
+
+    pkl_file = REC_NAME.format(subj=subj, period=period_name,
+                               hp=int(10 * hp_filter), lp=int(10 * lp_filter),
+                               reref=reref, resample=resample_freq,
+                               chan_types='-'.join(chan_type))
+
+    with open(join(subj_dir, pkl_file), 'wb') as f:
+        dump(data, f)
+
+    with open(join(subj_dir, splitext(pkl_file)[0] + '_chan.txt'), 'w') as f:
+        f.write('\n'.join(data.axis['chan'][0]))
 
 
-def get_data(subj, ref_to_avg=False, stage='sleep'):
+def list_subj(period_name, chan_type=(), hp_filter=HP_FILTER,
+              lp_filter=LP_FILTER, resample_freq=RESAMPLE_FREQ, reref=REREF):
+    """Return list of subjects matching some parameters.
+
+    Parameters
+    ----------
+    period_name : str
+        period of interest
+    chan_type : tuple of str
+        list of channel groups of interest (such as 'grid', 'depth', 'scalp')
+    hp_filter : float, optional
+        high-pass filter cutoff
+    lp_filter : float, optional
+        low-pass filter cutoff
+    resample_freq : int, optional
+        frequency used for resampling
+    reref : None or str, optional
+        if data should be rereferenced to the average ('avg')
+
+    Returns
+    -------
+    list of str
+        list of subjects with matching parameters
+    """
+    subj = '*'
+    if reref == 'avg':
+        reref = '_avg'
+    else:
+        reref = ''
+    pkl_file = REC_NAME.format(subj=subj, period=period_name,
+                               hp=int(10 * hp_filter), lp=int(10 * lp_filter),
+                               resample=resample_freq, reref=reref,
+                               chan_types=''.join(chan_type))
+    matching_files = glob(join(DATA_DIR, subj, REC_FOLDER, pkl_file))
+    all_subj = sorted([x.split(sep)[-3] for x in matching_files])
+    lg.info('SUBJECTS: ' + ', '.join(all_subj))
+
+    return all_subj
+
+
+def get_data(subj, period_name, chan_type=(), hp_filter=HP_FILTER,
+             lp_filter=LP_FILTER, resample_freq=RESAMPLE_FREQ, reref=REREF):
     """Get the data for one subject quickly.
 
     Parameters
     ----------
     subj : str
         patient code
-    ref_to_avg : bool, optional
-        read the data which are rereferenced to the average
-    stage : str, optional
-        stage to read
+
 
     Returns
     -------
     instance of DataTime
 
     """
-    subj_dir = join(DATA_DIR, subj, REC_FOLDER)
-    if ref_to_avg:
-        data_file = glob(join(subj_dir, '*_' + stage + '_avg.pkl'))[0]
+    if reref == 'avg':
+        reref = '_avg'
     else:
-        data_file = glob(join(subj_dir, '*_' + stage + '.pkl'))[0]
+        reref = ''
 
-    lg.info('Subj %s, reading data: %s', subj, data_file)
-    with open(data_file, 'rb') as f:
+    subj_dir = join(DATA_DIR, subj, REC_FOLDER)
+    pkl_file = REC_NAME.format(subj=subj, period=period_name,
+                               hp=int(10 * hp_filter), lp=int(10 * lp_filter),
+                               resample=resample_freq, reref=reref,
+                               chan_types='-'.join(chan_type))
+
+    lg.info('Subj %s, reading data: %s', subj, pkl_file)
+    with open(join(subj_dir, pkl_file), 'rb') as f:
         data = load(f)
 
     return data
+
+
+def get_hash(hp_filter=1, lp_filter=40, resample_freq=256, reref='',
+             chan_type=()):
+    """Get a (hopefully) unique code for each set of parameters. The risk of
+    coincidence is really small.
+    """
+    s = REC_NAME[16:].format(hp=int(10 * hp_filter), lp=int(10 * lp_filter),
+                             resample=resample_freq, reref=reref,
+                             chan_types='-'.join(chan_type))
+    return md5(s.encode('utf-8')).hexdigest()[:4]
+
+
+def get_chan_used_in_analysis(subj, period_name, chan_type=(),
+                              hp_filter=HP_FILTER, lp_filter=LP_FILTER,
+                              resample_freq=RESAMPLE_FREQ, reref=REREF):
+    """Read quickly the channels used in the analysis
+
+    Parameters
+    ----------
+    all_subj : str
+        subject code to read
+
+    Returns
+    -------
+    list of str
+        list of selected channels in the actual dataset
+    instance of Channels
+        the channels for the patient of interest (but they might not have all
+        the channels).
+    """
+    if reref == 'avg':
+        reref = '_avg'
+    else:
+        reref = ''
+
+    subj_dir = join(DATA_DIR, subj, REC_FOLDER)
+    pkl_file = REC_NAME.format(subj=subj, period=period_name,
+                               hp=int(10 * hp_filter), lp=int(10 * lp_filter),
+                               resample=resample_freq, reref=reref,
+                               chan_types='-'.join(chan_type))
+
+    good_chan = []
+    with open(join(subj_dir, splitext(pkl_file)[0] + '_chan.txt'), 'r') as f:
+        for one_chan in f:
+            good_chan.extend(one_chan.splitlines())
+
+    SESS = 'A'
+
+    chan_file = join(REC_DIR, subj, 'doc', 'elec',
+                     subj + '_elec_pos-names_sess' + SESS + '.csv')
+    if not exists(chan_file):
+        lg.debug('reading not-renamed electrodes')
+        chan_file = join(REC_DIR, subj, 'doc', 'elec',
+                         subj + '_elec_pos-adjusted_sess' + SESS + '.csv')
+
+    try:
+        chan = Channels(chan_file)
+
+        chosen_chan = chan(lambda x: x.label in good_chan)
+        lg.info('%s analysis chan %d, with location %d',
+                subj, len(good_chan), chosen_chan.n_chan)
+    except FileNotFoundError:
+        lg.info('No channels for xltek datasets for %s', subj)
+        chosen_chan = None
+
+    return good_chan, chosen_chan
+
+
+def _select_scores_per_subj(stages, duration, subj, choose='max'):
+    """For each subject, find the dataset with the longest stages of interest
+
+    Parameters
+    ----------
+    stages : tuple of str
+        list of stages to analyze
+    duration : int
+        minimal duration to include an epoch, in seconds
+    subj : str
+        subject code
+    choose : str, optional
+        criterion to choose best night ('max': period with longest duration in
+        stage, 'latest': the last possible period)
+
+    Returns
+    -------
+    path to file
+        scoring file with the longest duration in the stage(s) of interest.
+    """
+    score_dir = join(REC_DIR, subj, SCORE_PATH)
+    all_scores = listdir(score_dir)
+
+    if not all_scores:
+        raise IndexError('No scores files for ' + subj)
+
+    time_in_period = {}
+    for one_score in all_scores:
+        score = Annotations(join(score_dir, one_score))
+        time_in_stages = sum(score.time_in_stage(x) for x in stages)
+        lg.debug('    %s has % 5.1f min', one_score, time_in_stages / 60)
+        if time_in_stages >= duration:
+            time_in_period[one_score] = time_in_stages
+
+    if choose == 'max':
+        chosen_period = max(time_in_period, key=lambda k: time_in_period[k])
+    elif choose == 'latest':
+        # use the name to find the last one
+        chosen_period = sorted(time_in_period.keys())[-1]
+
+    return chosen_period
+
+
+def _select_channels(chan_file, chan_type):
+    """Read selected channels based on manual selection
+
+    Parameters
+    ----------
+    chan_name : path to file
+        file with the manually selected channels
+    chan_type : tuple
+        tuple of str to select channel groups, among 'depth', 'grid', 'scalp'
+
+    Returns
+    -------
+    list of str
+        list of channel labels belonging to the selected group.
+
+    """
+    with open(chan_file, 'r') as outfile:
+        groups = json_load(outfile)
+
+    chan = []
+    for chan_grp in groups:
+        if chan_grp['name'] in chan_type:
+            chan.extend(chan_grp['chan_to_plot'])
+
+    if not chan:
+        raise ValueError(', '.join(chan_type) + ' not in selection')    
+
+    return chan
+
 
 
 def get_chan_used_in_analysis(subj):
