@@ -15,7 +15,7 @@ from phypno.trans import Filter, Montage, Resample
 lg = getLogger(__file__)
 lg.setLevel(DEBUG)
 
-PROJECT = 'cosp'
+PROJECT = 'spgr'
 HOME = expanduser('~')
 
 REC_DIR = join(HOME, 'recordings')
