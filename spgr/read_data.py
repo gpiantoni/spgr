@@ -140,14 +140,20 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
     if hp_filter is not None:
         hp_filt = Filter(low_cut=hp_filter, s_freq=data.s_freq)
         data = hp_filt(data)
+    else:
+        hp_filter = 0
 
     if lp_filter is not None:
         lp_filt = Filter(high_cut=lp_filter, s_freq=data.s_freq)
         data = lp_filt(data)
+    else:
+        lp_filter = 0
 
     if resample_freq is not None:
         res = Resample(s_freq=resample_freq)
         data = res(data)
+    else:
+        resample_freq = 0
 
     if to_plot:
         TRIAL = int(data.number_of('trial') / 3)
@@ -229,11 +235,17 @@ def get_data(subj, period_name, chan_type=(), hp_filter=HP_FILTER,
     instance of DataTime
 
     """
+    if hp_filter is None:
+        hp_filter = 0
+    if lp_filter is None:
+        hp_filter = 0
+    if resample_freq is None:
+        resample_freq = 0
     if reref == 'avg':
         reref = '_avg'
     else:
         reref = ''
-
+        
     subj_dir = join(DATA_DIR, subj, REC_FOLDER)
     pkl_file = REC_NAME.format(subj=subj, period=period_name,
                                hp=int(10 * hp_filter), lp=int(10 * lp_filter),
