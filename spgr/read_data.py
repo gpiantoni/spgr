@@ -22,6 +22,7 @@ REC_DIR = join(HOME, 'recordings')
 XLTEK_PATH = 'eeg/raw/xltek'
 SCORE_PATH = 'doc/scores'
 ELEC_PATH = 'doc/elec'
+FS_PATH = 'mri/proc/freesurfer'
 
 DATA_DIR = join(HOME, 'projects', PROJECT, 'subjects')
 GROUP_DIR = join(HOME, 'projects', PROJECT, 'group')
@@ -113,9 +114,9 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
 
     score_dir = join(REC_DIR, subj, SCORE_PATH)
     score = Annotations(join(score_dir, score_file))
-    
-    chan_file = join(REC_DIR, subj, ELEC_PATH, 
-                     basename(score_file).replace('_scores.xml', 
+
+    chan_file = join(REC_DIR, subj, ELEC_PATH,
+                     basename(score_file).replace('_scores.xml',
                                                   '_channels.json'))
 
     selected_chan = _select_channels(chan_file, chan_type)
@@ -245,7 +246,7 @@ def get_data(subj, period_name, chan_type=(), hp_filter=HP_FILTER,
         reref = '_avg'
     else:
         reref = ''
-        
+
     subj_dir = join(DATA_DIR, subj, REC_FOLDER)
     pkl_file = REC_NAME.format(subj=subj, period=period_name,
                                hp=int(10 * hp_filter), lp=int(10 * lp_filter),
@@ -394,7 +395,7 @@ def _select_channels(chan_file, chan_type):
             chan.extend(chan_grp['chan_to_plot'])
 
     if not chan:
-        raise ValueError(', '.join(chan_type) + ' not in selection')    
+        raise ValueError(', '.join(chan_type) + ' not in selection')
 
     return chan
 
