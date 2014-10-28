@@ -64,7 +64,7 @@ def det_sp_in_one_chan(data):
     return spindles
 
 
-def calc_spindle_values(data, detsp=None, lsf=True):
+def calc_spindle_values(data, detsp=None, parallel='lsf'):
     """Detect spindles one channel in parallel with lsf.
 
     Parameters
@@ -73,8 +73,8 @@ def calc_spindle_values(data, detsp=None, lsf=True):
         data with the recordings
     detsp : instance of DetectSpindle
         detection parameters as DetectSpindle
-    lsf : bool
-        run on lsf or as normal loop
+    parallel : str
+        run on lsf ('lsf'), as parallel ('pool') or as normal loop ('map')
 
     Returns
     -------
@@ -83,13 +83,16 @@ def calc_spindle_values(data, detsp=None, lsf=True):
         'mean' (mean of values used for detection)
 
     """
-    if lsf and not FORCE_LOCAL:
+    if parallel == 'lsf' and not FORCE_LOCAL:
         all_sp = map_lsf(det_sp_in_one_chan, get_one_chan(data),
                          queue='short',
                          variables={'detsp': detsp})
-    else:
+    elif parallel == 'pool':
         with Pool() as p:
             all_sp = p.map(detsp, get_one_chan(data))
+    else:
+        all_sp = list(map(detsp, get_one_chan(data)))
+
 
     spindles = [item for sublist in all_sp for item in sublist.spindle]
     spindles = sorted(spindles, key=lambda x: x['start_time'])
