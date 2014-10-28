@@ -2,9 +2,7 @@ from logging import getLogger
 lg = getLogger('spgr')
 
 from copy import deepcopy
-from glob import glob
-from os.path import join
-from pickle import load
+from multiprocessing import Pool
 
 from numpy import asarray, hstack
 
@@ -14,10 +12,6 @@ try:
 except ImportError:
     FORCE_LOCAL = True
     lg.info('Could not import LSF, running local jobs only')
-
-from .read_data import DATA_DIR, REC_FOLDER, STAGES
-
-STAGE = 'sleep'
 
 
 def get_one_chan(data):
@@ -70,17 +64,15 @@ def det_sp_in_one_chan(data):
     return spindles
 
 
-def calc_spindle_values(subj=None, detsp=None, ref_to_avg=None, lsf=True):
+def calc_spindle_values(data, detsp=None, lsf=True):
     """Detect spindles one channel in parallel with lsf.
 
     Parameters
     ----------
-    subj : str
-        code of patient
+    data : instance of DataTime
+        data with the recordings
     detsp : instance of DetectSpindle
         detection parameters as DetectSpindle
-    ref_to_avg : bool
-        if true, use the data that was referenced to average.
     lsf : bool
         run on lsf or as normal loop
 
@@ -91,29 +83,13 @@ def calc_spindle_values(subj=None, detsp=None, ref_to_avg=None, lsf=True):
         'mean' (mean of values used for detection)
 
     """
-    assert STAGE in STAGES.keys()
-
-    subj_dir = join(DATA_DIR, subj, REC_FOLDER)
-    if ref_to_avg:
-        data_file = glob(join(subj_dir, '*_' + STAGE + '_avg.pkl'))[0]
-    else:
-        data_file = glob(join(subj_dir, '*_' + STAGE + '.pkl'))[0]
-
-    lg.info('Subj %s, reading data: %s', subj, data_file)
-    with open(data_file, 'rb') as f:
-        data = load(f)
-
     if lsf and not FORCE_LOCAL:
-        lg.info('Subj %s, ready to submit %d jobs', subj,
-                data.number_of('chan')[0])
         all_sp = map_lsf(det_sp_in_one_chan, get_one_chan(data),
                          queue='short',
                          variables={'detsp': detsp})
     else:
-        all_sp = []
-        for one_chan in get_one_chan(data):
-            spindles = detsp(data)
-            all_sp.append(spindles)
+        with Pool() as p:
+            all_sp = p.map(detsp, get_one_chan(data))
 
     spindles = [item for sublist in all_sp for item in sublist.spindle]
     spindles = sorted(spindles, key=lambda x: x['start_time'])
