@@ -5,7 +5,7 @@ from numpy import mean
 from visvis import colorbar, CM_HOT
 
 from phypno.attr import Freesurfer
-from phypno.viz.plot_3d import plot_surf, plot_chan, make_movie
+# from phypno.viz.plot_3d import plot_surf, plot_chan, make_movie
 
 from .read_data import REC_DIR, GROUP_DIR, get_chan_used_in_analysis
 
