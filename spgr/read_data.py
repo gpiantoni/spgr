@@ -289,6 +289,12 @@ def get_chan_used_in_analysis(subj, period_name, chan_type=(),
         the channels for the patient of interest (but they might not have all
         the channels).
     """
+    if hp_filter is None:
+        hp_filter = 0
+    if lp_filter is None:
+        hp_filter = 0
+    if resample_freq is None:
+        resample_freq = 0
     if reref == 'avg':
         reref = '_avg'
     else:
@@ -398,38 +404,3 @@ def _select_channels(chan_file, chan_type):
         raise ValueError(', '.join(chan_type) + ' not in selection')
 
     return chan
-
-
-
-def get_chan_used_in_analysis(subj):
-    """Read quickly the channels used in the analysis
-
-    Parameters
-    ----------
-    all_subj : str
-        subject code to read
-
-    Returns
-    -------
-    instance of Channels
-        the channels for the patient of interest
-
-    """
-    SESS = 'A'
-
-    chan_file = join(REC_DIR, subj, 'doc', 'elec',
-                     subj + '_elec_pos-names_sess' + SESS + '.csv')
-    chan = Channels(chan_file)
-
-    subj_dir = join(DATA_DIR, subj, REC_FOLDER)
-    gr_chan_file = glob(join(subj_dir, '*_' + 'chan' + '.pkl'))[0]
-
-    with open(gr_chan_file, 'rb') as f:
-        gr_chan = load(f)
-
-    chosen_chan = chan(lambda x: x.label in gr_chan)
-    lg.info('%s analysis chan %d, with location %d',
-            subj, len(gr_chan), chosen_chan.n_chan)
-    chosen_chan
-
-    return chosen_chan
