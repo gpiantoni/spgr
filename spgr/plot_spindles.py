@@ -1,4 +1,4 @@
-from os.path import join, splitext
+from os.path import join, splitext, exists
 from tempfile import mkstemp, mkdtemp
 
 from numpy import mean
@@ -167,18 +167,22 @@ def show_movies(movies):
 
     for movie_file in movies:
 
+        options = 'controls width="520"'
+
+        video_tag = '<video ' + options
+        poster_file = splitext(movie_file)[0] + '_poster.jpg'
+        if exists(poster_file):
+            with open(poster_file, "rb") as f:
+                img = f.read()
+            poster_encoded = b64encode(img).decode('ascii')
+            video_tag += (' poster="data:image/png;base64,{1}"'
+                          ''.format(poster_encoded))
+        video_tag += '>'
+
         with open(movie_file, "rb") as f:
             video = f.read()
         video_encoded = b64encode(video).decode('ascii')
 
-        poster_file = splitext(movie_file)[0] + '_poster.jpg'
-        with open(poster_file, "rb") as f:
-            img = f.read()
-        poster_encoded = b64encode(img).decode('ascii')
-
-        options = 'controls width="520"'
-        video_tag = ('<video {0} poster="data:image/png;base64,{1}">'
-                     ''.format(options, poster_encoded))
         source_tag = ('<source src="data:video/mp4;base64,{0}" />'
                       ''.format(video_encoded))
 
