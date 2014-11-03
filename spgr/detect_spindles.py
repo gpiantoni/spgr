@@ -6,6 +6,9 @@ from multiprocessing import Pool
 
 from numpy import asarray, hstack
 
+from phypno.graphoelement import Spindles
+
+
 try:
     from lsf import map_lsf
     FORCE_LOCAL = False
@@ -93,16 +96,15 @@ def calc_spindle_values(data, detsp=None, parallel='lsf'):
     else:
         all_sp = list(map(detsp, get_one_chan(data)))
 
-
     spindles = [item for sublist in all_sp for item in sublist.spindle]
     spindles = sorted(spindles, key=lambda x: x['start_time'])
 
-    sp = {'spindles': spindles,
-          'chan': hstack([x.chan_name for x in all_sp]),
-          'mean': hstack([x.mean for x in all_sp]),
-          'std': hstack([x.std for x in all_sp]),
-          'det_value': hstack([x.det_value for x in all_sp]),
-          'sel_value': hstack([x.sel_value for x in all_sp]),
-          }
+    sp = Spindles()
+    sp.spindle = spindles
+    sp.chan_name = hstack([x.chan_name for x in all_sp])
+    sp.mean = hstack([x.mean for x in all_sp])
+    sp.std = hstack([x.std for x in all_sp])
+    sp.det_value = hstack([x.det_value for x in all_sp])
+    sp.sel_value = hstack([x.sel_value for x in all_sp])
 
     return sp
