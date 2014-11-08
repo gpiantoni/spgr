@@ -1,20 +1,21 @@
 from os.path import join, splitext, exists
 from tempfile import mkstemp, mkdtemp
 
-from numpy import mean
-from visvis import colorbar, CM_HOT
+from matplotlib.pyplot import bar
+from numpy import mean, asarray, sum, where, diff, r_, histogram, arange
+from visvis import colorbar, CM_HOT, subplot, figure, hist, screenshot, title
 
 from phypno.attr import Freesurfer
 # from phypno.viz.plot_3d import plot_surf, plot_chan, make_movie
 
 from .read_data import REC_DIR, GROUP_DIR, get_chan_used_in_analysis
+from .stats_on_spindles import estimate_overlap
 
 from base64 import b64encode
 from IPython.display import HTML, Image
 
 tmpdir = mkdtemp()
 
-from visvis import subplot, figure, hist, screenshot, title
 
 SUBPLOT_ROW = 3
 SUBPLOT_COL = 2
@@ -189,3 +190,29 @@ def show_movies(movies):
         all_tags.append(video_tag + source_tag + '</video>')
 
     return '\n'.join(all_tags)
+
+
+def hist_overlap(spindles, width=2, nchan=70):
+
+    s = asarray([x['start_time'] for x in spindles.spindle])
+    e = asarray([x['end_time'] for x in spindles.spindle])
+    ov = estimate_overlap(s, e)
+    x = sum(ov, axis=1)
+
+    v = diff(r_[1, where(x == 1)[0]])
+
+    hist = arange(0, nchan, width)
+    h0, h1 = histogram(v, hist)
+    bar(h1[:-1], h0, width=width)
+
+
+def hist_overlap2(spindles, width=2, nchan=70):
+
+    s = asarray([x['start_time'] for x in spindles.spindle])
+    e = asarray([x['end_time'] for x in spindles.spindle])
+    ov = estimate_overlap(s, e)
+    x = sum(ov | ov.T, axis=1)
+
+    hist = arange(0, nchan, width)
+    h0, h1 = histogram(x, hist)
+    bar(h1[:-1], h0, width=width)
