@@ -202,8 +202,7 @@ def hist_overlap(spindles, width=2, nchan=70):
     v = diff(r_[1, where(x == 1)[0]])
 
     hist = arange(0, nchan, width)
-    h0, h1 = histogram(v, hist)
-    bar(h1[:-1], h0, width=width)
+    return histogram(v, hist)
 
 
 def hist_overlap2(spindles, width=2, nchan=70):
