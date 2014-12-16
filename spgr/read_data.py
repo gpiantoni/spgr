@@ -6,11 +6,11 @@ from os import listdir, makedirs, sep
 from os.path import isdir, join, exists, expanduser, splitext, basename
 from pickle import dump, load
 
-from matplotlib.pyplot import plot, figure, subplot, xlim, ylim, ylabel
-
 from phypno import Dataset
 from phypno.attr import Annotations, Channels
 from phypno.trans import Filter, Montage, Resample
+from phypno.viz import Viz1
+
 
 lg = getLogger(__file__)
 lg.setLevel(DEBUG)
@@ -158,16 +158,8 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
 
     if to_plot:
         TRIAL = int(data.number_of('trial') / 3)
-        n_chan = data.number_of('chan')[TRIAL]
-        figure(figsize=(16, 1 * n_chan), dpi=160)
-
-        for i, chan in enumerate(data.axis['chan'][TRIAL]):
-
-            subplot(n_chan, 1, i + 1)
-            plot(data.axis['time'][TRIAL], data(trial=TRIAL, chan=chan), 'k')
-            xlim((data.axis['time'][TRIAL][0], data.axis['time'][TRIAL][-1]))
-            ylim((-200, 200))
-            ylabel(chan)
+        v = Viz1()  # size depends on n of channels
+        v.add_data(data, trial=TRIAL, limits_y=(-100, 100), grid=False)
 
     pkl_file = REC_NAME.format(subj=subj, period=period_name,
                                hp=int(10 * hp_filter), lp=int(10 * lp_filter),
@@ -179,6 +171,8 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
 
     with open(join(subj_dir, splitext(pkl_file)[0] + '_chan.txt'), 'w') as f:
         f.write('\n'.join(data.axis['chan'][0]))
+
+    return v
 
 
 def list_subj(period_name, chan_type=(), hp_filter=HP_FILTER,
