@@ -111,6 +111,7 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
 
     xltek_file = join(REC_DIR, subj, XLTEK_PATH, score_file[:-11])
     d = Dataset(xltek_file)
+    lg.info('Sampling Frequency {} Hz '.format(d.header['s_freq']))
 
     score_dir = join(REC_DIR, subj, SCORE_PATH)
     score = Annotations(join(score_dir, score_file))
@@ -120,12 +121,13 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
                                                   '_channels.json'))
 
     selected_chan = _select_channels(chan_file, chan_type)
+    lg.info('N Channels {} '.format(len(selected_chan)))
     lg.debug('Channels: ' + ', '.join(selected_chan))
 
     start_time = [x['start'] for x in score.epochs if x['stage'] in stages]
     end_time = [x['end'] for x in score.epochs if x['stage'] in stages]
     duration = sum([x1 - x0 for x0, x1 in zip(start_time, end_time)])
-    lg.debug('Duration: {0: 3.1f} min'.format(duration / 60))
+    lg.info('Duration: {0: 3.1f} min'.format(duration / 60))
 
     data = d.read_data(begtime=start_time, endtime=end_time,
                        chan=selected_chan)
@@ -156,10 +158,11 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
     else:
         resample_freq = 0
 
+    v = None
     if to_plot:
         TRIAL = int(data.number_of('trial') / 3)
         v = Viz1()  # size depends on n of channels
-        v.add_data(data, trial=TRIAL, limits_y=(-100, 100), grid=False)
+        v.add_data(data, trial=TRIAL, limits_y=(-100, 100))
 
     pkl_file = REC_NAME.format(subj=subj, period=period_name,
                                hp=int(10 * hp_filter), lp=int(10 * lp_filter),
