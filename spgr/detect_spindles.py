@@ -3,11 +3,15 @@ lg = getLogger('spgr')
 
 from copy import deepcopy
 from multiprocessing import Pool
+from os.path import exists, join
+from pickle import load, dump
 
 from numpy import asarray, hstack
-
 from phypno.graphoelement import Spindles
 
+from .read_data import GROUP_DIR
+
+SPINDLE_DIR = join(GROUP_DIR, 'detected_spindles')
 
 try:
     from lsf import map_lsf
@@ -15,6 +19,36 @@ try:
 except ImportError:
     FORCE_LOCAL = True
     lg.info('Could not import LSF, running local jobs only')
+
+
+def get_spindles(subj, method='Nir2001', frequency=(9, 16), duration=(0.5, 2),
+                 reref=None, resample_freq=None, hp_filter=None,
+                 lp_filter=None):
+
+    spindle_name = ('spindles_{subj}_{method}_{frequency[0]}-{frequency[1]}Hz_'
+                    '{duration[0]}-{duration[1]}s_{reref}_{resample_freq}_'
+                    '{hp_filter}-{lp_filter}Hz.pkl'.format(**locals()))
+
+    if exists(join(SPINDLE_DIR, spindle_name)):
+        with open(join(SPINDLE_DIR, spindle_name), 'rb') as f:
+            spindles = load(f)
+
+    else:
+        detsp = DetectSpindle(method=method, frequency=frequency,
+                              duration=duration)
+        data = get_data(subj, 'sleep', ('grid', ), reref=None,
+                        resample_freq=None, hp_filter=None, lp_filter=None)
+
+        spindles = calc_spindle_values(data, detsp, parallel='pool')
+        spindles = spindles(lambda x: frequency[0] <= x['peak_freq'] <= frequency[1])
+
+
+    return spindles
+
+
+
+
+
 
 
 def get_one_chan(data):
