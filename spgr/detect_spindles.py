@@ -3,15 +3,18 @@ lg = getLogger('spgr')
 
 from copy import deepcopy
 from multiprocessing import Pool
+from os import makedirs
 from os.path import exists, join
 from pickle import load, dump
 
 from numpy import asarray, hstack
+from phypno.detect import DetectSpindle
 from phypno.graphoelement import Spindles
 
-from .read_data import GROUP_DIR
+from .read_data import GROUP_DIR, get_data
 
 SPINDLE_DIR = join(GROUP_DIR, 'detected_spindles')
+makedirs(SPINDLE_DIR, exist_ok=True)
 
 try:
     from lsf import map_lsf
@@ -21,7 +24,7 @@ except ImportError:
     lg.info('Could not import LSF, running local jobs only')
 
 
-def get_spindles(subj, method='Nir2001', frequency=(9, 16), duration=(0.5, 2),
+def get_spindles(subj, method='Nir2011', frequency=(9, 16), duration=(0.5, 2),
                  reref=None, resample_freq=None, hp_filter=None,
                  lp_filter=None):
 
@@ -29,26 +32,25 @@ def get_spindles(subj, method='Nir2001', frequency=(9, 16), duration=(0.5, 2),
                     '{duration[0]}-{duration[1]}s_{reref}_{resample_freq}_'
                     '{hp_filter}-{lp_filter}Hz.pkl'.format(**locals()))
 
-    if exists(join(SPINDLE_DIR, spindle_name)):
-        with open(join(SPINDLE_DIR, spindle_name), 'rb') as f:
+    spindle_file = join(SPINDLE_DIR, spindle_name)
+    if exists(spindle_file):
+        with open(spindle_file, 'rb') as f:
             spindles = load(f)
 
     else:
         detsp = DetectSpindle(method=method, frequency=frequency,
                               duration=duration)
-        data = get_data(subj, 'sleep', ('grid', ), reref=None,
-                        resample_freq=None, hp_filter=None, lp_filter=None)
+        data = get_data(subj, 'sleep', ('grid', ), reref=reref,
+                        resample_freq=resample_freq, hp_filter=hp_filter,
+                        lp_filter=lp_filter)
 
         spindles = calc_spindle_values(data, detsp, parallel='pool')
         spindles = spindles(lambda x: frequency[0] <= x['peak_freq'] <= frequency[1])
 
+        with open(spindle_file, 'wb') as f:
+            dump(spindles, f)
 
     return spindles
-
-
-
-
-
 
 
 def get_one_chan(data):
