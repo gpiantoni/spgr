@@ -19,6 +19,7 @@ PROJECT = 'spgr'
 HOME = expanduser('~')
 
 REC_DIR = join(HOME, 'recordings')
+REC_DIR = join(HOME, 'projects/spgr/subjects')  # only at UCSD
 XLTEK_PATH = 'eeg/raw/xltek'
 SCORE_PATH = 'doc/scores'
 ELEC_PATH = 'doc/elec'
@@ -305,10 +306,8 @@ def get_chan_used_in_analysis(subj, period_name, chan_type=(),
         hp_filter = 0
     if resample_freq is None:
         resample_freq = 0
-    if reref == 'avg':
-        reref = '_avg'
-    else:
-        reref = ''
+
+    reref = ''
 
     subj_dir = join(DATA_DIR, subj, REC_FOLDER)
     pkl_file = REC_NAME.format(subj=subj, period=period_name,
@@ -337,7 +336,7 @@ def get_chan_used_in_analysis(subj, period_name, chan_type=(),
         lg.info('%s analysis chan %d, with location %d',
                 subj, len(good_chan), chosen_chan.n_chan)
     except FileNotFoundError:
-        lg.info('No channels for xltek datasets for %s', subj)
+        lg.info('Could not read file %s', chan_file)
         chosen_chan = None
 
     return good_chan, chosen_chan
