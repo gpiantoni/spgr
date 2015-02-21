@@ -240,20 +240,32 @@ def get_data(subj, period_name, chan_type=(), hp_filter=HP_FILTER,
         hp_filter = 0
     if resample_freq is None:
         resample_freq = 0
-    if reref == 'avg':
-        reref = '_avg'
-    else:
-        reref = ''
 
     subj_dir = join(DATA_DIR, subj, REC_FOLDER)
     pkl_file = REC_NAME.format(subj=subj, period=period_name,
                                hp=int(10 * hp_filter), lp=int(10 * lp_filter),
-                               resample=resample_freq, reref=reref,
+                               resample=resample_freq,
+                               reref='',  # no reref, we do it online here
                                chan_types='-'.join(chan_type))
 
     lg.info('Subj %s, reading data: %s', subj, pkl_file)
     with open(join(subj_dir, pkl_file), 'rb') as f:
         data = load(f)
+
+    chan = get_chan_used_in_analysis(subj, 'sleep', chan_type, reref='',
+                                     resample_freq=resample_freq,
+                                     hp_filter=hp_filter,
+                                     lp_filter=lp_filter )[1]
+    data.attr['chan'] = chan
+
+    if reref == 'avg':
+        montage = Montage(ref_to_avg=True)
+    elif isinstance(reref, int):
+        montage = Montage(bipolar=reref)
+    else:
+        montage = lambda x: x
+
+    data = montage(data)
 
     return data
 
