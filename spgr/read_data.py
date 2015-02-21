@@ -164,6 +164,7 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
         v = Viz1()  # size depends on n of channels
         v.add_data(data, trial=TRIAL, limits_y=(-100, 100))
 
+
     pkl_file = REC_NAME.format(subj=subj, period=period_name,
                                hp=int(10 * hp_filter), lp=int(10 * lp_filter),
                                reref=reref, resample=resample_freq,
