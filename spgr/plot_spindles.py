@@ -1,6 +1,15 @@
-from numpy import asarray, sum, where, diff, r_, histogram, arange
+from copy import deepcopy
+from numpy import asarray, sum, where, diff, r_, histogram, arange, NaN, nanmean, mean, isnan
+
+from phypno.attr import Freesurfer
+from phypno.viz import Viz3
 
 from .stats_on_spindles import estimate_overlap
+
+
+fs = Freesurfer('/home/gpiantoni/projects/spgr/subjects/EM09/mri/proc/fsaverage')
+surf_avg = fs.read_surf('rh', 'pial')
+freesurfer_right_hemi = 163842
 
 
 def hist_overlap(spindles, width=2, nchan=70):
@@ -14,3 +23,41 @@ def hist_overlap(spindles, width=2, nchan=70):
 
     hist = arange(0, nchan, width)
     return histogram(v, hist)
+
+
+def plot_surf(all_values, threshold=(None, None), limits=(0, 2)):
+    """Plot values onto the surface.
+
+    Parameters
+    ----------
+    all_values : list of Data
+        values for each subject
+    threshold : tuple of 2 float or of None
+        low and high thresholds to include the values
+    limits : tuple of 2 floats
+        values used for color scaling
+
+    Returns
+    -------
+    instance of Viz3
+        plot with the surfaces
+    """
+    for x in all_values:
+        if threshold[0]:
+            x.data[0][x.data[0] < threshold[0]] = NaN
+        if threshold[1]:
+            x.data[0][x.data[0] > threshold[1]] = NaN
+
+    avg_count = deepcopy(all_values[0])
+    avg_count.data[0] = nanmean(asarray([x.data[0] for x in all_values]), axis=0)
+
+    # apply some quick smoothing (but rather strong, useful to avoid the clown fish effect)
+    values = avg_count(trial=0)[freesurfer_right_hemi:].copy()
+    for one_tri in surf_avg.tri:
+        if not any(isnan(values[one_tri])):
+            values[one_tri] = mean(values[one_tri])
+
+    v = Viz3()
+    v.add_surf(surf_avg, values=values, limits_c=limits, color=(.2, .2, .2))
+
+    return v
