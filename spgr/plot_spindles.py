@@ -59,5 +59,6 @@ def plot_surf(all_values, threshold=(None, None), limits=(0, 2)):
 
     v = Viz3()
     v.add_surf(surf_avg, values=values, limits_c=limits, color=(.2, .2, .2))
+    v._widget.opts.update({'elevation': 15, 'azimuth': 17})
 
     return v
