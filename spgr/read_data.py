@@ -19,7 +19,6 @@ PROJECT = 'spgr'
 HOME = expanduser('~')
 
 REC_DIR = join(HOME, 'recordings')
-REC_DIR = join(HOME, 'projects/spgr/subjects')  # only at UCSD
 XLTEK_PATH = 'eeg/raw/xltek'
 SCORE_PATH = 'doc/scores'
 ELEC_PATH = 'doc/elec'
@@ -33,8 +32,7 @@ HP_FILTER = 1
 LP_FILTER = 40
 RESAMPLE_FREQ = 256
 REREF = ''
-REC_NAME = ('{subj}_{period}_{chan_types}_hp{hp:03d}_lp{lp:03d}{reref}'
-            '_rs{resample:03d}.pkl')
+REC_NAME = ('{subj}_{period}_{chan_types}_hp{hp:03d}_rs{resample:03d}.pkl')
 
 
 def select_scores(stages, duration, all_subj, choose='max'):
@@ -75,7 +73,7 @@ def select_scores(stages, duration, all_subj, choose='max'):
 
 def save_data(subj, score_file, period_name, stages, chan_type=(),
               hp_filter=HP_FILTER, lp_filter=LP_FILTER,
-              resample_freq=RESAMPLE_FREQ, reref=REREF, to_plot=False):
+              resample_freq=RESAMPLE_FREQ, to_plot=False):
     """Save recordings for one subject, based on some parameters
 
     Parameters
@@ -94,8 +92,6 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
         low-pass filter
     resample_freq : int, optional
         frequency to resample to
-    reref : None or str, optional
-        if data should be rereferenced to the average ('avg')
     chan_type : tuple
         tuple of str to select channel groups, among 'depth', 'grid', 'scalp'
     to_plot : bool
@@ -133,14 +129,6 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
     data = d.read_data(begtime=start_time, endtime=end_time,
                        chan=selected_chan)
 
-    # first re-reference, and then filter
-    if reref == 'avg':
-        to_avg = Montage(ref_to_avg=True)
-        data = to_avg(data)
-        reref = '_avg'
-    else:
-        reref = ''
-
     if hp_filter is not None:
         hp_filt = Filter(low_cut=hp_filter, s_freq=data.s_freq)
         data = hp_filt(data)
@@ -165,10 +153,9 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
         v = Viz1()  # size depends on n of channels
         v.add_data(data, trial=TRIAL, limits_y=(-100, 100))
 
-
     pkl_file = REC_NAME.format(subj=subj, period=period_name,
                                hp=int(10 * hp_filter), lp=int(10 * lp_filter),
-                               reref=reref, resample=resample_freq,
+                               resample=resample_freq,
                                chan_types='-'.join(chan_type))
 
     with open(join(subj_dir, pkl_file), 'wb') as f:
@@ -256,7 +243,7 @@ def get_data(subj, period_name, chan_type=(), hp_filter=HP_FILTER,
     chan = get_chan_used_in_analysis(subj, 'sleep', chan_type, reref='',
                                      resample_freq=resample_freq,
                                      hp_filter=hp_filter,
-                                     lp_filter=lp_filter )[1]
+                                     lp_filter=lp_filter)[1]
     data.attr['chan'] = chan
 
     if reref == 'avg':
@@ -269,17 +256,6 @@ def get_data(subj, period_name, chan_type=(), hp_filter=HP_FILTER,
     data = montage(data)
 
     return data
-
-
-def get_hash(hp_filter=1, lp_filter=40, resample_freq=256, reref='',
-             chan_type=()):
-    """Get a (hopefully) unique code for each set of parameters. The risk of
-    coincidence is really small.
-    """
-    s = REC_NAME[16:].format(hp=int(10 * hp_filter), lp=int(10 * lp_filter),
-                             resample=resample_freq, reref=reref,
-                             chan_types='-'.join(chan_type))
-    return md5(s.encode('utf-8')).hexdigest()[:4]
 
 
 def get_chan_used_in_analysis(subj, period_name, chan_type=(),
