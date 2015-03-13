@@ -1,5 +1,4 @@
 from glob import glob
-from hashlib import md5
 from json import load as json_load
 from logging import getLogger, DEBUG
 from os import listdir, makedirs, sep
@@ -32,7 +31,8 @@ HP_FILTER = 1
 LP_FILTER = 40
 RESAMPLE_FREQ = 256
 REREF = ''
-REC_NAME = ('{subj}_{period}_{chan_types}_hp{hp:03d}_rs{resample:03d}.pkl')
+REC_NAME = ('{subj}_{period}_{chan_types}_hp{hp:03d}_lp{lp:03d}_'
+            'rs{resample:03d}.pkl')
 
 
 def select_scores(stages, duration, all_subj, choose='max'):
@@ -233,7 +233,6 @@ def get_data(subj, period_name, chan_type=(), hp_filter=HP_FILTER,
     pkl_file = REC_NAME.format(subj=subj, period=period_name,
                                hp=int(10 * hp_filter), lp=int(10 * lp_filter),
                                resample=resample_freq,
-                               reref='',  # no reref, we do it online here
                                chan_types='-'.join(chan_type))
 
     lg.info('Subj %s, reading data: %s', subj, pkl_file)
