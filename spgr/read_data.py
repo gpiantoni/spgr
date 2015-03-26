@@ -168,7 +168,7 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
 
 
 def list_subj(period_name, chan_type=(), hp_filter=HP_FILTER,
-              lp_filter=LP_FILTER, resample_freq=RESAMPLE_FREQ, reref=REREF):
+              lp_filter=LP_FILTER, resample_freq=RESAMPLE_FREQ):
     """Return list of subjects matching some parameters.
 
     Parameters
@@ -183,8 +183,6 @@ def list_subj(period_name, chan_type=(), hp_filter=HP_FILTER,
         low-pass filter cutoff
     resample_freq : int, optional
         frequency used for resampling
-    reref : None or str, optional
-        if data should be rereferenced to the average ('avg')
 
     Returns
     -------
@@ -192,13 +190,9 @@ def list_subj(period_name, chan_type=(), hp_filter=HP_FILTER,
         list of subjects with matching parameters
     """
     subj = '*'
-    if reref == 'avg':
-        reref = '_avg'
-    else:
-        reref = ''
     pkl_file = REC_NAME.format(subj=subj, period=period_name,
                                hp=int(10 * hp_filter), lp=int(10 * lp_filter),
-                               resample=resample_freq, reref=reref,
+                               resample=resample_freq,
                                chan_types=''.join(chan_type))
     matching_files = glob(join(DATA_DIR, subj, REC_FOLDER, pkl_file))
     all_subj = sorted([x.split(sep)[-3] for x in matching_files])

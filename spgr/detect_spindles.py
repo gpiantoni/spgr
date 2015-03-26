@@ -1,7 +1,5 @@
-from logging import getLogger
-lg = getLogger('spgr')
-
 from copy import deepcopy
+from logging import getLogger
 from multiprocessing import Pool
 from os import makedirs
 from os.path import exists, join
@@ -13,6 +11,7 @@ from phypno.graphoelement import Spindles
 
 from .read_data import GROUP_DIR, get_data
 
+lg = getLogger('spgr')
 SPINDLE_DIR = join(GROUP_DIR, 'detected_spindles')
 makedirs(SPINDLE_DIR, exist_ok=True)
 
@@ -26,7 +25,7 @@ except ImportError:
 
 def get_spindles(subj, method='Nir2011', frequency=(9, 16), duration=(0.5, 2),
                  reref=None, resample_freq=None, hp_filter=None,
-                 lp_filter=None):
+                 lp_filter=None, chan_type=('grid', )):
 
     spindle_name = ('spindles_{subj}_{method}_{frequency[0]}-{frequency[1]}Hz_'
                     '{duration[0]}-{duration[1]}s_{reref}_{resample_freq}_'
@@ -40,7 +39,7 @@ def get_spindles(subj, method='Nir2011', frequency=(9, 16), duration=(0.5, 2),
     else:
         detsp = DetectSpindle(method=method, frequency=frequency,
                               duration=duration)
-        data = get_data(subj, 'sleep', ('grid', ), reref=reref,
+        data = get_data(subj, 'sleep', chan_type, reref=reref,
                         resample_freq=resample_freq, hp_filter=hp_filter,
                         lp_filter=lp_filter)
 

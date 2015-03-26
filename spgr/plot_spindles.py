@@ -7,7 +7,7 @@ from phypno.viz import Viz3
 from .stats_on_spindles import estimate_overlap
 
 
-fs = Freesurfer('/home/gpiantoni/projects/spgr/subjects/EM09/mri/proc/fsaverage')
+fs = Freesurfer('/home/gio/recordings/EM09/mri/proc/fsaverage')
 surf_avg = fs.read_surf('rh', 'pial')
 freesurfer_right_hemi = 163842
 
@@ -58,7 +58,8 @@ def plot_surf(all_values, threshold=(None, None), limits=(0, 2)):
             values[one_tri] = mean(values[one_tri])
 
     v = Viz3()
-    v.add_surf(surf_avg, values=values, limits_c=limits, color=(.2, .2, .2))
+    v.add_surf(surf_avg, values=values, limits_c=limits,
+               color=(100, 100, 100, 255))
     v._widget.opts.update({'elevation': 15, 'azimuth': 17})
 
     return v
