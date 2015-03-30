@@ -8,7 +8,7 @@ from .stats_on_spindles import estimate_overlap
 
 
 fs = Freesurfer('/home/gio/recordings/EM09/mri/proc/fsaverage')
-surf_avg = fs.read_surf('rh', 'pial')
+surf_avg = fs.read_brain('pial').rh
 freesurfer_right_hemi = 163842
 
 
