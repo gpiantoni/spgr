@@ -1,8 +1,8 @@
 from glob import glob
 from json import load as json_load
 from logging import getLogger, DEBUG
-from os import listdir, makedirs, sep
-from os.path import isdir, join, exists, expanduser, splitext, basename
+from os import listdir, sep
+from os.path import join, exists, splitext, basename
 from pickle import dump, load
 
 from phypno import Dataset
@@ -10,26 +10,20 @@ from phypno.attr import Annotations, Channels
 from phypno.trans import Filter, Montage, Resample
 from phypno.viz import Viz1
 
+from .constants import (DATA_PATH,
+                        REC_PATH,
+                        REC_FOLDER,
+                        ELEC_FOLDER,
+                        SCORE_FOLDER,
+                        XLTEK_FOLDER,
+                        HP_FILTER,
+                        LP_FILTER,
+                        RESAMPLE_FREQ)
 
 lg = getLogger(__file__)
 lg.setLevel(DEBUG)
 
-PROJECT = 'spgr'
-HOME = expanduser('~')
 
-REC_DIR = join(HOME, 'recordings')
-XLTEK_PATH = 'eeg/raw/xltek'
-SCORE_PATH = 'doc/scores'
-ELEC_PATH = 'doc/elec'
-FS_PATH = 'mri/proc/freesurfer'
-
-DATA_DIR = join(HOME, 'projects', PROJECT, 'subjects')
-GROUP_DIR = join(HOME, 'projects', PROJECT, 'group')
-
-REC_FOLDER = 'rec'
-HP_FILTER = 1
-LP_FILTER = 40
-RESAMPLE_FREQ = 256
 REREF = ''
 REC_NAME = ('{subj}_{period}_{chan_types}_hp{hp:03d}_lp{lp:03d}_'
             'rs{resample:03d}.pkl')
@@ -102,20 +96,20 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
     It saves the data to disk. The name of the file contains the parameters.
     """
     lg.info(subj + ' ' + score_file)
-    subj_dir = join(DATA_DIR, subj, REC_FOLDER)
-    if not isdir(subj_dir):
-        makedirs(subj_dir)
+    subj_dir = DATA_PATH.joinpath(subj).joinpath(REC_FOLDER)
+    if not subj_dir.is_dir():
+        subj_dir.mkdir()
 
-    xltek_file = join(REC_DIR, subj, XLTEK_PATH, score_file[:-11])
-    d = Dataset(xltek_file)
+    xltek_file = REC_PATH.joinpath(subj).joinpath(XLTEK_FOLDER).joinpath(score_file[:-11])
+    d = Dataset(str(xltek_file))
     lg.info('Sampling Frequency {} Hz '.format(d.header['s_freq']))
 
-    score_dir = join(REC_DIR, subj, SCORE_PATH)
-    score = Annotations(join(score_dir, score_file))
+    score_dir = REC_PATH.joinpath(subj).joinpath(SCORE_FOLDER)
+    score = Annotations(str(score_dir.joinpath(score_file)))
 
-    chan_file = join(REC_DIR, subj, ELEC_PATH,
-                     basename(score_file).replace('_scores.xml',
-                                                  '_channels.json'))
+    chan_dir = REC_PATH.joinpath(subj).joinpath(ELEC_FOLDER)
+    chan_file = chan_dir.joinpath(basename(score_file).replace('_scores.xml',
+                                                               '_channels.json'))
 
     selected_chan = _select_channels(chan_file, chan_type)
     lg.info('N Channels {} '.format(len(selected_chan)))
@@ -158,10 +152,11 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
                                resample=resample_freq,
                                chan_types='-'.join(chan_type))
 
-    with open(join(subj_dir, pkl_file), 'wb') as f:
+    with open(str(subj_dir.joinpath(pkl_file)), 'wb') as f:
         dump(data, f)
 
-    with open(join(subj_dir, splitext(pkl_file)[0] + '_chan.txt'), 'w') as f:
+    with open(str(subj_dir.joinpath(splitext(pkl_file)[0] +
+                                    '_chan.txt')), 'w') as f:
         f.write('\n'.join(data.axis['chan'][0]))
 
     return v
@@ -194,7 +189,7 @@ def list_subj(period_name, chan_type=(), hp_filter=HP_FILTER,
                                hp=int(10 * hp_filter), lp=int(10 * lp_filter),
                                resample=resample_freq,
                                chan_types=''.join(chan_type))
-    matching_files = glob(join(DATA_DIR, subj, REC_FOLDER, pkl_file))
+    matching_files = glob(join(DATA_PATH, subj, REC_FOLDER, pkl_file))
     all_subj = sorted([x.split(sep)[-3] for x in matching_files])
     lg.info('SUBJECTS: ' + ', '.join(all_subj))
 
@@ -223,7 +218,7 @@ def get_data(subj, period_name, chan_type=(), hp_filter=HP_FILTER,
     if resample_freq is None:
         resample_freq = 0
 
-    subj_dir = join(DATA_DIR, subj, REC_FOLDER)
+    subj_dir = join(DATA_PATH, subj, REC_FOLDER)
     pkl_file = REC_NAME.format(subj=subj, period=period_name,
                                hp=int(10 * hp_filter), lp=int(10 * lp_filter),
                                resample=resample_freq,
@@ -278,28 +273,30 @@ def get_chan_used_in_analysis(subj, period_name, chan_type=(),
 
     reref = ''
 
-    subj_dir = join(DATA_DIR, subj, REC_FOLDER)
+    subj_dir = DATA_PATH.joinpath(subj).joinpath(REC_FOLDER)
     pkl_file = REC_NAME.format(subj=subj, period=period_name,
                                hp=int(10 * hp_filter), lp=int(10 * lp_filter),
                                resample=resample_freq, reref=reref,
                                chan_types='-'.join(chan_type))
 
     good_chan = []
-    with open(join(subj_dir, splitext(pkl_file)[0] + '_chan.txt'), 'r') as f:
+    with open(str(subj_dir.joinpath(splitext(pkl_file)[0] +
+                                    '_chan.txt')), 'r') as f:
         for one_chan in f:
             good_chan.extend(one_chan.splitlines())
 
     SESS = 'A'
 
-    chan_file = join(REC_DIR, subj, 'doc', 'elec',
-                     subj + '_elec_pos-names_sess' + SESS + '.csv')
-    if not exists(chan_file):
+    chan_dir = REC_PATH.joinpath(subj).joinpath('doc').joinpath('elec')
+    chan_file = chan_dir.joinpath(subj + '_elec_pos-names_sess' + SESS +
+                                  '.csv')
+    if not chan_file.exists():
         lg.debug('reading not-renamed electrodes')
-        chan_file = join(REC_DIR, subj, 'doc', 'elec',
-                         subj + '_elec_pos-adjusted_sess' + SESS + '.csv')
+        chan_file = chan_file.joinpath(subj + '_elec_pos-adjusted_sess' +
+                                       SESS + '.csv')
 
     try:
-        chan = Channels(chan_file)
+        chan = Channels(str(chan_file))
 
         chosen_chan = chan(lambda x: x.label in good_chan)
         lg.info('%s analysis chan %d, with location %d',
@@ -331,17 +328,17 @@ def _select_scores_per_subj(stages, duration, subj, choose='max'):
     path to file
         scoring file with the longest duration in the stage(s) of interest.
     """
-    score_dir = join(REC_DIR, subj, SCORE_PATH)
-    all_scores = listdir(score_dir)
+    score_dir = REC_PATH.joinpath(subj).joinpath(SCORE_FOLDER)
+    all_scores = score_dir.glob('*')
 
     if not all_scores:
         raise IndexError('No scores files for ' + subj)
 
     time_in_period = {}
     for one_score in all_scores:
-        score = Annotations(join(score_dir, one_score))
+        score = Annotations(str(one_score))
         time_in_stages = sum(score.time_in_stage(x) for x in stages)
-        lg.debug('    %s has % 5.1f min', one_score, time_in_stages / 60)
+        lg.debug('    %s has % 5.1f min', one_score.stem, time_in_stages / 60)
         if time_in_stages >= duration:
             time_in_period[one_score] = time_in_stages
 
@@ -370,7 +367,7 @@ def _select_channels(chan_file, chan_type):
         list of channel labels belonging to the selected group.
 
     """
-    with open(chan_file, 'r') as outfile:
+    with open(str(chan_file), 'r') as outfile:
         groups = json_load(outfile)
 
     chan = []
