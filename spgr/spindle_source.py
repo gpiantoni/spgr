@@ -1,27 +1,67 @@
+from logging import getLogger
 
-hemi_subj = {'EM09': 'rh',
-             'MG17': 'rh',
-             'MG33': 'lh',
-             'MG37': 'lh',
-             'MG61': 'lh',
-             'MG63': 'rh',
-             }
+from phypno import Data
+from phypno.attr import Freesurfer
+from phypno.source import Linear, Morph
+
+from .constants import (REC_PATH,
+                        FS_FOLDER,
+                        DEFAULT_HEMI,
+                        HEMI_SUBJ,
+                        CHAN_TYPE,
+                        DATA_OPTIONS,
+                        SMOOTHING_STD,
+                        SMOOTHING_THRESHOLD,
+                        )
+from .read_data import get_chan_used_in_analysis
 
 
+lg = getLogger(__name__)
 
-def get_morph_linear(subj, data_options):
+SMOOTHING = {'std': None,
+             'threshold': None}
+LINEAR = dict.fromkeys(list(HEMI_SUBJ))
 
-    chan = get_chan_used_in_analysis(subj, 'sleep', ('grid', ),
-                                     **data_options)[1]
-    fs = Freesurfer(join(REC_DIR, subj, FS_PATH))
-    surf = fs.read_surf(hemi_subj[subj])
-    l = Linear(surf, chan, std=STD, threshold=THRESHOLD)
 
-    if hemi_subj[subj] == 'lh':
+def get_morph_linear(subj, values):
+    lg.info('Projecting values for {}'.format(subj))
+
+    chan = get_chan_used_in_analysis(subj, 'sleep', CHAN_TYPE,
+                                     **DATA_OPTIONS)[1]
+
+    data = Data(values, chan=chan.return_label())
+    morphed_data = _reflect_to_avg(subj, data, chan)
+
+    return morphed_data
+
+
+def _reflect_to_avg(subj, data, chan):
+    """Simplest and inaccurate way to project onto the hemisphere of interest.
+    We just reflect the channels from the wrong side to the side of interest.
+    """
+    if HEMI_SUBJ[subj] != DEFAULT_HEMI:
         for one_chan in chan.chan:
             one_chan.xyz *= (-1, 1, 1)
-    surf = fs.read_surf('rh')
-    l = Linear(surf, chan, std=STD, threshold=THRESHOLD)
-    m = Morph(surf)
 
-    return
+    fs = Freesurfer(str(REC_PATH.joinpath(subj).joinpath(FS_FOLDER)))
+    brain = fs.read_brain()
+    surf = getattr(brain, DEFAULT_HEMI)
+
+    if (LINEAR[subj] and SMOOTHING['std'] == SMOOTHING_STD and
+        SMOOTHING['threshold'] == SMOOTHING_THRESHOLD):
+
+        l = LINEAR[subj]
+    else:
+
+        l = Linear(surf, chan, std=SMOOTHING_STD,
+                   threshold=SMOOTHING_THRESHOLD)
+
+        # we assign to the values of SMOOTHING, not to SMOOTHING
+        SMOOTHING['std'] = SMOOTHING_STD
+        SMOOTHING['threshold'] = SMOOTHING_THRESHOLD
+        LINEAR[subj] = l
+
+    m = Morph(surf)
+    morphed_data = m(l(data))
+
+    return morphed_data

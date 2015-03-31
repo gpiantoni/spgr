@@ -1,8 +1,9 @@
+from logging import getLogger
 from os.path import expanduser
 from pathlib import Path
 
-
 PROJECT = 'spgr'
+lg = getLogger(PROJECT)
 
 HOME = Path(expanduser('~'))
 
@@ -37,5 +38,7 @@ DATA_OPTIONS = {'resample_freq': RESAMPLE_FREQ,
 
 CHAN_TYPE = ('grid', 'strip')
 
+DEFAULT_HEMI = 'rh'
 SMOOTHING_STD = 10
 SMOOTHING_THRESHOLD = 20
+FS_AVG = '/home/gio/recordings/EM09/mri/proc/fsaverage'

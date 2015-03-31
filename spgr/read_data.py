@@ -1,8 +1,8 @@
 from glob import glob
 from json import load as json_load
-from logging import getLogger, DEBUG
-from os import listdir, sep
-from os.path import join, exists, splitext, basename
+from logging import getLogger
+from os import sep
+from os.path import join, splitext, basename
 from pickle import dump, load
 
 from phypno import Dataset
@@ -20,8 +20,8 @@ from .constants import (DATA_PATH,
                         LP_FILTER,
                         RESAMPLE_FREQ)
 
-lg = getLogger(__file__)
-lg.setLevel(DEBUG)
+lg = getLogger(__name__)
+
 
 
 REREF = ''

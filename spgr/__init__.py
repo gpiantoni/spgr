@@ -1,1 +1,1 @@
-from .read_data import lg
+from .constants import lg

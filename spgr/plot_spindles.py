@@ -4,12 +4,12 @@ from numpy import asarray, sum, where, diff, r_, histogram, arange, NaN, nanmean
 from phypno.attr import Freesurfer
 from phypno.viz import Viz3
 
+from .constants import DEFAULT_HEMI, FS_AVG
 from .stats_on_spindles import estimate_overlap
 
 
-fs = Freesurfer('/home/gio/recordings/EM09/mri/proc/fsaverage')
-surf_avg = fs.read_brain('pial').rh
-freesurfer_right_hemi = 163842
+fs = Freesurfer(FS_AVG)
+surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)
 
 
 def hist_overlap(spindles, width=2, nchan=70):
@@ -25,7 +25,8 @@ def hist_overlap(spindles, width=2, nchan=70):
     return histogram(v, hist)
 
 
-def plot_surf(all_values, threshold=(None, None), limits=(0, 2)):
+def plot_surf(all_values, threshold=(None, None), limits=(0, 2),
+              extra_smoothing=True):
     """Plot values onto the surface.
 
     Parameters
@@ -48,14 +49,13 @@ def plot_surf(all_values, threshold=(None, None), limits=(0, 2)):
         if threshold[1]:
             x.data[0][x.data[0] > threshold[1]] = NaN
 
-    avg_count = deepcopy(all_values[0])
-    avg_count.data[0] = nanmean(asarray([x.data[0] for x in all_values]), axis=0)
+    values = nanmean(asarray([x.data[0] for x in all_values]), axis=0)
 
-    # apply some quick smoothing (but rather strong, useful to avoid the clown fish effect)
-    values = avg_count(trial=0)[freesurfer_right_hemi:].copy()
-    for one_tri in surf_avg.tri:
-        if not any(isnan(values[one_tri])):
-            values[one_tri] = mean(values[one_tri])
+    if extra_smoothing:
+        # apply some quick smoothing (but rather strong, useful to avoid the clown fish effect)
+        for one_tri in surf_avg.tri:
+            if not any(isnan(values[one_tri])):
+                values[one_tri] = mean(values[one_tri])
 
     v = Viz3()
     v.add_surf(surf_avg, values=values, limits_c=limits,
