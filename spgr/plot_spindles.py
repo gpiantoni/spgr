@@ -1,4 +1,3 @@
-from copy import deepcopy
 from numpy import asarray, sum, where, diff, r_, histogram, arange, NaN, nanmean, mean, isnan
 
 from phypno.attr import Freesurfer
@@ -57,7 +56,7 @@ def plot_surf(all_values, threshold=(None, None), limits=(0, 2),
             if not any(isnan(values[one_tri])):
                 values[one_tri] = mean(values[one_tri])
 
-    v = Viz3()
+    v = Viz3(color='kw')
     v.add_surf(surf_avg, values=values, limits_c=limits,
                color=(100, 100, 100, 255))
     v._widget.opts.update({'elevation': 15, 'azimuth': 17})
