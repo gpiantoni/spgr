@@ -1,19 +1,19 @@
 from copy import deepcopy
 from logging import getLogger
 from multiprocessing import Pool
-from os import makedirs
-from os.path import exists, join
 from pickle import load, dump
 
 from numpy import asarray, hstack
 from phypno.detect import DetectSpindle
 from phypno.graphoelement import Spindles
 
-from .read_data import GROUP_DIR, get_data
+from .constants import GROUP_PATH
+from .read_data import get_data
 
 lg = getLogger('spgr')
-SPINDLE_DIR = join(GROUP_DIR, 'detected_spindles')
-makedirs(SPINDLE_DIR, exist_ok=True)
+SPINDLE_DIR = GROUP_PATH.joinpath('detected_spindles')
+if not SPINDLE_DIR.exists():
+    SPINDLE_DIR.mkdir()
 
 try:
     from lsf import map_lsf
@@ -23,17 +23,17 @@ except ImportError:
     lg.info('Could not import LSF, running local jobs only')
 
 
-def get_spindles(subj, method='Nir2011', frequency=(9, 16), duration=(0.5, 2),
-                 reref=None, resample_freq=None, hp_filter=None,
-                 lp_filter=None, chan_type=('grid', )):
+def get_spindles(subj, method='Nir2011', frequency=(None, None),
+                 duration=(None, None), reref=None, resample_freq=None,
+                 hp_filter=None, lp_filter=None, chan_type=('grid', )):
 
     spindle_name = ('spindles_{subj}_{method}_{frequency[0]}-{frequency[1]}Hz_'
                     '{duration[0]}-{duration[1]}s_{reref}_{resample_freq}_'
                     '{hp_filter}-{lp_filter}Hz.pkl'.format(**locals()))
 
-    spindle_file = join(SPINDLE_DIR, spindle_name)
-    if exists(spindle_file):
-        with open(spindle_file, 'rb') as f:
+    spindle_file = SPINDLE_DIR.joinpath(spindle_name)
+    if spindle_file.exists():
+        with open(str(spindle_file), 'rb') as f:
             spindles = load(f)
 
     else:
@@ -43,10 +43,10 @@ def get_spindles(subj, method='Nir2011', frequency=(9, 16), duration=(0.5, 2),
                         resample_freq=resample_freq, hp_filter=hp_filter,
                         lp_filter=lp_filter)
 
-        spindles = calc_spindle_values(data, detsp, parallel='pool')
+        spindles = calc_spindle_values(data, detsp, parallel='')
         spindles = spindles(lambda x: frequency[0] <= x['peak_freq'] <= frequency[1])
 
-        with open(spindle_file, 'wb') as f:
+        with open(str(spindle_file), 'wb') as f:
             dump(spindles, f)
 
     return spindles

@@ -36,6 +36,12 @@ DATA_OPTIONS = {'resample_freq': RESAMPLE_FREQ,
                 'lp_filter': 50,
                 }
 
+SPINDLE_OPTIONS = {'method': 'Nir2011',
+                   'frequency': (9, 16),
+                   'duration': (0.5, 2),
+                   }
+SPINDLE_OPTIONS.update(DATA_OPTIONS)
+
 CHAN_TYPE = ('grid', 'strip')
 
 DEFAULT_HEMI = 'rh'

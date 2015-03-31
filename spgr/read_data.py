@@ -218,14 +218,14 @@ def get_data(subj, period_name, chan_type=(), hp_filter=HP_FILTER,
     if resample_freq is None:
         resample_freq = 0
 
-    subj_dir = join(DATA_PATH, subj, REC_FOLDER)
+    subj_dir = DATA_PATH.joinpath(subj).joinpath(REC_FOLDER)
     pkl_file = REC_NAME.format(subj=subj, period=period_name,
                                hp=int(10 * hp_filter), lp=int(10 * lp_filter),
                                resample=resample_freq,
                                chan_types='-'.join(chan_type))
 
     lg.info('Subj %s, reading data: %s', subj, pkl_file)
-    with open(join(subj_dir, pkl_file), 'rb') as f:
+    with open(str(subj_dir.joinpath(pkl_file)), 'rb') as f:
         data = load(f)
 
     chan = get_chan_used_in_analysis(subj, 'sleep', chan_type, reref='',

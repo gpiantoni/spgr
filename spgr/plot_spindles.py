@@ -1,4 +1,5 @@
 from numpy import asarray, sum, where, diff, r_, histogram, arange, NaN, nanmean, mean, isnan
+import warnings
 
 from phypno.attr import Freesurfer
 from phypno.viz import Viz3
@@ -48,7 +49,9 @@ def plot_surf(all_values, threshold=(None, None), limits=(0, 2),
         if threshold[1]:
             x.data[0][x.data[0] > threshold[1]] = NaN
 
-    values = nanmean(asarray([x.data[0] for x in all_values]), axis=0)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")  # some columns are completely NaN
+        values = nanmean(asarray([x.data[0] for x in all_values]), axis=0)
 
     if extra_smoothing:
         # apply some quick smoothing (but rather strong, useful to avoid the clown fish effect)
