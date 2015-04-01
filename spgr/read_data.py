@@ -8,6 +8,7 @@ from pickle import dump, load
 from phypno import Dataset
 from phypno.attr import Annotations, Channels
 from phypno.trans import Filter, Montage, Resample
+from phypno.trans.montage import create_bipolar_chan
 from phypno.viz import Viz1
 
 from .constants import (DATA_PATH,
@@ -21,7 +22,6 @@ from .constants import (DATA_PATH,
                         RESAMPLE_FREQ)
 
 lg = getLogger(__name__)
-
 
 
 REREF = ''
@@ -231,7 +231,7 @@ def get_data(subj, period_name, chan_type=(), hp_filter=HP_FILTER,
     chan = get_chan_used_in_analysis(subj, 'sleep', chan_type, reref='',
                                      resample_freq=resample_freq,
                                      hp_filter=hp_filter,
-                                     lp_filter=lp_filter)[1]
+                                     lp_filter=lp_filter)
     data.attr['chan'] = chan
 
     if reref == 'avg':
@@ -242,6 +242,7 @@ def get_data(subj, period_name, chan_type=(), hp_filter=HP_FILTER,
         montage = lambda x: x
 
     data = montage(data)
+    chan = data.attr['chan']
 
     return data
 
@@ -258,8 +259,6 @@ def get_chan_used_in_analysis(subj, period_name, chan_type=(),
 
     Returns
     -------
-    list of str
-        list of selected channels in the actual dataset
     instance of Channels
         the channels for the patient of interest (but they might not have all
         the channels).
@@ -271,12 +270,10 @@ def get_chan_used_in_analysis(subj, period_name, chan_type=(),
     if resample_freq is None:
         resample_freq = 0
 
-    reref = ''
-
     subj_dir = DATA_PATH.joinpath(subj).joinpath(REC_FOLDER)
     pkl_file = REC_NAME.format(subj=subj, period=period_name,
                                hp=int(10 * hp_filter), lp=int(10 * lp_filter),
-                               resample=resample_freq, reref=reref,
+                               resample=resample_freq, reref='',
                                chan_types='-'.join(chan_type))
 
     good_chan = []
@@ -305,7 +302,10 @@ def get_chan_used_in_analysis(subj, period_name, chan_type=(),
         lg.info('Could not read file %s', chan_file)
         chosen_chan = None
 
-    return good_chan, chosen_chan
+    if isinstance(reref, float) or isinstance(reref, int):
+        chosen_chan = create_bipolar_chan(chosen_chan, reref)[0]
+
+    return chosen_chan
 
 
 def _select_scores_per_subj(stages, duration, subj, choose='max'):

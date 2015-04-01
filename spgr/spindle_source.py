@@ -19,15 +19,16 @@ from .read_data import get_chan_used_in_analysis
 lg = getLogger(__name__)
 
 SMOOTHING = {'std': None,
-             'threshold': None}
+             'threshold': None
+             }
 LINEAR = dict.fromkeys(list(HEMI_SUBJ))
 
 
-def get_morph_linear(subj, values):
+def get_morph_linear(subj, values, reref):
     lg.info('Projecting values for {}'.format(subj))
 
-    chan = get_chan_used_in_analysis(subj, 'sleep', CHAN_TYPE,
-                                     **DATA_OPTIONS)[1]
+    chan = get_chan_used_in_analysis(subj, 'sleep', CHAN_TYPE, reref=reref,
+                                     **DATA_OPTIONS)
 
     data = Data(values, chan=chan.return_label())
     morphed_data = _reflect_to_avg(subj, data, chan)
@@ -47,12 +48,13 @@ def _reflect_to_avg(subj, data, chan):
     brain = fs.read_brain()
     surf = getattr(brain, DEFAULT_HEMI)
 
-    if (LINEAR[subj] and SMOOTHING['std'] == SMOOTHING_STD and
-        SMOOTHING['threshold'] == SMOOTHING_THRESHOLD):
-
+    same_smoothing = (SMOOTHING['std'] == SMOOTHING_STD and
+                      SMOOTHING['threshold'] == SMOOTHING_THRESHOLD)
+    # check if 1. was precomputed, 2. same n of channels, 3. same parameters
+    if LINEAR[subj] and len(LINEAR[subj].chan) == chan.n_chan and same_smoothing:
         l = LINEAR[subj]
-    else:
 
+    else:
         l = Linear(surf, chan, std=SMOOTHING_STD,
                    threshold=SMOOTHING_THRESHOLD)
 
