@@ -1,10 +1,13 @@
-from numpy import asarray, sum, where, diff, r_, histogram, arange, NaN, nanmean, mean, isnan
+from numpy import asarray, NaN, nanmean, mean, isnan, diff, where, r_, arange, histogram
+from pyqtgraph import BarGraphItem, GraphicsLayoutWidget, setConfigOption
 import warnings
 
 from phypno.attr import Freesurfer
 from phypno.viz import Viz3
+from phypno.viz.base import Viz
 
-from .constants import DEFAULT_HEMI, FS_AVG
+from .constants import DEFAULT_HEMI, FS_AVG, SPINDLE_OPTIONS
+from .detect_spindles import get_spindles
 from .stats_on_spindles import estimate_overlap
 
 
@@ -12,17 +15,29 @@ fs = Freesurfer(FS_AVG)
 surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)
 
 
-def hist_overlap(spindles, width=2, nchan=70):
+def make_hist_overlap(subj, color='wk', reref='avg', width=2, nchan=30):
+    setConfigOption('foreground', color[0])
+    setConfigOption('background', color[1])
 
-    s = asarray([x['start_time'] for x in spindles.spindle])
-    e = asarray([x['end_time'] for x in spindles.spindle])
-    ov = estimate_overlap(s, e)
-    x = sum(ov, axis=1)
+    spindles = get_spindles(subj, reref=reref, **SPINDLE_OPTIONS)
 
-    v = diff(r_[1, where(x == 1)[0]])
-
+    v = testtest(spindles)
     hist = arange(0, nchan, width)
-    return histogram(v, hist)
+    h0, h1 = histogram(v, hist)
+
+    v = Viz()
+
+    w = GraphicsLayoutWidget()
+    v._widget = w
+
+    p = w.addPlot(title=subj)
+
+    bars = BarGraphItem(x0=h1[:-1], height=h0, width=width)
+    p.addItem(bars)
+    # p.setLabels(left='# spindles')
+    # p.setLabels(bottom='# electrodes')
+
+    return v
 
 
 def plot_surf(all_values, threshold=(None, None), limits=(0, 2),
@@ -65,3 +80,4 @@ def plot_surf(all_values, threshold=(None, None), limits=(0, 2),
     v._widget.opts.update({'elevation': 15, 'azimuth': 17})
 
     return v
+
