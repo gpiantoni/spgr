@@ -2,7 +2,7 @@ from glob import glob
 from json import load as json_load
 from logging import getLogger
 from os import sep
-from os.path import join, splitext, basename
+from os.path import join, splitext
 from pickle import dump, load
 
 from phypno import Dataset
@@ -19,7 +19,8 @@ from .constants import (DATA_PATH,
                         XLTEK_FOLDER,
                         HP_FILTER,
                         LP_FILTER,
-                        RESAMPLE_FREQ)
+                        RESAMPLE_FREQ,
+                        SESSION)
 
 lg = getLogger(__name__)
 
@@ -56,7 +57,7 @@ def select_scores(stages, duration, all_subj, choose='max'):
         try:
             scores[subj] = _select_scores_per_subj(stages, duration, subj,
                                                    choose)
-            lg.info(subj + ' has ' + scores[subj])
+            lg.info(subj + ' has ' + str(scores[subj]))
         except IndexError:
             lg.debug(subj + ': no scored recordings')
         except ValueError:
@@ -95,12 +96,12 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
     -----
     It saves the data to disk. The name of the file contains the parameters.
     """
-    lg.info(subj + ' ' + score_file)
+    lg.info(subj + ' ' + str(score_file))
     subj_dir = DATA_PATH.joinpath(subj).joinpath(REC_FOLDER)
     if not subj_dir.is_dir():
         subj_dir.mkdir()
 
-    xltek_file = REC_PATH.joinpath(subj).joinpath(XLTEK_FOLDER).joinpath(score_file[:-11])
+    xltek_file = REC_PATH.joinpath(subj).joinpath(XLTEK_FOLDER).joinpath(score_file.name[:-11])
     d = Dataset(str(xltek_file))
     lg.info('Sampling Frequency {} Hz '.format(d.header['s_freq']))
 
@@ -108,8 +109,8 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
     score = Annotations(str(score_dir.joinpath(score_file)))
 
     chan_dir = REC_PATH.joinpath(subj).joinpath(ELEC_FOLDER)
-    chan_file = chan_dir.joinpath(basename(score_file).replace('_scores.xml',
-                                                               '_channels.json'))
+    chan_file = chan_dir.joinpath(score_file.name.replace('_scores.xml',
+                                                          '_channels.json'))
 
     selected_chan = _select_channels(chan_file, chan_type)
     lg.info('N Channels {} '.format(len(selected_chan)))
@@ -282,7 +283,7 @@ def get_chan_used_in_analysis(subj, period_name, chan_type=(),
         for one_chan in f:
             good_chan.extend(one_chan.splitlines())
 
-    SESS = 'A'
+    SESS = SESSION(subj)
 
     chan_dir = REC_PATH.joinpath(subj).joinpath('doc').joinpath('elec')
     chan_file = chan_dir.joinpath(subj + '_elec_pos-names_sess' + SESS +

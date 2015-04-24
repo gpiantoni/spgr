@@ -18,6 +18,9 @@ DATA_PATH = HOME.joinpath('projects').joinpath(PROJECT).joinpath('subjects')
 GROUP_PATH = HOME.joinpath('projects').joinpath(PROJECT).joinpath('group')
 IMAGES_PATH = GROUP_PATH.joinpath('images')
 
+PERIOD = 'sleep'
+STAGES = ('NREM2', )
+MIN_DURATION = 60 * 60
 
 HEMI_SUBJ = {'EM09': 'rh',
              'MG17': 'rh',
@@ -25,7 +28,17 @@ HEMI_SUBJ = {'EM09': 'rh',
              'MG37': 'lh',
              'MG61': 'lh',
              'MG63': 'rh',
+             'MG64': 'rh',
+             'MG67': 'rh',
              }
+
+
+def SESSION(subj):
+    if subj in ('MG64', ):
+        return 'B'
+    else:
+        return 'A'
+
 
 HP_FILTER = 1
 LP_FILTER = 40
@@ -42,7 +55,8 @@ SPINDLE_OPTIONS = {'method': 'Nir2011',
                    }
 SPINDLE_OPTIONS.update(DATA_OPTIONS)
 
-CHAN_TYPE = ('grid', 'strip')
+# CHAN_TYPE = ('grid', 'strip')
+CHAN_TYPE = ('grid', )
 
 DEFAULT_HEMI = 'rh'
 SMOOTHING_STD = 10
