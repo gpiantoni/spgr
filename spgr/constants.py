@@ -31,6 +31,7 @@ HEMI_SUBJ = {'EM09': 'rh',
              'MG64': 'rh',
              'MG67': 'rh',
              }
+# """
 
 
 def SESSION(subj):
