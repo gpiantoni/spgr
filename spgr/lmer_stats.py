@@ -3,28 +3,51 @@ from numpy import diag, ones, r_
 from rpy2 import robjects
 from rpy2.robjects.numpy2ri import activate
 
+from .constants import lg
+
+
 activate()
 lme4 = robjects.packages.importr('lme4')
 multcomp = robjects.packages.importr('multcomp')
 
 
-def lmer(df_raw, formula='value ~ 0 + region + (1|subj)', adjust='fdr'):
+def lmer(df_raw, formula='value ~ 0 + region + (1|subj)', adjust='fdr',
+         pvalue=0.05):
 
     single_regions = sorted(set(df_raw['region']))
 
     formula = robjects.Formula(formula)
     adjustment = multcomp.adjusted('fdr')
 
-    contr = create_contrasts(single_regions)
+    contr = _create_contrasts(single_regions)
 
     lm1 = lme4.lmer(formula, data=DataFrame(df_raw))
     comps = multcomp.glht(lm1, contr)
     summary = multcomp.summary_glht(comps, test=adjustment)
 
-    return _get_coef_pvalue(summary)
+    coef, intercept, pvalues = _get_coef_pvalue(summary)
+    _report_values(coef, pvalues, intercept, pvalue)
+
+    return coef, pvalues
 
 
-def create_contrasts(regions):
+def _report_values(coef, pvalues, intercept, p_threshold):
+    lg.info('LMER summary')
+    has_intercept = False
+    for region, _ in sorted(coef.items(), key=lambda x: x[1]):
+        if coef[region] > intercept and not has_intercept:
+            lg.info('{:30} coef={:.3f}'.format('', intercept))
+            has_intercept = True
+
+        if pvalues[region] < p_threshold:
+            lg.info('{:30} coef={:.3f}  p={:.4f}'.format(region, coef[region],
+                                                         pvalues[region]))
+
+    if not has_intercept:  # in theory, this should never happen
+        lg.info('{:16} coef={:.3f}'.format('', intercept))
+
+
+def _create_contrasts(regions):
 
     n_regions = len(regions)
 
@@ -42,12 +65,14 @@ def create_contrasts(regions):
 def _get_coef_pvalue(summary):
     coef_r = summary.rx2('test').rx2('coefficients')
     coefficients = dict(zip(coef_r.names, coef_r))
+    intercept = coefficients['intercept']
     coefficients = _add_intercept(coefficients)
 
     pvalues_r = summary.rx2('test').rx2('pvalues')
     pvalues = dict(zip(pvalues_r.names, pvalues_r))
     pvalues.pop('intercept')
-    return coefficients, pvalues
+
+    return coefficients, intercept, pvalues
 
 
 def _add_intercept(coeff):
