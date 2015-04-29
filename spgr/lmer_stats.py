@@ -30,9 +30,9 @@ def lmer(df_raw, formula='value ~ 0 + region + (1|subj)', adjust='fdr',
 
     Returns
     -------
-    coef : dict
+    dict
         dictionary with coefficients
-    pvalues : dict
+    dict
         dictionary with pvalues
     """
     single_regions = sorted(set(df_raw['region']))

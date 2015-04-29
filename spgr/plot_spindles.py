@@ -16,20 +16,6 @@ surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)
 label_avg = fs.read_label(DEFAULT_HEMI)
 
 
-def plot_lmer(coef, pvalues=None, limits=(0, 2), p_threshold=0.05):
-    val = zeros(label_avg[0].shape)
-    val.fill(NaN)
-
-    for one_region, one_v in coef.items():
-        if pvalues[one_region] <= p_threshold:
-            val[array(label_avg[0]) == label_avg[2].index(one_region)] = one_v
-
-    v = Viz3(color='kw')
-    v.add_surf(surf_avg, values=val, limits_c=limits,
-               color=(100, 100, 100, 255))
-    v._widget.opts.update({'elevation': 15, 'azimuth': 17})
-    return v
-
 
 def make_hist_overlap(subj, color='wk', reref='avg', width=2, nchan=30):
     setConfigOption('foreground', color[0])
@@ -95,5 +81,38 @@ def plot_surf(all_values, threshold=(None, None), limits=(0, 2),
                color=(100, 100, 100, 255))
     v._widget.opts.update({'elevation': 15, 'azimuth': 17})
 
+    return v
+
+
+def plot_lmer(coef, pvalues=None, limits=(0, 2), p_threshold=0.05):
+    """Plot coefficients computed from lmer.
+
+    Parameters
+    ----------
+    coef : dict
+        dictionary with coefficients (computed with lmer)
+    pvalues : dict, optional
+        dictionary with pvalues
+    limits : tuple of 2 floats
+        values used for color scaling
+    p_threshold : float, optional
+        threshold for the pvalues
+
+    Returns
+    -------
+    instance of Viz3
+        plot with the surfaces
+    """
+    val = zeros(label_avg[0].shape)
+    val.fill(NaN)
+
+    for one_region, one_v in coef.items():
+        if pvalues[one_region] <= p_threshold:
+            val[array(label_avg[0]) == label_avg[2].index(one_region)] = one_v
+
+    v = Viz3(color='kw')
+    v.add_surf(surf_avg, values=val, limits_c=limits,
+               color=(100, 100, 100, 255))
+    v._widget.opts.update({'elevation': 15, 'azimuth': 17})
     return v
 
