@@ -2,6 +2,7 @@ from logging import getLogger
 
 from phypno import Data
 from phypno.attr import Freesurfer
+from phypno.attr.chan import assign_region_to_channels
 from phypno.source import Linear, Morph
 
 from .constants import (REC_PATH,
@@ -22,6 +23,7 @@ SMOOTHING = {'std': None,
              'threshold': None
              }
 LINEAR = dict.fromkeys(list(HEMI_SUBJ))
+REGIONS = dict.fromkeys(list(HEMI_SUBJ))
 
 
 def get_morph_linear(subj, values, reref):
@@ -67,3 +69,19 @@ def _reflect_to_avg(subj, data, chan):
     morphed_data = m(l(data))
 
     return morphed_data
+
+
+def get_chan_with_regions(subj, reref):
+
+    orig_chan = get_chan_used_in_analysis(subj, 'sleep', CHAN_TYPE,
+                                          reref=reref, **DATA_OPTIONS)
+
+    if REGIONS[subj] and REGIONS[subj].n_chan == orig_chan.n_chan:
+        chan = REGIONS[subj]
+    else:
+        fs = Freesurfer(str(REC_PATH.joinpath(subj).joinpath(FS_FOLDER)))
+        chan = assign_region_to_channels(orig_chan, fs,
+                                         exclude_regions=('Unknown', ))
+        REGIONS[subj] = chan
+
+    return chan
