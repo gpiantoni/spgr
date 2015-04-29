@@ -1,4 +1,4 @@
-from numpy import asarray, NaN, nanmean, mean, isnan, diff, where, r_, arange, histogram
+from numpy import array, asarray, NaN, nanmean, mean, isnan, diff, where, r_, arange, histogram, zeros
 from pyqtgraph import BarGraphItem, GraphicsLayoutWidget, setConfigOption
 import warnings
 
@@ -13,6 +13,22 @@ from .stats_on_spindles import estimate_overlap
 
 fs = Freesurfer(FS_AVG)
 surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)
+label_avg = fs.read_label(DEFAULT_HEMI)
+
+
+def plot_lmer(coef, pvalues=None, limits=(0, 2), p_threshold=0.05):
+    val = zeros(label_avg[0].shape)
+    val.fill(NaN)
+
+    for one_region, one_v in coef.items():
+        if pvalues[one_region] <= p_threshold:
+            val[array(label_avg[0]) == label_avg[2].index(one_region)] = one_v
+
+    v = Viz3(color='kw')
+    v.add_surf(surf_avg, values=val, limits_c=limits,
+               color=(100, 100, 100, 255))
+    v._widget.opts.update({'elevation': 15, 'azimuth': 17})
+    return v
 
 
 def make_hist_overlap(subj, color='wk', reref='avg', width=2, nchan=30):
