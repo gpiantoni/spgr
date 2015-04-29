@@ -1,19 +1,40 @@
+from logging import getLogger
 from numpy import diag, ones, r_
 
 from rpy2 import robjects
 from rpy2.robjects.numpy2ri import activate
+from rpy2.robjects.packages import importr
 
-from .constants import lg
 
+lg = getLogger('lmer')
 
 activate()
-lme4 = robjects.packages.importr('lme4')
-multcomp = robjects.packages.importr('multcomp')
+lme4 = importr('lme4')
+multcomp = importr('multcomp')
 
 
 def lmer(df_raw, formula='value ~ 0 + region + (1|subj)', adjust='fdr',
          pvalue=0.05):
+    """Compute linear mixed-effects models, using R
 
+    Parameters
+    ----------
+    df_raw : dict
+        dict where each key is one column
+    formula : str
+        formula to test
+    adjust : str
+        adjustment ('fdr')
+    pvalue : float
+        threshold for p-value to report the result.
+
+    Returns
+    -------
+    coef : dict
+        dictionary with coefficients
+    pvalues : dict
+        dictionary with pvalues
+    """
     single_regions = sorted(set(df_raw['region']))
 
     formula = robjects.Formula(formula)
@@ -32,6 +53,19 @@ def lmer(df_raw, formula='value ~ 0 + region + (1|subj)', adjust='fdr',
 
 
 def _report_values(coef, pvalues, intercept, p_threshold):
+    """Report values of the LMER statistics, including the intercept value
+
+    Parameters
+    ----------
+    coef : dict
+        dictionary with coefficients
+    pvalues : dict
+        dictionary with pvalues
+    intercept : float
+        value for the intercept
+    p_threshold : float
+        threshold for p-value to show values
+    """
     lg.info('LMER summary')
     has_intercept = False
     for region, _ in sorted(coef.items(), key=lambda x: x[1]):
@@ -48,7 +82,20 @@ def _report_values(coef, pvalues, intercept, p_threshold):
 
 
 def _create_contrasts(regions):
+    """Create contrasts
 
+    Parameters
+    ----------
+    regions : list of str
+        regions to create contrast matrix
+
+    Returns
+    -------
+    robjects.Matrix
+        matrix with the contrasts, with size (n_regions+1) X n_regions. We can
+        use this to compute the intercept as well as the other contrasts (maybe
+        one too many).
+    """
     n_regions = len(regions)
 
     x = diag(ones(n_regions))
@@ -63,6 +110,22 @@ def _create_contrasts(regions):
 
 
 def _get_coef_pvalue(summary):
+    """Get coefficients and p-values
+
+    Parameters
+    ----------
+    summary : robjects.S4
+        summary from summary_glht
+
+    Returns
+    -------
+    dict
+        dictionary with coefficients
+    float
+        value for the intercept
+    dict
+        dictionary with pvalues
+    """
     coef_r = summary.rx2('test').rx2('coefficients')
     coefficients = dict(zip(coef_r.names, coef_r))
     intercept = coefficients['intercept']
@@ -76,6 +139,20 @@ def _get_coef_pvalue(summary):
 
 
 def _add_intercept(coeff):
+    """Add the intercept value back into the estimates, so that it's easier to
+    interpret.
+
+    Parameters
+    ----------
+    coeff : dict
+        dictionary with coefficients
+
+    Returns
+    -------
+    dict
+        dictionary with coefficients, where the values also include the
+        intercept (and intercept has been removed from dict)
+    """
     intercept = coeff.pop('intercept')
 
     for k, v in coeff.items():
@@ -84,6 +161,13 @@ def _add_intercept(coeff):
 
 
 class DataFrame(robjects.DataFrame):
+    """Dataframe to convert dictionary into robjections.Dataframe
+
+    Parameters
+    ----------
+    d : dict
+        dictionary with values as float or str
+    """
     def __init__(self, d):
         d_conv = {}
         for key, values in d.items():
