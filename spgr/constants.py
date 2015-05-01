@@ -1,6 +1,8 @@
 from logging import getLogger
-from os.path import expanduser
+from os.path import expanduser, join
 from pathlib import Path
+from os import environ
+
 
 PROJECT = 'spgr'
 lg = getLogger(PROJECT)
@@ -31,7 +33,6 @@ HEMI_SUBJ = {'EM09': 'rh',
              'MG64': 'rh',
              'MG67': 'rh',
              }
-# """
 
 
 def SESSION(subj):
@@ -62,4 +63,4 @@ CHAN_TYPE = ('grid', )
 DEFAULT_HEMI = 'rh'
 SMOOTHING_STD = 10
 SMOOTHING_THRESHOLD = 20
-FS_AVG = '/home/gio/recordings/EM09/mri/proc/fsaverage'
+FS_AVG = join(environ['FREESURFER_HOME'], 'subjects', 'fsaverage')
