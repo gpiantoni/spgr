@@ -1,11 +1,8 @@
-from logging import getLogger
 from os.path import expanduser, join
 from pathlib import Path
 from os import environ
 
-
 PROJECT = 'spgr'
-lg = getLogger(PROJECT)
 
 HOME = Path(expanduser('~'))
 
@@ -19,6 +16,15 @@ REC_FOLDER = Path('rec')
 DATA_PATH = HOME.joinpath('projects').joinpath(PROJECT).joinpath('subjects')
 GROUP_PATH = HOME.joinpath('projects').joinpath(PROJECT).joinpath('group')
 IMAGES_PATH = GROUP_PATH.joinpath('images')
+LOG_PATH = GROUP_PATH.joinpath('log')
+OUTPUT_PATH = LOG_PATH.joinpath('src')
+
+
+if not IMAGES_PATH.exists():
+    IMAGES_PATH.mkdir(parents=True)
+if not OUTPUT_PATH.exists():
+    OUTPUT_PATH.mkdir(parents=True)
+
 
 PERIOD = 'sleep'
 STAGES = ('NREM2', )

@@ -1,1 +1,1 @@
-from .constants import lg
+from .ecog_recordings import read_ecog_recordings
