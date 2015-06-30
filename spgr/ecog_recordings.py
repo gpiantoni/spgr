@@ -1,4 +1,4 @@
-from spgr.constants import PERIOD, STAGES, MIN_DURATION, HEMI_SUBJ, DATA_OPTIONS, CHAN_TYPE, OUTPUT_PATH
+from spgr.constants import PERIOD, STAGES, MIN_DURATION, HEMI_SUBJ, DATA_OPTIONS, CHAN_TYPE
 from spgr.read_data import save_data, select_scores
 
 from .log import with_log

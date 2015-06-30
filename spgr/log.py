@@ -1,7 +1,7 @@
 from datetime import datetime
 from logging import getLogger, INFO, FileHandler, StreamHandler, Formatter
 
-from spgr.constants import OUTPUT_PATH, PROJECT
+from spgr.constants import LOGSRC_PATH, PROJECT
 
 from socket import gethostname
 from subprocess import check_output
@@ -25,7 +25,7 @@ def git_info(lg):
 def with_log(function):
 
     def add_log():
-        log_file = OUTPUT_PATH.joinpath(function.__name__ + '.md')
+        log_file = LOGSRC_PATH.joinpath(function.__name__ + '.md')
         if log_file.exists():
             log_file.unlink()
 
