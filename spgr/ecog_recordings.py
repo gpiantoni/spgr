@@ -4,12 +4,10 @@ from spgr.read_data import save_data, select_scores
 from .log import with_log
 
 
-
 @with_log
-def read_ecog_recordings(lg):
+def Read_ECoG_Recordings(lg):
 
-    lg.info('## ECoG Recordings')
-    lg.info('### Selection of Patients')
+    lg.info('## Selection of Patients')
 
     # define patients with grids
     subj_with_grid_scalp = ('EM03', 'EM09', 'MG07', 'MG11', 'MG12', 'MG15', 'MG17',
@@ -26,7 +24,7 @@ def read_ecog_recordings(lg):
 
     scores = select_scores(STAGES, MIN_DURATION, sorted(all_subj, reverse=True))
 
-    lg.info('### Patients with sufficient recordings:')
+    lg.info('## Patients with sufficient recordings:')
     lg.info('\t'.join(sorted(scores.keys())))
 
     good_subj = sorted(list(scores.keys()))
@@ -35,7 +33,7 @@ def read_ecog_recordings(lg):
     lg.info('Grid patients without scalp : ' + ', '.join(sorted(set(good_subj) & set(subj_with_grid_only))))
     lg.info('Depth patients without scalp : ' + ', '.join(sorted(set(good_subj) - set(subj_with_grid_scalp) - set(subj_with_grid_only))))
 
-    lg.info('### Read Recordings')
+    lg.info('## Read Recordings')
     """
     for subj in HEMI_SUBJ:
         save_data(subj, scores[subj], PERIOD, STAGES, chan_type=CHAN_TYPE, **DATA_OPTIONS)

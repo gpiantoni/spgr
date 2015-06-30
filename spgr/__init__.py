@@ -1,1 +1,2 @@
-from .ecog_recordings import read_ecog_recordings
+from .ecog_recordings import Read_ECoG_Recordings
+from .electrode_locations import Electrode_Locations

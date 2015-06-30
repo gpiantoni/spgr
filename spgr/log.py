@@ -15,6 +15,7 @@ def git_hash(package):
                            ' rev-parse HEAD', shell=True).decode('utf-8')
     return version
 
+
 def git_info(lg):
 
     lg.info('{} {} '.format(PROJECT, git_hash(spgr)))
@@ -67,8 +68,3 @@ def with_log(function):
             f.write(s)
 
     return add_log
-
-
-
-
-
