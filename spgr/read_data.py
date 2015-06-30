@@ -99,7 +99,7 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
     lg.info(subj + ' ' + str(score_file))
     subj_dir = DATA_PATH.joinpath(subj).joinpath(REC_FOLDER)
     if not subj_dir.is_dir():
-        subj_dir.mkdir()
+        subj_dir.mkdir(parents=True)
 
     xltek_file = REC_PATH.joinpath(subj).joinpath(XLTEK_FOLDER).joinpath(score_file.name[:-11])
     d = Dataset(str(xltek_file))
