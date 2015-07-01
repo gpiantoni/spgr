@@ -1,8 +1,6 @@
-from shutil import rmtree
-
-from spgr.constants import (HEMI_SUBJ,
-                            CHAN_TYPE,
+from spgr.constants import (CHAN_TYPE,
                             DATA_OPTIONS,
+                            HEMI_SUBJ,
                             SPINDLE_OPTIONS,
                             )
 from spgr.read_data import get_data
@@ -10,7 +8,6 @@ from spgr.detect_spindles import get_spindles
 from spgr.spindle_source import get_morph_linear, get_chan_with_regions
 from spgr.plot_spindles import plot_surf
 from spgr.lmer_stats import lmer
-from spgr.constants import IMAGES_PATH
 
 # from multiprocessing import set_start_method
 # set_start_method('forkserver')
@@ -18,26 +15,21 @@ from spgr.constants import IMAGES_PATH
 
 from .log import with_log
 
-images_dir = IMAGES_PATH.joinpath('property_descriptive')
-try:
-    rmtree(str(images_dir))
-except FileNotFoundError:
-    pass
-images_dir.mkdir(parents=True)
-
 PLOT_COLOR = 'kw'
 
 
+
+
 @with_log
-def Single_Channel_Statistics(lg):
+def Single_Channel_Statistics(lg, images_dir):
 
     lg.info('## Spindle Properties: Descriptive')
 
     lg.info('### Reference to Average')
-    plot_average_values('avg', lg)
+    plot_average_values('avg', lg, images_dir)
 
     lg.info('### Bipolar Reference')
-    plot_average_values(15, lg)
+    plot_average_values(15, lg, images_dir)
 
 
 def get_spindle_param(subj, param, ref):

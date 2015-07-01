@@ -1,10 +1,11 @@
 from datetime import datetime
 from logging import getLogger, INFO, FileHandler, StreamHandler, Formatter
 
-from spgr.constants import LOGSRC_PATH, PROJECT
+from spgr.constants import LOGSRC_PATH, PROJECT, IMAGES_PATH
 
 from socket import gethostname
 from subprocess import check_output
+from shutil import rmtree
 import phypno
 import spgr
 
@@ -30,6 +31,13 @@ def with_log(function):
         if log_file.exists():
             log_file.unlink()
 
+        images_dir = IMAGES_PATH.joinpath(function.__name__)
+        try:
+            rmtree(str(images_dir))
+        except FileNotFoundError:
+            pass
+        images_dir.mkdir(parents=True)
+
         lg = getLogger(PROJECT)
         lg.setLevel(INFO)
 
@@ -54,7 +62,7 @@ def with_log(function):
         lg.info('{} on {}'.format(t0.strftime('%Y-%m-%d %H:%M:%S'),
                                   gethostname()))
 
-        function(lg)
+        function(lg, images_dir)
 
         lg.info('## Finished')
         t1 = datetime.now()

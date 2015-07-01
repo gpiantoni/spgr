@@ -23,7 +23,7 @@ PLOT_COLOR = 'kw'
 
 
 @with_log
-def Cooccurrence_of_Spindles(lg):
+def Cooccurrence_of_Spindles(lg, images_dir):
 
     lg.info('## Co-occurrence of Spindles')
 

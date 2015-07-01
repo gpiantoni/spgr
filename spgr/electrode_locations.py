@@ -34,7 +34,7 @@ PLOT_COLOR = 'kw'
 
 
 @with_log
-def Electrode_Locations(lg):
+def Electrode_Locations(lg, images_dir):
 
     lg.info('## Locations for all the subjects')
 
