@@ -1,50 +1,20 @@
-
-# coding: utf-8
-
-# # SPGR
-
-# In[1]:
-
-import version_control
-
-
-# In[2]:
-
-from spgr import lg
-lg.setLevel(10)
-
-
-# ## Spindle Detection Method
-
-# In[2]:
-
+from phypno.detect import DetectSpindle
+from phypno.detect.spindle import transform_signal
+from phypno.trans import Select
 from copy import deepcopy
 from numpy import where, NaN
 from pathlib import Path
 
 from spgr.read_data import DATA_DIR, REC_DIR, FS_PATH, ELEC_PATH, get_data, GROUP_DIR
-GROUP_DIR = Path(GROUP_DIR)
 
-
-# In[29]:
-
-images_dir = GROUP_DIR.joinpath('images').joinpath('methods')
+images_dir = IMAGES_PATH.joinpath('spindle_detection_method')
 try:
-    images_dir.mkdir()
-except FileExistsError:
+    rmtree(str(images_dir))
+except FileNotFoundError:
     pass
+images_dir.mkdir(parents=True)
 
 PLOT_COLOR = 'kw'
-
-
-# In[5]:
-
-from phypno.detect import DetectSpindle
-from phypno.detect.spindle import transform_signal
-from phypno.trans import Select
-
-
-# In[6]:
 
 options = {'reref': 'avg',
            'resample_freq': 256,
@@ -54,12 +24,19 @@ options = {'reref': 'avg',
 chan_type = ('grid', 'strip')
 
 
-# Spindles were detected on each electrode independently, using previously reported methods with stringent criteria [@Nir2011_regional].
-# The raw signal was filtered between 9 and 16 Hz and the instantaneous amplitude was calculated from the analytic signal via Hilbert transform.
-# The amplitude had to go above a threshold for detection (set at 3 times the S.D.).
-# The beginning and end of the spindle were defined by a threshold for selection (set at 1 time the S.D.).
-# Spindle duration had to be between 0.5 and 2s.
-# We computed the power spectrum over the spindle interval and the peak in the power spectrum had to lie between 9 and 16 Hz (Fig. +[spgr_detect_method]).
+from .log import with_log
+
+@with_log
+def Spindle_Detection_Method(lg):
+
+
+    lg.info('## Method description')
+    lg.info('Spindles were detected on each electrode independently, using previously reported methods with stringent criteria [@Nir2011_regional].')
+    lg.info('The raw signal was filtered between 9 and 16 Hz and the instantaneous amplitude was calculated from the analytic signal via Hilbert transform.')
+    lg.info('The amplitude had to go above a threshold for detection (set at 3 times the S.D.).')
+    lg.info('The beginning and end of the spindle were defined by a threshold for selection (set at 1 time the S.D.).')
+    lg.info('Spindle duration had to be between 0.5 and 2s.')
+    lg.info('We computed the power spectrum over the spindle interval and the peak in the power spectrum had to lie between 9 and 16 Hz (Fig. +[spgr_detect_method]).')
 
 # In[7]:
 
@@ -134,7 +111,7 @@ sp = detsp(sel_data)
 
 from phypno.trans import Filter, Math
 
-filt = Filter(low_cut=detsp.det_butter['freq'][0], high_cut=detsp.det_butter['freq'][1], 
+filt = Filter(low_cut=detsp.det_butter['freq'][0], high_cut=detsp.det_butter['freq'][1],
               order=detsp.det_butter['order'], s_freq=data.s_freq)
 x_filt = filt(sel_data)
 
@@ -235,5 +212,5 @@ from spgr.detect_spindles import get_spindles
 for ref in ('avg', 15):
     for subj in HEMI_SUBJ:
         print(subj)
-        sp = get_spindles(subj, chan_type=CHAN_TYPE, reref=ref, **SPINDLE_OPTIONS)    
+        sp = get_spindles(subj, chan_type=CHAN_TYPE, reref=ref, **SPINDLE_OPTIONS)
 
