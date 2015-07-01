@@ -9,6 +9,7 @@ from PyQt4.QtGui import QApplication
 from spgr import (Read_ECoG_Recordings,
                   Electrode_Locations,
                   Single_Channel_Statistics,
+                  Cooccurrence_of_Spindles,
                   )
 #                  Spindle_Detection_Method,
 
@@ -20,6 +21,7 @@ all_func = OrderedDict([('-r', 'Read_ECoG_Recordings'),
                         ('-e', 'Electrode_Locations'),
                         ('-d', 'Spindle_Detection_Method'),  # does not work
                         ('-s', 'Single_Channel_Statistics'),
+                        ('-c', 'Cooccurrence_of_Spindles'),
                         ])
 
 parser = ArgumentParser(prog='spgr',
