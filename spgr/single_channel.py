@@ -3,19 +3,13 @@ from spgr.constants import (CHAN_TYPE,
                             HEMI_SUBJ,
                             SPINDLE_OPTIONS,
                             )
-from spgr.read_data import get_data
 from spgr.detect_spindles import get_spindles
-from spgr.spindle_source import get_morph_linear, get_chan_with_regions
-from spgr.plot_spindles import plot_surf
 from spgr.lmer_stats import lmer
-
-# from multiprocessing import set_start_method
-# set_start_method('forkserver')
-
+from spgr.plot_spindles import plot_surf
+from spgr.read_data import get_data
+from spgr.spindle_source import get_morph_linear, get_chan_with_regions
 
 from .log import with_log
-
-PLOT_COLOR = 'kw'
 
 
 @with_log
@@ -69,7 +63,7 @@ def add_to_dataframe(df, subj, values, chan):
             df['value'].append(one_value)
 
 
-def plot_average_values(REF, lg):
+def plot_average_values(REF, lg, images_dir):
     lg.propagate = False
     for param in ('density', 'duration', 'peak_val', 'peak_freq'):
 

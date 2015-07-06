@@ -72,3 +72,4 @@ SMOOTHING_THRESHOLD = 20
 FS_AVG = join(environ['FREESURFER_HOME'], 'subjects', 'fsaverage')
 
 PLOT_COLOR = 'kw'
+SKIN_COLOR = (239, 208, 207, 240)
