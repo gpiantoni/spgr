@@ -40,7 +40,6 @@ def Cooccurrence_of_Spindles(lg, images_dir):
             lg.info('![{}]({})'.format('{} {}'.format(REREF, subj), png_file))
 
     lg.info('### Plots of common spindles')
-
     lg.propagate = False
     all_values = []
 

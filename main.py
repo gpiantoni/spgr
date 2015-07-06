@@ -19,7 +19,7 @@ from spgr.constants import LOG_PATH, LOGSRC_PATH
 
 # ALWAYS GIT COMMIT
 all_func = OrderedDict([('-r', 'Read_ECoG_Recordings'),
-                        ('-x', 'Representative_Examples')
+                        ('-x', 'Representative_Examples'),
                         ('-e', 'Electrode_Locations'),
                         ('-d', 'Spindle_Detection_Method'),  # does not work
                         ('-s', 'Single_Channel_Statistics'),
