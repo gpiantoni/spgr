@@ -7,6 +7,7 @@ from subprocess import check_call
 from PyQt4.QtGui import QApplication
 
 from spgr import (Read_ECoG_Recordings,
+                  Representative_Examples,
                   Electrode_Locations,
                   Single_Channel_Statistics,
                   Cooccurrence_of_Spindles,
@@ -18,6 +19,7 @@ from spgr.constants import LOG_PATH, LOGSRC_PATH
 
 # ALWAYS GIT COMMIT
 all_func = OrderedDict([('-r', 'Read_ECoG_Recordings'),
+                        ('-x', 'Representative_Examples')
                         ('-e', 'Electrode_Locations'),
                         ('-d', 'Spindle_Detection_Method'),  # does not work
                         ('-s', 'Single_Channel_Statistics'),
