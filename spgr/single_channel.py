@@ -18,8 +18,6 @@ from .log import with_log
 PLOT_COLOR = 'kw'
 
 
-
-
 @with_log
 def Single_Channel_Statistics(lg, images_dir):
 

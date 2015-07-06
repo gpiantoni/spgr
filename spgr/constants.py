@@ -70,3 +70,5 @@ DEFAULT_HEMI = 'rh'
 SMOOTHING_STD = 10
 SMOOTHING_THRESHOLD = 20
 FS_AVG = join(environ['FREESURFER_HOME'], 'subjects', 'fsaverage')
+
+PLOT_COLOR = 'kw'

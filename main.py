@@ -35,20 +35,22 @@ for abbr, func_name in all_func.items():
 args = parser.parse_args()
 
 
-app = QApplication([])
-
-
-md_files = []
 if __name__ == '__main__':
+
+    app = QApplication([])
+
     for abbr, func_name in all_func.items():
         if getattr(args, abbr[1:]):
             eval(func_name + '()')
-            md_files.append(str(LOGSRC_PATH.joinpath(func_name + '.md')))
 
-# app.exec_()
+    # PREPARE PANDOC FILE
+    md_files = []
+    for func_name in all_func.values():
+        one_md_file = LOGSRC_PATH.joinpath(func_name + '.md')
+        if one_md_file.exists():
+            md_files.append(str(one_md_file))
 
-# PREPARE PANDOC FILE
-cmd = ['pandoc', '-s', '-S', '--toc']
-cmd.extend(md_files)
-cmd.extend(['-o', str(LOG_PATH.joinpath('main.' + args.to))])
-check_call(cmd)
+    cmd = ['pandoc', '-s', '-S', '--toc']
+    cmd.extend(md_files)
+    cmd.extend(['-o', str(LOG_PATH.joinpath('main.' + args.to))])
+    check_call(cmd)

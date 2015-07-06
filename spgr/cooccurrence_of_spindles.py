@@ -12,14 +12,8 @@ from spgr.lmer_stats import lmer
 
 from .log import with_log
 
-images_dir = IMAGES_PATH.joinpath('spindle_overlap')
-try:
-    rmtree(str(images_dir))
-except FileNotFoundError:
-    pass
-images_dir.mkdir(parents=True)
 
-PLOT_COLOR = 'kw'
+
 
 
 @with_log
