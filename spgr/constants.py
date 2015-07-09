@@ -41,6 +41,50 @@ HEMI_SUBJ = {'EM09': 'rh',
              }
 
 
+# define patients with grids
+SUBJECTS = {'grid_scalp': ('EM03',
+                           'EM09',
+                           'MG07',
+                           'MG11',
+                           'MG12',
+                           'MG15',
+                           'MG17',
+                           'MG29',
+                           'MG31',
+                           'MG32',
+                           'MG33',
+                           'MG37',
+                           'MG42',
+                           'MG45',
+                           'MG48',
+                           'MG49',
+                           'MG51',
+                           'MG56',
+                           'MG61',
+                           'MG63',
+                           'MG65',
+                           'MG72',
+                           'MG83'),
+            'grid_noscalp': ('MG28',
+                             'MG64',
+                             'MG67',
+                             'MG75',
+                             'MG81'),
+            'many_SZ': ('MG49',
+                        'MG74',
+                        'MG75',
+                        'MG81',
+                        'MG83'),
+            'not_in_rec': ('MG12', ),
+            }
+
+
+SUBJECTS['all'] = ((set(SUBJECTS['grid_scalp']) |
+                    set(SUBJECTS['grid_noscalp'])) -
+                   set(SUBJECTS['many_SZ']) -
+                   set(SUBJECTS['not_in_rec']))
+
+
 def SESSION(subj):
     if subj in ('MG64', ):
         return 'B'
