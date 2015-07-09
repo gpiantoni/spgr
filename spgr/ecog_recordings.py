@@ -5,7 +5,7 @@ from .log import with_log
 
 
 @with_log
-def Read_ECoG_Recordings(lg):
+def Read_ECoG_Recordings(lg, img_dir):
 
     lg.info('## Selection of Patients')
 
