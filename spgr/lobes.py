@@ -1,4 +1,7 @@
-lobes = {'frontal': ['caudalanteriorcingulate',
+from PyQt4.QtCore import Qt
+
+
+LOBES = {'frontal': ['caudalanteriorcingulate',
                      'caudalmiddlefrontal',
                      'lateralorbitofrontal',
                      'medialorbitofrontal',
@@ -38,3 +41,11 @@ lobes = {'frontal': ['caudalanteriorcingulate',
          'insula': ['insula',
                     ],
          }
+
+
+LOBE_COLORS = {'frontal': Qt.magenta,
+               'parietal': Qt.cyan,
+               'occipital': Qt.blue,
+               'temporal': Qt.green,
+               'insula': Qt.yellow,
+               'unknown': Qt.gray}

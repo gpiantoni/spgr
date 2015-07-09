@@ -1,22 +1,21 @@
-from spgr.constants import (CHAN_TYPE,
-                            DATA_OPTIONS,
-                            HEMI_SUBJ,
-                            PLOT_COLOR,
-                            SPINDLE_OPTIONS,
-                            )
-from spgr.detect_spindles import get_spindles
-from spgr.lmer_stats import lmer
-from spgr.plot_spindles import (make_hist_overlap,
-                                plot_surf,
+from .constants import (CHAN_TYPE,
+                        DATA_OPTIONS,
+                        HEMI_SUBJ,
+                        PLOT_COLOR,
+                        SPINDLE_OPTIONS,
+                        )
+from .detect_spindles import get_spindles
+from .lmer_stats import lmer
+from .plot_spindles import plot_surf
+from .plot_histogram import make_hist_overlap
+from .read_data import get_chan_used_in_analysis
+from .spindle_source import (get_chan_with_regions,
+                             get_morph_linear,
+                             )
+from .stats_on_spindles import (create_spindle_cooccurrence_matrix,
+                                create_spindle_groups,
+                                mean_spindle_cooccurrence,
                                 )
-from spgr.read_data import get_chan_used_in_analysis
-from spgr.spindle_source import (get_chan_with_regions,
-                                 get_morph_linear,
-                                 )
-from spgr.stats_on_spindles import (create_spindle_cooccurrence_matrix,
-                                    create_spindle_groups,
-                                    mean_spindle_cooccurrence,
-                                    )
 
 from .log import with_log
 
