@@ -21,9 +21,9 @@ from .log import with_log
 
 
 @with_log
-def Cooccurrence_of_Spindles(lg, images_dir):
+def Cooccurrence_Histogram(lg, images_dir):
 
-    lg.info('## Co-occurrence of Spindles')
+    lg.info('## Histogram of Co-occurrence of Spindles')
 
     for REREF in ('avg', 15):
         for subj in HEMI_SUBJ:
@@ -38,8 +38,12 @@ def Cooccurrence_of_Spindles(lg, images_dir):
             v.save(png_file)
             lg.info('![{}]({})'.format('{} {}'.format(REREF, subj), png_file))
 
-    lg.info('### Plots of common spindles')
-    lg.propagate = False
+
+@with_log
+def Cooccurrence_of_Spindles(lg, images_dir):
+
+    lg.info('## Cooccurrence_of_Spindles')
+
     all_values = []
 
     for REREF in ('avg', 15):
@@ -68,9 +72,7 @@ def Cooccurrence_of_Spindles(lg, images_dir):
             threshold = 0.01, None
             limits = 0, .15
 
-            lg.propagate = True
-            lmer(dataframe)
-            lg.propagate = False
+            lmer(dataframe, lg)
 
             v = plot_surf(all_values, threshold=threshold, limits=limits)
             png_name = 'cooccurrence_map_{}_{}.png'.format(NORMALIZED_BY,
@@ -79,8 +81,6 @@ def Cooccurrence_of_Spindles(lg, images_dir):
             v.save(png_file)
             lg.info('![{}]({})'.format('{} {}'.format(NORMALIZED_BY, REREF),
                     png_file))
-
-    lg.propagate = True
 
 
 def add_to_dataframe(df, subj, values, chan):

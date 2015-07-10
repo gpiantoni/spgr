@@ -1,4 +1,3 @@
-from logging import getLogger
 from numpy import diag, ones, r_
 
 from rpy2 import robjects
@@ -6,14 +5,12 @@ from rpy2.robjects.numpy2ri import activate
 from rpy2.robjects.packages import importr
 
 
-lg = getLogger('lmer')
-
 activate()
 lme4 = importr('lme4')
 multcomp = importr('multcomp')
 
 
-def lmer(df_raw, formula='value ~ 0 + region + (1|subj)', adjust='fdr',
+def lmer(df_raw, lg, formula='value ~ 0 + region + (1|subj)', adjust='fdr',
          pvalue=0.05):
     """Compute linear mixed-effects models, using R
 
@@ -21,6 +18,8 @@ def lmer(df_raw, formula='value ~ 0 + region + (1|subj)', adjust='fdr',
     ----------
     df_raw : dict
         dict where each key is one column
+    lg : instance of logging.Logger
+        logging template
     formula : str
         formula to test
     adjust : str
@@ -47,16 +46,18 @@ def lmer(df_raw, formula='value ~ 0 + region + (1|subj)', adjust='fdr',
     summary = multcomp.summary_glht(comps, test=adjustment)
 
     coef, intercept, pvalues = _get_coef_pvalue(summary)
-    _report_values(coef, pvalues, intercept, pvalue)
+    _report_values(lg, coef, pvalues, intercept, pvalue)
 
     return coef, pvalues
 
 
-def _report_values(coef, pvalues, intercept, p_threshold):
+def _report_values(lg, coef, pvalues, intercept, p_threshold):
     """Report values of the LMER statistics, including the intercept value
 
     Parameters
     ----------
+    lg : instance of logging.Logger
+        logging template
     coef : dict
         dictionary with coefficients
     pvalues : dict
