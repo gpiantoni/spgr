@@ -38,26 +38,6 @@ def estimate_overlap(spindles):
     return triu(overlap)
 
 
-def determine_spindle_group(spindles):
-    """Estimate the spindle groups.
-
-    Parameters
-    ----------
-    spindles : instance of phypno.graphoelement.Spindles
-        spindles that were detected on each channel individually
-
-    Returns
-    -------
-    vector
-        vector with indices that divide the single-spindles in groups.
-    """
-    overlap = estimate_overlap(spindles)
-    overlap_sum = sum(overlap, axis=1)
-    group_sep = diff(r_[1, where(overlap_sum == 1)[0]])[1:]
-
-    return group_sep
-
-
 def create_spindle_groups(spindles):
     """Group spindles based on the fact that they occur at the same time.
 
@@ -75,7 +55,7 @@ def create_spindle_groups(spindles):
     # make sure that the list of spindles (as dict) is sorted as well
     spindles.spindle = sorted(spindles.spindle, key=lambda x: x['start_time'])
 
-    group_sep = determine_spindle_group(spindles)
+    group_sep = _determine_spindle_group(spindles)
 
     sp_groups = []
     i0 = 0
@@ -93,6 +73,26 @@ def create_spindle_groups(spindles):
     chan_group = [x for x in chan_group if len(x) != 0]
 
     return chan_group
+
+
+def _determine_spindle_group(spindles):
+    """Estimate the spindle groups.
+
+    Parameters
+    ----------
+    spindles : instance of phypno.graphoelement.Spindles
+        spindles that were detected on each channel individually
+
+    Returns
+    -------
+    vector
+        vector with indices that divide the single-spindles in groups.
+    """
+    overlap = estimate_overlap(spindles)
+    overlap_sum = sum(overlap, axis=1)
+    group_sep = diff(r_[1, where(overlap_sum == 1)[0]])[1:]
+
+    return group_sep
 
 
 def create_spindle_cooccurrence_matrix(chan, spindle_group, min_distance=None):
