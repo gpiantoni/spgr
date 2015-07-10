@@ -38,13 +38,15 @@ def estimate_overlap(spindles):
     return triu(overlap)
 
 
-def create_spindle_groups(spindles):
+def create_spindle_groups(spindles, param='chan'):
     """Group spindles based on the fact that they occur at the same time.
 
     Parameters
     ----------
     spindles : instance of phypno.graphoelement.Spindles
         spindles that were detected on each channel individually
+    param : str
+        take this spindle parameter for each group
 
     Returns
     -------
@@ -68,7 +70,7 @@ def create_spindle_groups(spindles):
 
     chan_group = []
     for one_group in sp_groups:
-        chan_group.append([x['chan'] for x in one_group])
+        chan_group.append([x[param] for x in one_group])
 
     chan_group = [x for x in chan_group if len(x) != 0]
 
