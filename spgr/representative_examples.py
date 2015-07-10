@@ -26,10 +26,7 @@ BEST_SPINDLE = 'sigma_ratio'  # 'area_under_curve' or 'sigma_ratio'
 
 @with_log
 def Representative_Examples(lg, images_dir):
-    """Show some good spindle examples.
-    A better way of doing this is by doing fft at spindle, before and after and
-    take the spindle with the best ratio.
-    """
+    """Show some good spindle examples."""
     lg.info('## Representative Spindles')
 
     lg.info('### Spindles in each brain region')
@@ -67,7 +64,20 @@ def Representative_Examples(lg, images_dir):
 
 
 def find_best_spindles(subj, data):
+    """For each subject and brain region, find the best spindle.
 
+    Parameters
+    ----------
+    subj : str
+        subj code
+    data : instance of ChanTimeData
+        complete recordings for a subject
+
+    Returns
+    -------
+    dict
+        dictionary, each brain region has the best spindle.
+    """
     spindles = get_spindles(subj, reref=REREF, **SPINDLE_OPTIONS)
     chan = get_chan_with_regions(subj, REREF)
 
@@ -101,6 +111,21 @@ def find_best_spindles(subj, data):
 
 
 def find_spindle_data(data, spindle):
+    """Return the data around a spindle, for the channel with a spindle.
+
+    Parameters
+    ----------
+    data : instance of ChanTimeData
+        complete recordings for a subject
+    spindle : dict
+        parameters of one spindle
+
+    Returns
+    -------
+    instance of ChanTimeData
+        recordings for the channel with a spindle, time interval before and
+        after the spindle
+    """
     i_trial = _find_trial_with_spindle(data, spindle)
 
     sel = Select(time=(spindle['start_time'] - PAD,
@@ -110,13 +135,27 @@ def find_spindle_data(data, spindle):
 
 
 def _find_trial_with_spindle(data, sp):
+    """Simple function to find the trial containing the spindle."""
     for i, t in enumerate(data.axis['time']):
         if sp['start_time'] > t[0] and sp['start_time'] < t[-1]:
             return i
 
 
 def _find_sigma_ratio(one_sp, data):
+    """For one spindle, get the sigma ratio (amount of spindle power).
 
+    Parameters
+    ----------
+    one_sp : dict
+        parameters of one spindle
+    instance of ChanTimeData
+        data with spindle data
+
+    Returns
+    -------
+    float
+        amount of spindle power, normalized by other frequencies / intervals
+    """
     sp_t = where(data.axis['time'][0] >= one_sp['peak_time'])[0][0]
 
     ia_0 = sp_t - int(data.s_freq * WINDOW * 1.5)
@@ -141,6 +180,7 @@ def _find_sigma_ratio(one_sp, data):
 
 
 def power_in_bands(x, s_freq):
+    """Power below spindle band, in the spindle band, above spindle band."""
     [f, Pxx] = periodogram(x, fs=s_freq, nfft=s_freq)
     SIGMA_FREQ = SPINDLE_OPTIONS['frequency']
 
