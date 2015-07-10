@@ -2,6 +2,7 @@
 
 from argparse import ArgumentParser
 from collections import OrderedDict
+from datetime import datetime
 from subprocess import check_call
 
 from PyQt4.QtGui import QApplication
@@ -14,7 +15,7 @@ from spgr import (Read_ECoG_Recordings,
                   )
 #                  Spindle_Detection_Method,
 
-from spgr.constants import LOG_PATH, LOGSRC_PATH
+from spgr.constants import LOG_PATH, LOGSRC_PATH, PROJECT
 
 
 # ALWAYS GIT COMMIT
@@ -52,7 +53,13 @@ if __name__ == '__main__':
         if one_md_file.exists():
             md_files.append(str(one_md_file))
 
+    LOGOUTPUT_PATH = LOG_PATH.joinpath(args.to)
+    if not LOGOUTPUT_PATH.exists():
+        LOGOUTPUT_PATH.mkdir()
+    t = datetime.now()
+    output_name = t.strftime(PROJECT + '_%y%m%d_%H%M%S') + '.' + args.to
+
     cmd = ['pandoc', '-s', '-S', '--toc']
     cmd.extend(md_files)
-    cmd.extend(['-o', str(LOG_PATH.joinpath('main.' + args.to))])
+    cmd.extend(['-o', str(LOGOUTPUT_PATH.joinpath(output_name))])
     check_call(cmd)
