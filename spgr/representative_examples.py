@@ -1,4 +1,4 @@
-from numpy import where
+from numpy import log, where
 from phypno.trans import Select
 from phypno.viz import Viz1
 from scipy.signal import periodogram
@@ -86,7 +86,10 @@ def find_best_spindles(subj, data):
         if BEST_SPINDLE == 'area_under_curve':
             one_sp['goodness'] = one_sp['area_under_curve']
         elif BEST_SPINDLE == 'sigma_ratio':
-            one_sp['goodness'] = _find_sigma_ratio(one_sp, data)
+            try:
+                one_sp['goodness'] = _find_sigma_ratio(one_sp, data)
+            except (IndexError, ZeroDivisionError):  # how is this possible?
+                one_sp['goodness'] = - 10000000
 
         if sp_region in best_spindles:
             if one_sp['goodness'] > best_spindles[sp_region]['goodness']:
@@ -114,26 +117,36 @@ def _find_trial_with_spindle(data, sp):
 
 def _find_sigma_ratio(one_sp, data):
 
-    tb_0 = one_sp['peak_time'] - WINDOW / 2
-    ib_0 = where(data.axis['time'][0] >= tb_0)[0][0]
-    ib_1 = ib_0 + WINDOW * data.s_freq
+    sp_t = where(data.axis['time'][0] >= one_sp['peak_time'])[0][0]
 
-    ia_0 = ib_0 - 1 * WINDOW * data.s_freq
-    ia_1 = ib_0 - 0 * WINDOW * data.s_freq
-    ic_0 = ib_0 + 1 * WINDOW * data.s_freq
-    ic_1 = ib_0 + 2 * WINDOW * data.s_freq
+    ia_0 = sp_t - int(data.s_freq * WINDOW * 1.5)
+    ia_1 = sp_t - int(data.s_freq * WINDOW * 0.5)
+    ib_0 = sp_t - int(data.s_freq * WINDOW * 0.5)
+    ib_1 = sp_t + int(data.s_freq * WINDOW * 0.5)
+    ic_0 = sp_t + int(data.s_freq * WINDOW * 0.5)
+    ic_1 = sp_t + int(data.s_freq * WINDOW * 1.5)
 
     ia = data.data[0][0, ia_0:ia_1]
     ib = data.data[0][0, ib_0:ib_1]
     ic = data.data[0][0, ic_0:ic_1]
 
-    sigma_ratio = sigma_power(ib, data.s_freq) / (sigma_power(ia, data.s_freq) +
-                                                  sigma_power(ic, data.s_freq))
+    pa_0, pa_1, pa_2 = power_in_bands(ia, data.s_freq)
+    pb_0, pb_1, pb_2 = power_in_bands(ib, data.s_freq)
+    pc_0, pc_1, pc_2 = power_in_bands(ic, data.s_freq)
+
+    sigma_ratio = (pb_1 / pb_2) / ((pa_1 / pa_2 + pc_1 / pc_2) +
+                                   (pa_0 + pb_0 + pc_0))
 
     return sigma_ratio
 
 
-def sigma_power(x, s_freq):
+def power_in_bands(x, s_freq):
     [f, Pxx] = periodogram(x, fs=s_freq, nfft=s_freq)
     SIGMA_FREQ = SPINDLE_OPTIONS['frequency']
-    return sum(Pxx[(f >= SIGMA_FREQ[0]) & (f <= SIGMA_FREQ[1])])
+
+    Pxx = log(Pxx)
+
+    below_sigma = sum(Pxx[(f >= 1) & (f <= SIGMA_FREQ[0])])
+    sigma = sum(Pxx[(f >= SIGMA_FREQ[0]) & (f <= SIGMA_FREQ[1])])
+    above_sigma = sum(Pxx[(f >= SIGMA_FREQ[1]) & (f <= 40)])
+    return below_sigma, sigma, above_sigma
