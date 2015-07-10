@@ -43,6 +43,7 @@ args = parser.parse_args()
 if __name__ == '__main__':
 
     app = QApplication([])
+    t = datetime.now()
 
     for abbr, func_name in all_func.items():
         if getattr(args, abbr[1:]):
@@ -58,7 +59,7 @@ if __name__ == '__main__':
     LOGOUTPUT_PATH = LOG_PATH.joinpath(args.to)
     if not LOGOUTPUT_PATH.exists():
         LOGOUTPUT_PATH.mkdir()
-    t = datetime.now()
+
     output_name = t.strftime(PROJECT + '_%y%m%d_%H%M%S') + '.' + args.to
 
     cmd = ['pandoc', '-s', '-S', '--toc']
