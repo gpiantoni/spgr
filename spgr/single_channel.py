@@ -64,7 +64,6 @@ def add_to_dataframe(df, subj, values, chan):
 
 
 def plot_average_values(REF, lg, images_dir):
-    lg.propagate = False
     for param in ('density', 'duration', 'peak_val', 'peak_freq'):
 
         if param == 'density':
@@ -91,12 +90,8 @@ def plot_average_values(REF, lg, images_dir):
             chan = get_chan_with_regions(subj, REF)
             add_to_dataframe(dataframe, subj, values, chan)
 
-        lg.propagate = True
-        lmer(dataframe)
-        lg.propagate = False
+        lmer(dataframe, lg)
         v = plot_surf(morphed, threshold=threshold, limits=limits)
         png_file = str(images_dir.joinpath('{}_{}.png'.format(param, REF)))
         v.save(png_file)
         lg.info('![{}]({})'.format('{} {}'.format(REF, param), png_file))
-
-    lg.propagate = True
