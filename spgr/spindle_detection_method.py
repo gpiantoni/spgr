@@ -3,7 +3,6 @@ from numpy import ones, NaN, swapaxes, where
 from scipy.signal import fftconvolve
 from pyqtgraph import mkPen
 from phypno.trans import Math, Filter
-from numpy import pi
 
 from phypno.detect import DetectSpindle
 from phypno.trans import Select
@@ -120,24 +119,6 @@ def Spindle_Detection_Method(lg, images_dir):
     png_file = str(images_dir.joinpath('detected.png'))
     v.save(png_file)
     lg.info('![{}]({})'.format('Detected', png_file))
-
-    sel = Select(trial=(good_trial, ))
-    sel_data = sel(data)
-    sp = detsp(sel_data)
-
-    hp = Filter(low_cut=10, high_cut=15, s_freq=sel_data.s_freq)
-    h = Math(operator_name=('hilbert', 'angle', 'unwrap', 'diff'), axis='time')
-    ddata = h(hp(sel_data))
-    ddata.data[0] *= (ddata.s_freq / 2 / pi)
-
-    v = Viz1(color=PLOT_COLOR)
-    v.size = PLOT_SIZE
-    v.add_data(ddata, limits_x=(44850, 44880), limits_y=(5, 20))
-    v.add_graphoelement(sp)
-    v._plots[chan_name].setLabels(left='frequency (Hz)', bottom='time (s)')
-    png_file = str(images_dir.joinpath('inst_freq.png'))
-    v.save(png_file)
-    lg.info('![{}]({})'.format('Instantenous Frequency', png_file))
 
     for ref in ('avg', 15):
         for subj in HEMI_SUBJ:
