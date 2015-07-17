@@ -43,7 +43,6 @@ def Spindle_Detection_Method(lg, images_dir):
                       dur0=SPINDLE_OPTIONS['duration'][0],
                       dur1=SPINDLE_OPTIONS['duration'][1]))
 
-
     lg.info('Example from {subj} on chan {chan} at {time} s'
             ''.format(subj=SUBJ, chan=chan_name, time=start_good_time))
 
@@ -53,7 +52,6 @@ def Spindle_Detection_Method(lg, images_dir):
 
     good_trial = [i for i, trl in enumerate(data)
                   if start_good_time // 30 * 30 == trl.axis['time'][0][0]][0]
-    print(good_trial)
 
     sel = Select(trial=(good_trial, ))
     sel_data = sel(data)
@@ -63,15 +61,18 @@ def Spindle_Detection_Method(lg, images_dir):
     v.add_data(sel_data, limits_x=(start_good_time, end_good_time),
                limits_y=(-200, 200))
     v._plots[chan_name].setLabels(left='amplitude (μV)', bottom='time (s)')
-    v.save(str(images_dir.joinpath('raw.png' )))
-    v
+
+    png_file = str(images_dir.joinpath('raw.png'))
+    v.save(png_file)
+    lg.info('![{}]({})'.format('Raw EEG', png_file))
 
     detsp = DetectSpindle(method=SPINDLE_OPTIONS['method'],
                           frequency=SPINDLE_OPTIONS['frequency'],
                           duration=SPINDLE_OPTIONS['duration'])
     sp = detsp(sel_data)
 
-    filt = Filter(low_cut=detsp.det_butter['freq'][0], high_cut=detsp.det_butter['freq'][1],
+    filt = Filter(low_cut=detsp.det_butter['freq'][0],
+                  high_cut=detsp.det_butter['freq'][1],
                   order=detsp.det_butter['order'], s_freq=data.s_freq)
     x_filt = filt(sel_data)
 
@@ -91,14 +92,18 @@ def Spindle_Detection_Method(lg, images_dir):
 
     v = Viz1(color=PLOT_COLOR)
     v.size = PLOT_SIZE
-    v.add_data(x_filt, color=mkPen('b', width=1), limits_x=(44850, 44880), limits_y=(-100, 100))
+    v.add_data(x_filt, color=mkPen('b', width=1),
+               limits_x=(start_good_time, end_good_time), limits_y=(-100, 100))
     v.add_data(dat_det, color=mkPen('r', width=4))
     v._plots[chan_name].setLabels(left='amplitude (μV)', bottom='time (s)')
-    v.save(str(images_dir.joinpath('envelope.png' )))
-    v
+
+    png_file = str(images_dir.joinpath('envelope.png'))
+    v.save(png_file)
+    lg.info('![{}]({})'.format('Envelope', png_file))
 
     t = dat_det.axis['time'][0]
-    good_sp = [x for x in sp.spindle if x['start_time'] < t[-1] and x['end_time'] > t[0]]
+    good_sp = [x for x in sp.spindle
+               if x['start_time'] < t[-1] and x['end_time'] > t[0]]
 
     detected_spindles = deepcopy(dat_det)
 
@@ -107,16 +112,16 @@ def Spindle_Detection_Method(lg, images_dir):
         i1 = where(t == one_sp['end_time'])[0]
         detected_spindles.data[0][0, i0:i1] = NaN
 
-
     v = Viz1(color=PLOT_COLOR)
     v.size = PLOT_SIZE
     v.add_data(sel_data, limits_x=(44850, 44880), limits_y=(-200, 200))
     v._plots[chan_name].setLabels(left='amplitude (μV)', bottom='time (s)')
     v.add_graphoelement(sp)
-    v.save(str(images_dir.joinpath('detected.png' )))
-    v
+    png_file = str(images_dir.joinpath('detected.png'))
+    v.save(png_file)
+    lg.info('![{}]({})'.format('Detected', png_file))
 
-    sel = Select(trial=(73, ))
+    sel = Select(trial=(good_trial, ))
     sel_data = sel(data)
     sp = detsp(sel_data)
 
@@ -130,10 +135,12 @@ def Spindle_Detection_Method(lg, images_dir):
     v.add_data(ddata, limits_x=(44850, 44880), limits_y=(5, 20))
     v.add_graphoelement(sp)
     v._plots[chan_name].setLabels(left='frequency (Hz)', bottom='time (s)')
-    v.save(str(images_dir.joinpath('inst_freq.png' )))
-    v
+    png_file = str(images_dir.joinpath('inst_freq.png'))
+    v.save(png_file)
+    lg.info('![{}]({})'.format('Instantenous Frequency', png_file))
 
     for ref in ('avg', 15):
         for subj in HEMI_SUBJ:
             print(subj)
-            sp = get_spindles(subj, chan_type=CHAN_TYPE, reref=ref, **SPINDLE_OPTIONS)
+            sp = get_spindles(subj, chan_type=CHAN_TYPE, reref=ref,
+                              **SPINDLE_OPTIONS)
