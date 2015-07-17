@@ -10,11 +10,12 @@ from PyQt4.QtGui import QApplication
 from spgr import (Read_ECoG_Recordings,
                   Representative_Examples,
                   Electrode_Locations,
+                  Spindle_Detection_Method,
                   Single_Channel_Statistics,
                   Cooccurrence_Histogram,
                   Cooccurrence_of_Spindles,
                   )
-#                  Spindle_Detection_Method,
+
 
 from spgr.constants import LOG_PATH, LOGSRC_PATH, PROJECT
 
@@ -23,7 +24,7 @@ from spgr.constants import LOG_PATH, LOGSRC_PATH, PROJECT
 all_func = OrderedDict([('-r', 'Read_ECoG_Recordings'),
                         ('-x', 'Representative_Examples'),
                         ('-e', 'Electrode_Locations'),
-                        ('-d', 'Spindle_Detection_Method'),  # does not work
+                        ('-d', 'Spindle_Detection_Method'),
                         ('-s', 'Single_Channel_Statistics'),
                         ('-t', 'Cooccurrence_Histogram'),
                         ('-c', 'Cooccurrence_of_Spindles'),

@@ -23,50 +23,52 @@ from .log import with_log
 
 PLOT_SIZE = 960, 240
 
+SUBJ = 'EM09'
+chan_name = 'GR28'
+start_good_time = 44850
+end_good_time = 44880
+
 
 @with_log
 def Spindle_Detection_Method(lg, images_dir):
 
     lg.info('## Method description')
-    # lg.info('Spindles were detected on each electrode independently, using previously reported methods with stringent criteria [@Nir2011_regional].')
-    # lg.info('The raw signal was filtered between 9 and 16 Hz and the instantaneous amplitude was calculated from the analytic signal via Hilbert transform.')
-    # lg.info('The amplitude had to go above a threshold for detection (set at 3 times the S.D.).')
-    # lg.info('The beginning and end of the spindle were defined by a threshold for selection (set at 1 time the S.D.).')
-    # lg.info('Spindle duration had to be between 0.5 and 2s.')
-    # lg.info('We computed the power spectrum over the spindle interval and the peak in the power spectrum had to lie between 9 and 16 Hz (Fig. +[spgr_detect_method]).')
+    lg.info('Spindles were detected on each electrode independently, using '
+            'previously reported methods with stringent criteria ({method}).'
+            'The raw signal was filtered between {freq0} and {freq1} Hz.'
+            'Spindle duration had to be between {dur0} and {dur1} s.'
+            ''.format(method=SPINDLE_OPTIONS['method'],
+                      freq0=SPINDLE_OPTIONS['frequency'][0],
+                      freq1=SPINDLE_OPTIONS['frequency'][1],
+                      dur0=SPINDLE_OPTIONS['duration'][0],
+                      dur1=SPINDLE_OPTIONS['duration'][1]))
 
 
-    subj = 'EM09'
-    chan_name = 'GR28'
-    data = get_data(subj, 'sleep', CHAN_TYPE, **DATA_OPTIONS)
+    lg.info('Example from {subj} on chan {chan} at {time} s'
+            ''.format(subj=SUBJ, chan=chan_name, time=start_good_time))
+
+    data = get_data(SUBJ, 'sleep', CHAN_TYPE, **DATA_OPTIONS)
     sel = Select(chan=(chan_name, ))
     data = sel(data)
 
-
-    good_trial = [i for i, trl in enumerate(data) if 42710 // 30 * 30 == trl.axis['time'][0][0]][0]
-    good_trial = 73
+    good_trial = [i for i, trl in enumerate(data)
+                  if start_good_time // 30 * 30 == trl.axis['time'][0][0]][0]
+    print(good_trial)
 
     sel = Select(trial=(good_trial, ))
     sel_data = sel(data)
 
-    select_beginning = Select(time=(None, 44852))
-    one_spindle_data = select_beginning(sel_data)
-
     v = Viz1(color=PLOT_COLOR)
     v.size = PLOT_SIZE
-    v.add_data(one_spindle_data, limits_x=(44850, 44880), limits_y=(-200, 200))
-    v._plots[chan_name].setLabels(left='amplitude (μV)', bottom='time (s)')
-    v.save(str(images_dir.joinpath('raw_spindle.png' )))
-    v
-
-    v = Viz1(color=PLOT_COLOR)
-    v.size = PLOT_SIZE
-    v.add_data(sel_data, limits_x=(44850, 44880), limits_y=(-200, 200))
+    v.add_data(sel_data, limits_x=(start_good_time, end_good_time),
+               limits_y=(-200, 200))
     v._plots[chan_name].setLabels(left='amplitude (μV)', bottom='time (s)')
     v.save(str(images_dir.joinpath('raw.png' )))
     v
 
-    detsp = DetectSpindle(SPINDLE_OPTIONS)
+    detsp = DetectSpindle(method=SPINDLE_OPTIONS['method'],
+                          frequency=SPINDLE_OPTIONS['frequency'],
+                          duration=SPINDLE_OPTIONS['duration'])
     sp = detsp(sel_data)
 
     filt = Filter(low_cut=detsp.det_butter['freq'][0], high_cut=detsp.det_butter['freq'][1],
