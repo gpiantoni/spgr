@@ -4,7 +4,7 @@ import warnings
 from phypno.attr import Freesurfer
 from phypno.viz import Viz3
 
-from .constants import DEFAULT_HEMI, FS_AVG
+from .constants import DEFAULT_HEMI, FS_AVG, PLOT_COLOR
 
 fs = Freesurfer(FS_AVG)
 surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)
@@ -45,7 +45,7 @@ def plot_surf(all_values, threshold=(None, None), limits=(0, 2),
             if not any(isnan(values[one_tri])):
                 values[one_tri] = mean(values[one_tri])
 
-    v = Viz3(color='kw')
+    v = Viz3(color=PLOT_COLOR)
     v.add_surf(surf_avg, values=values, limits_c=limits,
                color=(100, 100, 100, 255))
     v._widget.opts.update({'elevation': 15, 'azimuth': 17})
@@ -79,7 +79,7 @@ def plot_lmer(coef, pvalues=None, limits=(0, 2), p_threshold=0.05):
         if pvalues[one_region] <= p_threshold:
             val[array(label_avg[0]) == label_avg[2].index(one_region)] = one_v
 
-    v = Viz3(color='kw')
+    v = Viz3(color=PLOT_COLOR)
     v.add_surf(surf_avg, values=val, limits_c=limits,
                color=(100, 100, 100, 255))
     v._widget.opts.update({'elevation': 15, 'azimuth': 17})

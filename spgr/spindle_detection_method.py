@@ -23,7 +23,7 @@ from .log import with_log
 PLOT_SIZE = 960, 240
 
 SUBJ = 'EM09'
-chan_name = 'GR28'
+chan_name = 'GR50'
 start_good_time = 44850
 end_good_time = 44880
 
@@ -46,13 +46,11 @@ def Spindle_Detection_Method(lg, images_dir):
             ''.format(subj=SUBJ, chan=chan_name, time=start_good_time))
 
     data = get_data(SUBJ, 'sleep', CHAN_TYPE, **DATA_OPTIONS)
-    sel = Select(chan=(chan_name, ))
-    data = sel(data)
 
     good_trial = [i for i, trl in enumerate(data)
                   if start_good_time // 30 * 30 == trl.axis['time'][0][0]][0]
 
-    sel = Select(trial=(good_trial, ))
+    sel = Select(trial=(good_trial, ), chan=(chan_name, ))
     sel_data = sel(data)
 
     v = Viz1(color=PLOT_COLOR)
@@ -113,7 +111,8 @@ def Spindle_Detection_Method(lg, images_dir):
 
     v = Viz1(color=PLOT_COLOR)
     v.size = PLOT_SIZE
-    v.add_data(sel_data, limits_x=(44850, 44880), limits_y=(-200, 200))
+    v.add_data(sel_data, limits_x=(start_good_time, end_good_time),
+               limits_y=(-200, 200))
     v._plots[chan_name].setLabels(left='amplitude (μV)', bottom='time (s)')
     v.add_graphoelement(sp)
     png_file = str(images_dir.joinpath('detected.png'))
