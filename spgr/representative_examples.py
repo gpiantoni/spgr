@@ -1,10 +1,13 @@
-from numpy import log, where
+from numpy import log, mean, where
+from phypno.attr import Freesurfer
 from phypno.trans import Select
 from phypno.viz import Viz1
 from scipy.signal import periodogram
 
 from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
+                        DEFAULT_HEMI,
+                        FS_AVG,
                         HEMI_SUBJ,
                         PLOT_COLOR,
                         SPINDLE_OPTIONS,
@@ -14,6 +17,10 @@ from .read_data import get_data
 from .spindle_source import get_chan_with_regions
 
 from .log import with_log
+
+fs = Freesurfer(FS_AVG)
+surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)
+avg_vert, _, avg_regions = fs.read_label(DEFAULT_HEMI)
 
 
 REREF = 'avg'
@@ -31,18 +38,16 @@ def Representative_Examples(lg, images_dir):
 
     lg.info('### Spindles in each brain region')
 
-    all_y_pos = []
-    all_z_pos = []
-    all_title = []
+    all_regions = []
     all_png_file = []
 
     for subj in HEMI_SUBJ:
 
         data = get_data(subj, 'sleep', CHAN_TYPE, reref='avg', **DATA_OPTIONS)
         best_spindles = find_best_spindles(subj, data)
-        chan = data.attr['chan']
 
         for region, spindle in best_spindles.items():
+            all_regions.append(region)
 
             spindle_data = find_spindle_data(data, spindle)
             v = Viz1(color=PLOT_COLOR)
@@ -51,19 +56,11 @@ def Representative_Examples(lg, images_dir):
 
             png_file = str(images_dir.joinpath('{}_{}.png'.format(region, subj)))
             v.save(png_file)
-
-            chan_pos = chan(lambda x: x.label == spindle['chan']).return_xyz()
-            y_pos = chan_pos[0, 1]
-            z_pos = chan_pos[0, 2]
-            all_y_pos.append(y_pos)
-            all_z_pos.append(z_pos)
-            all_title.append('### Representative for {} ({})'.format(region,
-                                                                     subj))
             all_png_file.append(png_file)
 
-    # sort by anterior-posterior axis
-    for y, z, title, png_file in sorted(zip(all_y_pos, all_z_pos, all_title, all_png_file)):
-        lg.info(title)
+    for region, png_file in sorted(zip(all_regions, all_png_file)):
+        _, y, z = _find_region_xyz(region)[1]
+        lg.info('### {}'.format(region))
         lg.info('y: {}, z: {}'.format(y, z))
         lg.info('![]({})'.format(png_file))
 
@@ -195,3 +192,9 @@ def power_in_bands(x, s_freq):
     sigma = sum(Pxx[(f >= SIGMA_FREQ[0]) & (f <= SIGMA_FREQ[1])])
     above_sigma = sum(Pxx[(f >= SIGMA_FREQ[1]) & (f <= 40)])
     return below_sigma, sigma, above_sigma
+
+
+def _find_region_xyz(region):
+    vert_in_region = avg_vert == avg_regions.index(region)
+    xyz_vert_in_region = surf_avg.vert[vert_in_region, :]
+    return mean(xyz_vert_in_region, axis=0)
