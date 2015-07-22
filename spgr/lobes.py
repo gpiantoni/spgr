@@ -1,6 +1,3 @@
-from PyQt4.QtCore import Qt
-
-
 LOBES = {'frontal': ['caudalanteriorcingulate',
                      'caudalmiddlefrontal',
                      'lateralorbitofrontal',
@@ -14,7 +11,6 @@ LOBES = {'frontal': ['caudalanteriorcingulate',
                      'rostralmiddlefrontal',
                      'superiorfrontal',
                      'frontalpole',
-                     'temporalpole',
                      ],
          'parietal': ['inferiorparietal',
                       'isthmuscingulate',
@@ -32,6 +28,7 @@ LOBES = {'frontal': ['caudalanteriorcingulate',
                       'parahippocampal',
                       'superiortemporal',
                       'transversetemporal',
+                      'temporalpole',
                       ],
          'occipital': ['cuneus',
                        'lateraloccipital',
@@ -43,9 +40,9 @@ LOBES = {'frontal': ['caudalanteriorcingulate',
          }
 
 
-LOBE_COLORS = {'frontal': Qt.magenta,
-               'parietal': Qt.cyan,
-               'occipital': Qt.blue,
-               'temporal': Qt.green,
-               'insula': Qt.yellow,
-               'unknown': Qt.gray}
+LOBE_COLORS = {'frontal': 60,
+               'parietal': 24,
+               'occipital': 41,
+               'temporal': 10,
+               'insula': 32,
+               'unknown': 32}

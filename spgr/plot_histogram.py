@@ -6,6 +6,7 @@ from PyQt4.QtGui import (QBrush,
                          QPen,
                          )
 from pyqtgraph import BarGraphItem
+from phypno.viz.base import Colormap
 from phypno.viz import Viz1
 
 from .constants import SPINDLE_OPTIONS
@@ -17,6 +18,7 @@ from .stats_on_spindles import create_spindle_groups
 
 NoPen = QPen()
 NoPen.setStyle(Qt.NoPen)
+colormap = Colormap('jet', limits=(0, 66))
 
 
 def make_hist_overlap(subj, color='kw', reref='avg', width=2, nchan=60):
@@ -45,8 +47,9 @@ def make_hist_overlap(subj, color='kw', reref='avg', width=2, nchan=60):
     for lobe, x in group_per_region.items():
 
         h0, h1 = histogram(x, bins=hist)
+        bar_color = colormap.mapToQColor(LOBE_COLORS[lobe])
         bars = BarGraphItem(x0=h1[:-1], y0=y0, height=h0, width=width,
-                            pen=NoPen, brush=QBrush(LOBE_COLORS[lobe]))
+                            pen=NoPen, brush=QBrush(bar_color))
 
         p.addItem(bars)
         y0 += h0
