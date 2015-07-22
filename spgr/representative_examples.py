@@ -36,10 +36,8 @@ def Representative_Examples(lg, images_dir):
     """Show some good spindle examples."""
     lg.info('## Representative Spindles')
 
-    lg.info('### Spindles in each brain region')
-
-    all_regions = []
-    all_png_file = []
+    # create dict with empty lists
+    regions_with_png = {k: [] for k in avg_regions}
 
     for subj in HEMI_SUBJ:
 
@@ -47,7 +45,6 @@ def Representative_Examples(lg, images_dir):
         best_spindles = find_best_spindles(subj, data)
 
         for region, spindle in best_spindles.items():
-            all_regions.append(region)
 
             spindle_data = find_spindle_data(data, spindle)
             v = Viz1(color=PLOT_COLOR)
@@ -56,13 +53,15 @@ def Representative_Examples(lg, images_dir):
 
             png_file = str(images_dir.joinpath('{}_{}.png'.format(region, subj)))
             v.save(png_file)
-            all_png_file.append(png_file)
 
-    for region, png_file in sorted(zip(all_regions, all_png_file)):
+            regions_with_png[region].append(png_file)
+
+    for region, png_files in regions_with_png.items():
         _, y, z = _find_region_xyz(region)[1]
         lg.info('### {}'.format(region))
         lg.info('y: {}, z: {}'.format(y, z))
-        lg.info('![]({})'.format(png_file))
+        for png_file in png_files:
+            lg.info('![]({})'.format(png_file))
 
 
 def find_best_spindles(subj, data):
