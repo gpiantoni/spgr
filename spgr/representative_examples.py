@@ -31,7 +31,8 @@ def Representative_Examples(lg, images_dir):
 
     lg.info('### Spindles in each brain region')
 
-    all_pos = []
+    all_y_pos = []
+    all_z_pos = []
     all_title = []
     all_png_file = []
 
@@ -51,15 +52,19 @@ def Representative_Examples(lg, images_dir):
             png_file = str(images_dir.joinpath('{}_{}.png'.format(region, subj)))
             v.save(png_file)
 
-            y_pos = chan(lambda x: x.label == spindle['chan']).return_xyz()[0, 1]
-            all_pos.append(y_pos)
+            chan_pos = chan(lambda x: x.label == spindle['chan']).return_xyz()
+            y_pos = chan_pos[0, 1]
+            z_pos = chan_pos[0, 1]
+            all_y_pos.append(y_pos)
+            all_z_pos.append(z_pos)
             all_title.append('### Representative for {} ({})'.format(region,
                                                                      subj))
             all_png_file.append(png_file)
 
     # sort by anterior-posterior axis
-    for _, title, png_file in sorted(zip(all_pos, all_title, all_png_file)):
+    for y, z, title, png_file in sorted(zip(all_y_pos, all_z_pos, all_title, all_png_file)):
         lg.info(title)
+        lg.info('y: {}, z: {}'.format(y, z))
         lg.info('![]({})'.format(png_file))
 
 
