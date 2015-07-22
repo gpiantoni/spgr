@@ -1,26 +1,22 @@
 from numpy import log, mean, where
-from phypno.attr import Freesurfer
 from phypno.trans import Select
 from phypno.viz import Viz1
 from scipy.signal import periodogram
 
 from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
-                        DEFAULT_HEMI,
-                        FS_AVG,
                         HEMI_SUBJ,
                         PLOT_COLOR,
                         SPINDLE_OPTIONS,
+                        avg_regions,
+                        avg_vert,
+                        surf_avg,
                         )
 from .detect_spindles import get_spindles
 from .read_data import get_data
 from .spindle_source import get_chan_with_regions
 
 from .log import with_log
-
-fs = Freesurfer(FS_AVG)
-surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)
-avg_vert, _, avg_regions = fs.read_label(DEFAULT_HEMI)
 
 
 REREF = 'avg'
@@ -57,7 +53,7 @@ def Representative_Examples(lg, images_dir):
             regions_with_png[region].append(png_file)
 
     for region, png_files in regions_with_png.items():
-        _, y, z = _find_region_xyz(region)[1]
+        _, y, z = _find_region_xyz(region)
         lg.info('### {}'.format(region))
         lg.info('y: {}, z: {}'.format(y, z))
         for png_file in png_files:

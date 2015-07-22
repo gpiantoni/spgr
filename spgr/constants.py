@@ -2,6 +2,8 @@ from os.path import expanduser, join
 from pathlib import Path
 from os import environ
 
+from phypno.attr import Freesurfer
+
 PROJECT = 'spgr'
 
 HOME = Path(expanduser('~'))
@@ -117,3 +119,7 @@ FS_AVG = join(environ['FREESURFER_HOME'], 'subjects', 'fsaverage')
 
 PLOT_COLOR = 'kw'
 SKIN_COLOR = (239, 208, 207, 240)
+
+fs = Freesurfer(FS_AVG)
+surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)
+avg_vert, _, avg_regions = fs.read_label(DEFAULT_HEMI)
