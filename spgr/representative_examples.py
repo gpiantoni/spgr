@@ -54,7 +54,7 @@ def Representative_Examples(lg, images_dir):
 
             chan_pos = chan(lambda x: x.label == spindle['chan']).return_xyz()
             y_pos = chan_pos[0, 1]
-            z_pos = chan_pos[0, 1]
+            z_pos = chan_pos[0, 2]
             all_y_pos.append(y_pos)
             all_z_pos.append(z_pos)
             all_title.append('### Representative for {} ({})'.format(region,
