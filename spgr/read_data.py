@@ -9,7 +9,6 @@ from phypno import Dataset
 from phypno.attr import Annotations, Channels
 from phypno.trans import Filter, Montage, Resample
 from phypno.trans.montage import create_bipolar_chan
-from phypno.viz import Viz1
 
 from .constants import (DATA_PATH,
                         REC_PATH,
@@ -68,7 +67,7 @@ def select_scores(stages, duration, all_subj, choose='max'):
 
 def save_data(subj, score_file, period_name, stages, chan_type=(),
               hp_filter=HP_FILTER, lp_filter=LP_FILTER,
-              resample_freq=RESAMPLE_FREQ, to_plot=False):
+              resample_freq=RESAMPLE_FREQ):
     """Save recordings for one subject, based on some parameters
 
     Parameters
@@ -89,8 +88,13 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
         frequency to resample to
     chan_type : tuple
         tuple of str to select channel groups, among 'depth', 'grid', 'scalp'
-    to_plot : bool
-        if you want a plot of an epoch in the middle of the recordings
+
+    Returns
+    -------
+    int
+        number of channels
+    float
+        duration of the selected recordings in min
 
     Notes
     -----
@@ -142,12 +146,6 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
     else:
         resample_freq = 0
 
-    v = None
-    if to_plot:
-        TRIAL = int(data.number_of('trial') / 3)
-        v = Viz1()  # size depends on n of channels
-        v.add_data(data, trial=TRIAL, limits_y=(-100, 100))
-
     pkl_file = REC_NAME.format(subj=subj, period=period_name,
                                hp=int(10 * hp_filter), lp=int(10 * lp_filter),
                                resample=resample_freq,
@@ -160,7 +158,7 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
                                     '_chan.txt')), 'w') as f:
         f.write('\n'.join(data.axis['chan'][0]))
 
-    return v
+    return len(selected_chan), duration
 
 
 def list_subj(period_name, chan_type=(), hp_filter=HP_FILTER,

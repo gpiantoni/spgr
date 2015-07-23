@@ -1,3 +1,4 @@
+from numpy import array, max, mean, min
 from spgr.constants import (CHAN_TYPE,
                             DATA_OPTIONS,
                             HEMI_SUBJ,
@@ -34,6 +35,20 @@ def Read_ECoG_Recordings(lg, img_dir):
                              set(SUBJECTS['grid_noscalp']))))
 
     lg.info('## Read Recordings')
+    all_n_chan = []
+    all_dur = []
     for subj in HEMI_SUBJ:
-        save_data(subj, scores[subj], PERIOD, STAGES, chan_type=CHAN_TYPE,
-                  **DATA_OPTIONS)
+        n_chan, dur = save_data(subj, scores[subj], PERIOD, STAGES,
+                                chan_type=CHAN_TYPE, **DATA_OPTIONS)
+        all_n_chan.append(n_chan)
+        all_dur.append(all_dur)
+
+    all_n_chan = array(all_n_chan)
+    all_dur = array(all_dur)
+    lg.info('### Summary')
+    lg.info('N Channels: mean {}, range {} - {}'.format(mean(all_n_chan),
+                                                        min(all_n_chan),
+                                                        max(all_n_chan)))
+    lg.info('Duration: mean {}, range {} - {}'.format(mean(all_dur),
+                                                      min(all_dur),
+                                                      max(all_dur)))
