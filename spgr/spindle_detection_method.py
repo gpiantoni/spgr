@@ -1,9 +1,3 @@
-from copy import deepcopy
-from numpy import ones, NaN, swapaxes, where
-from scipy.signal import fftconvolve
-from pyqtgraph import mkPen
-from phypno.trans import Math, Filter
-
 from phypno.detect import DetectSpindle
 from phypno.trans import Select
 from phypno.viz import Viz1
@@ -21,10 +15,11 @@ from .read_data import get_data
 from .log import with_log
 
 
-PLOT_SIZE = 960, 240
+PLOT_SIZE = 960, 480
 
 SUBJ = 'EM09'
-chan_names = ['GR28', 'GR50']
+chan_names = ['GR' + str(i) for i in range(28, 55)]
+chan_names = ['GR35', 'GR50']
 start_good_time = 44850
 end_good_time = 44880
 
@@ -34,8 +29,8 @@ def Spindle_Detection_Method(lg, images_dir):
 
     lg.info('## Method description')
     lg.info('Spindles were detected on each electrode independently, using '
-            'previously reported methods with stringent criteria ({method}).'
-            'The raw signal was filtered between {freq0} and {freq1} Hz.'
+            'previously reported methods with stringent criteria ({method}). '
+            'The raw signal was filtered between {freq0} and {freq1} Hz. '
             'Spindle duration had to be between {dur0} and {dur1} s.'
             ''.format(method=SPINDLE_OPTIONS['method'],
                       freq0=SPINDLE_OPTIONS['frequency'][0],
@@ -63,8 +58,9 @@ def Spindle_Detection_Method(lg, images_dir):
     v.size = PLOT_SIZE
     v.add_data(sel_data, limits_x=(start_good_time, end_good_time),
                limits_y=RAW_LIMITS_Y)
-    v._plots[chan_names[-1]].setLabels(left='amplitude (μV)',
-                                       bottom='time (s)')
+    for p in v._plots.values():
+        p.setLabels(left='amplitude (μV)',
+                    bottom='time (s)')
     v.add_graphoelement(sp)
     png_file = str(images_dir.joinpath('detected.png'))
     v.save(png_file)
