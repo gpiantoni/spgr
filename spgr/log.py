@@ -68,6 +68,7 @@ def with_log(function):
         t1 = datetime.now()
         lg.info('{} after {}'.format(t1.strftime('%Y-%m-%d %H:%M:%S'),
                                      str(t1 - t0)[:-7]))
+        fh.close()
 
         with open(str(log_file), 'r') as f:
             s = f.read()
