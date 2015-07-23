@@ -13,6 +13,7 @@ from .constants import (CHAN_TYPE,
                         HEMI_SUBJ,
                         PLOT_COLOR,
                         SPINDLE_OPTIONS,
+                        RAW_LIMITS_Y,
                         )
 from .detect_spindles import get_spindles
 from .read_data import get_data
@@ -56,7 +57,7 @@ def Spindle_Detection_Method(lg, images_dir):
     v = Viz1(color=PLOT_COLOR)
     v.size = PLOT_SIZE
     v.add_data(sel_data, limits_x=(start_good_time, end_good_time),
-               limits_y=(-200, 200))
+               limits_y=RAW_LIMITS_Y)
     v._plots[chan_name].setLabels(left='amplitude (μV)', bottom='time (s)')
 
     png_file = str(images_dir.joinpath('raw.png'))
@@ -112,7 +113,7 @@ def Spindle_Detection_Method(lg, images_dir):
     v = Viz1(color=PLOT_COLOR)
     v.size = PLOT_SIZE
     v.add_data(sel_data, limits_x=(start_good_time, end_good_time),
-               limits_y=(-200, 200))
+               limits_y=RAW_LIMITS_Y)
     v._plots[chan_name].setLabels(left='amplitude (μV)', bottom='time (s)')
     v.add_graphoelement(sp)
     png_file = str(images_dir.joinpath('detected.png'))

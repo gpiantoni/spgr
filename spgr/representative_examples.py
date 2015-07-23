@@ -7,6 +7,7 @@ from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
                         HEMI_SUBJ,
                         PLOT_COLOR,
+                        RAW_LIMITS_Y,
                         SPINDLE_OPTIONS,
                         avg_regions,
                         avg_vert,
@@ -21,7 +22,6 @@ from .log import with_log
 
 REREF = 'avg'
 PAD = 2
-YLIM = 150
 WINDOW = 1
 
 BEST_SPINDLE = 'sigma_ratio'  # 'area_under_curve' or 'sigma_ratio'
@@ -44,10 +44,11 @@ def Representative_Examples(lg, images_dir):
 
             spindle_data = find_spindle_data(data, spindle)
             v = Viz1(color=PLOT_COLOR)
-            v.add_data(spindle_data, limits_y=(-YLIM, YLIM))
+            v.add_data(spindle_data, limits_y=RAW_LIMITS_Y)
             v.add_graphoelement([spindle, ])
 
-            png_file = str(images_dir.joinpath('{}_{}.png'.format(region, subj)))
+            png_file = str(images_dir.joinpath('{}_{}.png'.format(region,
+                                                                  subj)))
             v.save(png_file)
 
             regions_with_png[region].append(png_file)
