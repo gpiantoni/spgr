@@ -119,6 +119,7 @@ FS_AVG = join(environ['FREESURFER_HOME'], 'subjects', 'fsaverage')
 
 PLOT_COLOR = 'kw'
 SKIN_COLOR = (239, 208, 207, 240)
+HISTOGRAM_WIDTH = 2
 
 fs = Freesurfer(FS_AVG)
 surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)

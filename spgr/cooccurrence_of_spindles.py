@@ -1,6 +1,7 @@
 from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
                         HEMI_SUBJ,
+                        HISTOGRAM_WIDTH,
                         PLOT_COLOR,
                         SPINDLE_OPTIONS,
                         )
@@ -31,8 +32,8 @@ def Cooccurrence_Histogram(lg, images_dir):
                 nchan = 40
             else:
                 nchan = 60
-            v = make_hist_overlap(subj, color=PLOT_COLOR, reref=REREF, width=2,
-                                  nchan=nchan)
+            v = make_hist_overlap(subj, color=PLOT_COLOR, reref=REREF,
+                                  width=HISTOGRAM_WIDTH, nchan=nchan)
             png_file = str(images_dir.joinpath('hist_{}_{}.png'.format(REREF,
                                                subj)))
             v.save(png_file)
