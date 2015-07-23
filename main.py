@@ -34,6 +34,8 @@ parser = ArgumentParser(prog='spgr',
                         description='SPGR analysis')
 parser.add_argument('--to', default='html',
                     help='format to export to: html (default), pdf')
+parser.add_argument('--all', action='store_true',
+                    help='run ALL the analysis steps')
 
 for abbr, func_name in all_func.items():
     parser.add_argument(abbr, help=func_name.replace('_', ' '),
@@ -47,7 +49,7 @@ if __name__ == '__main__':
     t = datetime.now()
 
     for abbr, func_name in all_func.items():
-        if getattr(args, abbr[1:]):
+        if args.all or getattr(args, abbr[1:]):
             eval(func_name + '()')
 
     # PREPARE PANDOC FILE
