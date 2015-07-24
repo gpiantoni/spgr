@@ -41,7 +41,7 @@ def Read_ECoG_Recordings(lg, img_dir):
         n_chan, dur = save_data(subj, scores[subj], PERIOD, STAGES,
                                 chan_type=CHAN_TYPE, **DATA_OPTIONS)
         all_n_chan.append(n_chan)
-        all_dur.append(all_dur)
+        all_dur.append(dur)
 
     all_n_chan = array(all_n_chan)
     all_dur = array(all_dur)
@@ -49,6 +49,6 @@ def Read_ECoG_Recordings(lg, img_dir):
     lg.info('N Channels: mean {}, range {} - {}'.format(mean(all_n_chan),
                                                         min(all_n_chan),
                                                         max(all_n_chan)))
-    lg.info('Duration: mean {}, range {} - {}'.format(mean(all_dur),
-                                                      min(all_dur),
-                                                      max(all_dur)))
+    lg.info('Duration: mean {}, range {} - {}'.format(mean(all_dur) / 60,
+                                                      min(all_dur) / 60,
+                                                      max(all_dur) / 60))
