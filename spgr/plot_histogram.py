@@ -38,7 +38,7 @@ def make_hist_overlap(subj, color='kw', reref='avg', width=2, nchan=60):
 
     group_per_region = dict(group_per_region)
 
-    hist = arange(0, nchan, width)
+    hist = arange(-width / 2, nchan, width)
     y0 = zeros(hist.shape[0] - 1)
 
     v = Viz1(color='kw')
@@ -48,7 +48,7 @@ def make_hist_overlap(subj, color='kw', reref='avg', width=2, nchan=60):
 
         h0, h1 = histogram(x, bins=hist)
         bar_color = colormap.mapToQColor(LOBE_COLORS[lobe])
-        bars = BarGraphItem(x0=h1[:-1] - width/2, y0=y0, height=h0,
+        bars = BarGraphItem(x0=h1[:-1], y0=y0, height=h0,
                             width=width, pen=NoPen, brush=QBrush(bar_color))
 
         p.addItem(bars)
