@@ -105,9 +105,9 @@ def _determine_spindle_group(spindles):
 
 
 def cooccur_likelihood(chan, spindle_group, n_other_channels):
-    """Create nChan x nChan matrix with the likelihood to see a spindle at the
-    same time in two channels, normalized by the total number of spindles of
-    each channel.
+    """Create nChan vector with the likelihood to have cooccurring spindles
+    (1-> spindles always co-occur, 0 -> never co-occur). You can specify how
+    many other channels need to have spindles
 
     Parameters
     ----------
@@ -122,7 +122,7 @@ def cooccur_likelihood(chan, spindle_group, n_other_channels):
     Returns
     -------
     nChan vector
-        TODO
+        ratio of co-occurring spindles vs total number of spindles.
     """
     n_other_channels = int(n_other_channels)
 
@@ -142,60 +142,44 @@ def cooccur_likelihood(chan, spindle_group, n_other_channels):
 
 
 def ratio_spindles_with_chan(chan, spindle_group):
-    chan_prob = zeros((chan.n_chan, chan.n_chan))
-    all_chan = chan.return_label()
-
-    for chan0 in all_chan:
-        for chan1 in all_chan:
-            subgroup = [x for x in spindle_group if chan0 in x]
-            sp_ratio = sum(1 for sp_group in subgroup if chan1 in sp_group) / len(subgroup)
-            i0 = all_chan.index(chan0)
-            i1 = all_chan.index(chan1)
-            chan_prob[i0, i1] = sp_ratio
-
-    fill_diagonal(chan_prob, NaN)
-
-    return nanmean(chan_prob, 0)
-
-
-def mean_spindle_cooccurrence(chan_prob_n, normalized_by='source'):
-    """Take the mean of the probability of spindle cooccurrence.
+    """Create nChan vector with the mean probability that one of the spindles
+    in the channel of interest is important for the other channels.
+    (1-> when you see a spindle in other channel, you're likely to see it here
+    too).
 
     Parameters
     ----------
-    nChan x nChan matrix
-        matrix with the normalized co-occurrences of spindles between two
-        channels.
-    normalized_by : str
-        'source' or 'target'
+    chan : instance of phypno.attr.Channels
+        channels to create the matrix
+    spindle_group : list of list
+        each element in list is one spindle group, which is defined by the
+        channels in the list.
 
     Returns
     -------
-    vector
-        vector with the normalized values
+    nChan vector
+        ratio of co-occurring spindles vs total number of spindles.
 
     Notes
     -----
-    If you normalize by 'source', then it will give you the mean probability of
-    finding a spindle in that channel, normalized by the total number of
-    spindles in that channel.
-    If you normalize by 'target', it gives you the mean probability that one of
-    the spindles in the channel of interest is important for the other
-    channels.
+    chan_prob is not symmetric, so it's important on which axis you take the
+    mean. Axis=0 is the right one.
+
+    sp_ratop
     """
-    if normalized_by == 'source':
-        return nanmean(chan_prob_n, axis=0)
-    if normalized_by == 'target':
-        return nanmean(chan_prob_n, axis=1)
-
-
     chan_prob = zeros((chan.n_chan, chan.n_chan))
     all_chan = chan.return_label()
+
     for chan0 in all_chan:
         for chan1 in all_chan:
+            # how many spindle groups have both spindles, as compared to "target" channel
             subgroup = [x for x in spindle_group if chan0 in x]
             sp_ratio = sum(1 for sp_group in subgroup if chan1 in sp_group) / len(subgroup)
             i0 = all_chan.index(chan0)
             i1 = all_chan.index(chan1)
             chan_prob[i0, i1] = sp_ratio
 
+    # trick to take the mean of all the channels, apart from the same channel
+    fill_diagonal(chan_prob, NaN)
+
+    return nanmean(chan_prob, axis=0)

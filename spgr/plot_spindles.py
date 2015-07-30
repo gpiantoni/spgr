@@ -83,4 +83,3 @@ def plot_lmer(coef, pvalues=None, limits=(0, 2), p_threshold=0.05):
                color=(100, 100, 100, 255))
     v._widget.opts.update({'elevation': 15, 'azimuth': 17})
     return v
-

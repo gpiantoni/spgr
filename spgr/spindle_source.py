@@ -27,7 +27,7 @@ REGIONS = dict.fromkeys(list(HEMI_SUBJ))
 
 
 def get_morph_linear(subj, values, reref):
-    lg.info('Projecting values for {}'.format(subj))
+    lg.debug('Projecting values for {}'.format(subj))
 
     chan = get_chan_used_in_analysis(subj, 'sleep', CHAN_TYPE, reref=reref,
                                      **DATA_OPTIONS)

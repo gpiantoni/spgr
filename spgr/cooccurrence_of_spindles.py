@@ -64,7 +64,7 @@ def Cooccurrence_of_Spindles(lg, images_dir):
 
                 if NORMALIZATION.startswith('cooccur'):
                     chan_prob = cooccur_likelihood(chan, spindle_group,
-                                                   NORMALIZATION[-2])
+                                                   NORMALIZATION[-2:])
 
                 elif NORMALIZATION == 'exclusive':
                     chan_prob = ratio_spindles_with_chan(chan, spindle_group)
