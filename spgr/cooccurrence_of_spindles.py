@@ -45,14 +45,14 @@ def Cooccurrence_of_Spindles(lg, images_dir):
 
     lg.info('## Cooccurrence_of_Spindles')
 
-    all_values = []
-
-    for REREF in ('avg', 15)[:1]:
-        for NORMALIZATION in ('cooccur1', 'cooccur2', 'exclusive'):
+    for REREF in ('avg', 15):
+        for NORMALIZATION in ('cooccur01', 'cooccur05', 'cooccur10',
+                              'exclusive'):
 
             lg.info('### reref {}, normalization {}'.format(REREF,
                                                             NORMALIZATION))
 
+            all_values = []
             dataframe = {'subj': [], 'region': [], 'elec': [], 'value': []}
             for subj in HEMI_SUBJ:
                 spindles = get_spindles(subj, reref=REREF, **SPINDLE_OPTIONS)
@@ -64,7 +64,7 @@ def Cooccurrence_of_Spindles(lg, images_dir):
 
                 if NORMALIZATION.startswith('cooccur'):
                     chan_prob = cooccur_likelihood(chan, spindle_group,
-                                                   NORMALIZATION[-1])
+                                                   NORMALIZATION[-2])
 
                 elif NORMALIZATION == 'exclusive':
                     chan_prob = ratio_spindles_with_chan(chan, spindle_group)
@@ -77,11 +77,8 @@ def Cooccurrence_of_Spindles(lg, images_dir):
 
             lmer(dataframe, lg)
 
-            if NORMALIZATION == 'cooccur1':
+            if NORMALIZATION.startswith('cooccur'):
                 threshold = 0.01, 1
-                limits = 0, 1
-            elif NORMALIZATION == 'cooccur2':
-                threshold = 0.01, None
                 limits = 0, 1
             elif NORMALIZATION == 'exclusive':
                 threshold = 0.01, None
