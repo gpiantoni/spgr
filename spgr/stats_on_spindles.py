@@ -4,6 +4,8 @@ from numpy import (argsort,
                    asarray,
                    diff,
                    expand_dims,
+                   fill_diagonal,
+                   NaN,
                    nanmean,
                    r_,
                    sum,
@@ -136,7 +138,24 @@ def cooccur_likelihood(chan, spindle_group, n_other_channels):
             else:
                 chan_prob[i0, 0] += 1
 
-    return chan_prob[i0, 1] / sum(chan_prob, axis=1)
+    return chan_prob[:, 1] / sum(chan_prob, axis=1)
+
+
+def ratio_spindles_with_chan(chan, spindle_group):
+    chan_prob = zeros((chan.n_chan, chan.n_chan))
+    all_chan = chan.return_label()
+
+    for chan0 in all_chan:
+        for chan1 in all_chan:
+            subgroup = [x for x in spindle_group if chan0 in x]
+            sp_ratio = sum(1 for sp_group in subgroup if chan1 in sp_group) / len(subgroup)
+            i0 = all_chan.index(chan0)
+            i1 = all_chan.index(chan1)
+            chan_prob[i0, i1] = sp_ratio
+
+    fill_diagonal(chan_prob, NaN)
+
+    return nanmean(chan_prob, 0)
 
 
 def mean_spindle_cooccurrence(chan_prob_n, normalized_by='source'):
