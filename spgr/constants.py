@@ -119,6 +119,7 @@ FS_AVG = join(environ['FREESURFER_HOME'], 'subjects', 'fsaverage')
 
 PLOT_COLOR = 'kw'
 SKIN_COLOR = (239, 208, 207, 240)
+HIGHLIGHT_COLOR = 0.5  # color to highlight spindles
 
 RAW_LIMITS_Y = (-200, 200)
 HISTOGRAM_WIDTH = 1

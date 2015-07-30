@@ -5,6 +5,7 @@ from phypno.viz import Viz1
 from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
                         HEMI_SUBJ,
+                        HIGHLIGHT_COLOR,
                         PLOT_COLOR,
                         SPINDLE_OPTIONS,
                         RAW_LIMITS_Y,
@@ -61,7 +62,7 @@ def Spindle_Detection_Method(lg, images_dir):
     for p in v._plots.values():
         p.setLabels(left='amplitude (μV)',
                     bottom='time (s)')
-    v.add_graphoelement(sp)
+    v.add_graphoelement(sp, color=HIGHLIGHT_COLOR)
     png_file = str(images_dir.joinpath('detected.png'))
     v.save(png_file)
     lg.info('![{}]({})'.format('Detected', png_file))

@@ -6,6 +6,7 @@ from scipy.signal import periodogram
 from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
                         HEMI_SUBJ,
+                        HIGHLIGHT_COLOR,
                         PLOT_COLOR,
                         RAW_LIMITS_Y,
                         SPINDLE_OPTIONS,
@@ -45,7 +46,7 @@ def Representative_Examples(lg, images_dir):
             spindle_data = find_spindle_data(data, spindle)
             v = Viz1(color=PLOT_COLOR)
             v.add_data(spindle_data, limits_y=RAW_LIMITS_Y)
-            v.add_graphoelement([spindle, ], color=.5)
+            v.add_graphoelement([spindle, ], color=HIGHLIGHT_COLOR)
 
             png_file = str(images_dir.joinpath('{}_{}.png'.format(region,
                                                                   subj)))
