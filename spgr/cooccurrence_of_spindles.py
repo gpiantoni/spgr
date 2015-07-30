@@ -29,7 +29,7 @@ def Cooccurrence_Histogram(lg, images_dir):
     for REREF in ('avg', 15):
         for subj in HEMI_SUBJ:
             if REREF == 'avg':
-                nchan = 40
+                nchan = 30
             else:
                 nchan = 60
             v = make_hist_overlap(subj, color=PLOT_COLOR, reref=REREF,

@@ -45,7 +45,7 @@ def Representative_Examples(lg, images_dir):
             spindle_data = find_spindle_data(data, spindle)
             v = Viz1(color=PLOT_COLOR)
             v.add_data(spindle_data, limits_y=RAW_LIMITS_Y)
-            v.add_graphoelement([spindle, ])
+            v.add_graphoelement([spindle, ], color=.5)
 
             png_file = str(images_dir.joinpath('{}_{}.png'.format(region,
                                                                   subj)))
