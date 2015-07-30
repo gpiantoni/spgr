@@ -79,7 +79,7 @@ def create_spindle_groups(spindles, param='chan'):
     for one_group in sp_groups:
         chan_group.append([x[param] for x in one_group])
 
-    chan_group = [x for x in chan_group if len(x) != 0]
+    chan_group = [set(x) for x in chan_group if len(x) != 0]
 
     return chan_group
 
