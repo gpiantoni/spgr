@@ -1,10 +1,15 @@
 from logging import getLogger
 
-from numpy import (argsort, asarray, diff, expand_dims, fill_diagonal,
-                   NaN, nanmean, r_,
-                   sum, triu,
-                   where, zeros)
-from numpy.linalg import norm
+from numpy import (argsort,
+                   asarray,
+                   diff,
+                   expand_dims,
+                   nanmean,
+                   r_,
+                   sum,
+                   triu,
+                   where,
+                   zeros)
 
 lg = getLogger('spgr')
 
@@ -97,7 +102,7 @@ def _determine_spindle_group(spindles):
     return group_sep
 
 
-def create_spindle_cooccurrence_matrix(chan, spindle_group, min_distance=None):
+def cooccur_likelihood(chan, spindle_group, n_other_channels):
     """Create nChan x nChan matrix with the likelihood to see a spindle at the
     same time in two channels, normalized by the total number of spindles of
     each channel.
@@ -109,50 +114,29 @@ def create_spindle_cooccurrence_matrix(chan, spindle_group, min_distance=None):
     spindle_group : list of list
         each element in list is one spindle group, which is defined by the
         channels in the list.
-    min_distance : float, optional
-        minimum distance between channels to include them in the
-        co-occurence matrix
+    n_other_channels : str
+        number of other channels that need to have a spindle
 
     Returns
     -------
-    nChan x nChan matrix
-        matrix with the normalized co-occurrences of spindles between two
-        channels. If two channels are at less than min_distance, the value is
-        NaN. Diagonal is always NaN.
-
-    Notes
-    -----
-    To normalize, the division operates per column. So, a high value in the low
-    triangular part in the column of chan A means that when you see a spindle
-    in chan A, it's very likely that there is a spindle somewhere else.
-    On the other hand, a high value in the upper-right triangular means that
-    if the spindles of chan A are very important for the other channels,
-    i.e. they prefer to have a spindle if there is a spindle in chan A.
+    nChan vector
+        TODO
     """
+    n_other_channels = int(n_other_channels)
+
     all_chan = chan.return_label()
 
-    chan_prob = zeros((chan.n_chan, chan.n_chan))
+    chan_prob = zeros((chan.n_chan, 2))
 
     for one_group in spindle_group:
         for chan0 in one_group:
             i0 = all_chan.index(chan0)
-            for chan1 in one_group:
-                i1 = all_chan.index(chan1)
-                chan_prob[i0, i1] += 1
+            if len(one_group) > n_other_channels:  # 1 -> the same channel
+                chan_prob[i0, 1] += 1
+            else:
+                chan_prob[i0, 0] += 1
 
-    chan_dist = zeros((chan.n_chan, chan.n_chan))
-    for i0 in range(chan.n_chan):
-        for i1 in range(chan.n_chan):
-            chan_dist[i0, i1] = norm(chan.chan[i0].xyz - chan.chan[i1].xyz)
-
-    diag = chan_prob.diagonal().copy()
-    if min_distance:
-        chan_prob[chan_dist <= min_distance] = NaN  # use NaN to exclude chan too close
-
-    chan_prob_n = chan_prob / diag
-    fill_diagonal(chan_prob_n, NaN)
-
-    return chan_prob_n
+    return chan_prob[i0, 1] / sum(chan_prob, axis=1)
 
 
 def mean_spindle_cooccurrence(chan_prob_n, normalized_by='source'):
@@ -184,3 +168,15 @@ def mean_spindle_cooccurrence(chan_prob_n, normalized_by='source'):
         return nanmean(chan_prob_n, axis=0)
     if normalized_by == 'target':
         return nanmean(chan_prob_n, axis=1)
+
+
+    chan_prob = zeros((chan.n_chan, chan.n_chan))
+    all_chan = chan.return_label()
+    for chan0 in all_chan:
+        for chan1 in all_chan:
+            subgroup = [x for x in spindle_group if chan0 in x]
+            sp_ratio = sum(1 for sp_group in subgroup if chan1 in sp_group) / len(subgroup)
+            i0 = all_chan.index(chan0)
+            i1 = all_chan.index(chan1)
+            chan_prob[i0, i1] = sp_ratio
+

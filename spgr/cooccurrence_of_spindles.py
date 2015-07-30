@@ -13,9 +13,8 @@ from .read_data import get_chan_used_in_analysis
 from .spindle_source import (get_chan_with_regions,
                              get_morph_linear,
                              )
-from .stats_on_spindles import (create_spindle_cooccurrence_matrix,
+from .stats_on_spindles import (cooccur_likelihood,
                                 create_spindle_groups,
-                                mean_spindle_cooccurrence,
                                 )
 
 from .log import with_log
@@ -47,8 +46,8 @@ def Cooccurrence_of_Spindles(lg, images_dir):
 
     all_values = []
 
-    for REREF in ('avg', 15):
-        for NORMALIZED_BY in ('source', 'target'):
+    for REREF in ('avg', 15)[:1]:
+        for NORMALIZATION in ('cooccur1', 'cooccur2', 'exclusive')[:2]:
 
             dataframe = {'subj': [], 'region': [], 'elec': [], 'value': []}
             for subj in HEMI_SUBJ:
@@ -58,29 +57,35 @@ def Cooccurrence_of_Spindles(lg, images_dir):
                 chan = get_chan_used_in_analysis(subj, 'sleep',
                                                  chan_type=CHAN_TYPE,
                                                  reref=REREF, **DATA_OPTIONS)
-                chan_prob = create_spindle_cooccurrence_matrix(chan,
-                                                               spindle_group)
-                chan_prob_per_chan = mean_spindle_cooccurrence(chan_prob,
-                                                               normalized_by=NORMALIZED_BY)
 
-                morphed = get_morph_linear(subj, chan_prob_per_chan,
-                                           reref=REREF)
+                if NORMALIZATION.startswith('cooccur'):
+                    chan_prob = cooccur_likelihood(chan, spindle_group,
+                                                   NORMALIZATION[-1])
+
+                morphed = get_morph_linear(subj, chan_prob, reref=REREF)
                 all_values.append(morphed)
 
                 chan = get_chan_with_regions(subj, REREF)
-                add_to_dataframe(dataframe, subj, chan_prob_per_chan, chan)
-
-            threshold = 0.01, None
-            limits = 0, .15
+                add_to_dataframe(dataframe, subj, chan_prob, chan)
 
             lmer(dataframe, lg)
 
+            if NORMALIZATION == 'cooccur1':
+                threshold = 0.01, 1
+                limits = 0, 1
+            elif NORMALIZATION == 'cooccur2':
+                threshold = 0.01, None
+                limits = 0, .15
+            elif NORMALIZATION == 'exclusive':
+                threshold = 0.01, None
+                limits = 0, .15
+
             v = plot_surf(all_values, threshold=threshold, limits=limits)
-            png_name = 'cooccurrence_map_{}_{}.png'.format(NORMALIZED_BY,
+            png_name = 'cooccurrence_map_{}_{}.png'.format(NORMALIZATION,
                                                            REREF)
             png_file = str(images_dir.joinpath(png_name))
             v.save(png_file)
-            lg.info('![{}]({})'.format('{} {}'.format(NORMALIZED_BY, REREF),
+            lg.info('![{}]({})'.format('{} {}'.format(NORMALIZATION, REREF),
                     png_file))
 
 
