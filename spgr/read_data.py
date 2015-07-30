@@ -295,8 +295,8 @@ def get_chan_used_in_analysis(subj, period_name, chan_type=(),
         chan = Channels(str(chan_file))
 
         chosen_chan = chan(lambda x: x.label in good_chan)
-        lg.info('%s analysis chan %d, with location %d',
-                subj, len(good_chan), chosen_chan.n_chan)
+        lg.debug('%s analysis chan %d, with location %d',
+                 subj, len(good_chan), chosen_chan.n_chan)
     except FileNotFoundError:
         lg.info('Could not read file %s', chan_file)
         chosen_chan = None

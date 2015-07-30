@@ -1,5 +1,11 @@
 from datetime import datetime
-from logging import getLogger, INFO, FileHandler, StreamHandler, Formatter
+from logging import (DEBUG,
+                     INFO,
+                     FileHandler,
+                     Formatter,
+                     getLogger,
+                     StreamHandler,
+                     )
 
 from spgr.constants import LOGSRC_PATH, PROJECT, IMAGES_PATH
 
@@ -39,17 +45,19 @@ def with_log(function):
         images_dir.mkdir(parents=True)
 
         lg = getLogger(PROJECT)
-        lg.setLevel(INFO)
+        lg.setLevel(DEBUG)
 
         formatter = Formatter('%(message)s  ')
 
         lg.handlers = []
 
         fh = FileHandler(str(log_file))
+        fh.setLevel(INFO)
         fh.setFormatter(formatter)
         lg.addHandler(fh)
 
         ch = StreamHandler()
+        ch.setLevel(DEBUG)
         ch.setFormatter(formatter)
         lg.addHandler(ch)
 
