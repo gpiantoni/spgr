@@ -171,10 +171,14 @@ def ratio_spindles_with_chan(chan, spindle_group):
     all_chan = chan.return_label()
 
     for chan0 in all_chan:
+        # how many spindle groups have both spindles, as compared to "target" channel
+        subgroup = [x for x in spindle_group if chan0 in x]
+
         for chan1 in all_chan:
-            # how many spindle groups have both spindles, as compared to "target" channel
-            subgroup = [x for x in spindle_group if chan0 in x]
-            sp_ratio = sum(1 for sp_group in subgroup if chan1 in sp_group) / len(subgroup)
+            if subgroup:
+                sp_ratio = sum(1 for sp_group in subgroup if chan1 in sp_group) / len(subgroup)
+            else:
+                sp_ratio = NaN
             i0 = all_chan.index(chan0)
             i1 = all_chan.index(chan1)
             chan_prob[i0, i1] = sp_ratio
