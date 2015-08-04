@@ -11,7 +11,8 @@ surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)
 label_avg = fs.read_label(DEFAULT_HEMI)
 
 
-def plot_surf(all_values, threshold=None, limits=None, extra_smoothing=True):
+def plot_surf(all_values, threshold=(None, None), limits=None,
+              extra_smoothing=True):
     """Plot values onto the surface.
 
     Parameters
