@@ -104,7 +104,7 @@ DATA_OPTIONS = {'resample_freq': RESAMPLE_FREQ,
                 }
 
 SPINDLE_OPTIONS = {'method': 'Nir2011',
-                   'frequency': (9, 16),
+                   'frequency': (11, 16),
                    'duration': (0.5, 2),
                    }
 SPINDLE_OPTIONS.update(DATA_OPTIONS)

@@ -77,7 +77,7 @@ def plot_average_values(REF, lg, images_dir):
             limits = 0, 70
         elif param == 'peak_freq':
             threshold = SPINDLE_OPTIONS['frequency']
-            limits = 11, 13
+            limits = 12, 14
 
         morphed = []
 
