@@ -23,10 +23,18 @@ def git_hash(package):
     return version
 
 
+def git_branch(package):
+    package_path = package.__path__[0] + '/../.git'
+    branch = check_output('git --git-dir ' + package_path +
+                           ' rev-parse --abbrev-ref HEAD',
+                           shell=True).decode('utf-8')
+    return branch[:-1]  # remove new line
+
+
 def git_info(lg):
 
-    lg.info('{} {} '.format(PROJECT, git_hash(spgr)))
-    lg.info('{} {} '.format('phypno', git_hash(phypno)))
+    lg.info('{}: {} {} '.format(PROJECT, git_branch(spgr), git_hash(spgr)))
+    lg.info('{}: {} {} '.format('phypno', git_branch(phypno), git_hash(phypno)))
     lg.info(check_output('pip freeze', shell=True).decode('utf-8'))
 
 
