@@ -18,6 +18,7 @@ from spgr import (Read_ECoG_Recordings,
 
 
 from spgr.constants import LOG_PATH, LOGSRC_PATH, PROJECT
+from spgr.log import embed_images_in_html
 
 
 # ALWAYS GIT COMMIT
@@ -64,8 +65,12 @@ if __name__ == '__main__':
         LOGOUTPUT_PATH.mkdir()
 
     output_name = t.strftime(PROJECT + '_%y%m%d_%H%M%S') + '.' + args.to
+    output_file = str(LOGOUTPUT_PATH.joinpath(output_name))
 
     cmd = ['pandoc', '-s', '-S', '--toc']
     cmd.extend(md_files)
-    cmd.extend(['-o', str(LOGOUTPUT_PATH.joinpath(output_name))])
+    cmd.extend(['-o', output_file])
     check_call(cmd)
+
+    if args.to == 'html':
+        embed_images_in_html(output_file)

@@ -9,11 +9,53 @@ from logging import (DEBUG,
 
 from spgr.constants import LOGSRC_PATH, PROJECT, IMAGES_PATH
 
+from base64 import b64encode
+from re import sub
 from socket import gethostname
 from subprocess import check_output
 from shutil import rmtree
 import phypno
 import spgr
+
+
+def embed_images_in_html(html_file):
+    """read images from png file and embed them into the html.
+
+    Parameters
+    ----------
+    html_file : path to file
+        path to html file
+
+    """
+    with open(html_file, 'r') as f:
+        s = f.read()
+
+    s1 = sub('<img src="([a-zA-Z0-9_/\.]*)" ', _embed_png, s)
+
+    with open(html_file, 'w') as f:
+        f.write(s1)
+
+
+def _embed_png(matched):
+    """Take a regex object with img tag and convert the png path to base64 data.
+
+    Parameters
+    ----------
+    matched : regex match object
+        matched regex of the img tag
+
+    Returns
+    -------
+    str
+        string to replace the whole img tag.
+    """
+    string = matched.group(0)
+    image_path = matched.group(1)
+
+    with open(image_path, 'rb') as f:
+        image_data = b64encode(f.read()).decode()
+
+    return string.replace(image_path, 'data:image/png;base64,' + image_data)
 
 
 def git_hash(package):
@@ -26,8 +68,8 @@ def git_hash(package):
 def git_branch(package):
     package_path = package.__path__[0] + '/../.git'
     branch = check_output('git --git-dir ' + package_path +
-                           ' rev-parse --abbrev-ref HEAD',
-                           shell=True).decode('utf-8')
+                          ' rev-parse --abbrev-ref HEAD',
+                          shell=True).decode('utf-8')
     return branch[:-1]  # remove new line
 
 
