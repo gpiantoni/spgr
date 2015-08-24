@@ -13,6 +13,7 @@ from .constants import (REC_PATH,
                         DATA_OPTIONS,
                         SMOOTHING_STD,
                         SMOOTHING_THRESHOLD,
+                        PARAMETERS,
                         )
 from .read_data import get_chan_used_in_analysis
 
@@ -81,6 +82,7 @@ def get_chan_with_regions(subj, reref):
     else:
         fs = Freesurfer(str(REC_PATH.joinpath(subj).joinpath(FS_FOLDER)))
         chan = assign_region_to_channels(orig_chan, fs,
+                                         parc_type=PARAMETERS['PARC_TYPE'],
                                          exclude_regions=('Unknown', ))
         REGIONS[subj] = chan
 
