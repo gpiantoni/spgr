@@ -7,7 +7,7 @@ from logging import (DEBUG,
                      StreamHandler,
                      )
 
-from spgr.constants import LOGSRC_PATH, PROJECT, IMAGES_PATH
+from spgr.constants import LOGSRC_PATH, PROJECT, IMAGES_PATH, PARAMETERS_TXT
 
 from base64 import b64encode
 from re import sub
@@ -114,6 +114,8 @@ def with_log(function):
         lg.info('# {}'.format(function.__name__.replace('_', ' ')))
 
         git_info(lg)
+
+        lg.info(PARAMETERS_TXT)
 
         lg.info('## Started')
         t0 = datetime.now()

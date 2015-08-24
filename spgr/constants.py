@@ -1,3 +1,4 @@
+from json import load
 from os.path import expanduser, join
 from pathlib import Path
 from os import environ
@@ -15,11 +16,21 @@ ELEC_FOLDER = Path('doc/elec')
 FS_FOLDER = Path('mri/proc/freesurfer')
 REC_FOLDER = Path('rec')
 
-DATA_PATH = HOME.joinpath('projects').joinpath(PROJECT).joinpath('subjects')
-GROUP_PATH = HOME.joinpath('projects').joinpath(PROJECT).joinpath('group')
+
+PROJECT_PATH = HOME.joinpath('projects').joinpath(PROJECT)
+SCRIPTS_PATH = PROJECT_PATH.joinpath('scripts')
+DATA_PATH = PROJECT_PATH.joinpath('subjects')
+GROUP_PATH = PROJECT_PATH.joinpath('group')
 IMAGES_PATH = GROUP_PATH.joinpath('images')
 LOG_PATH = GROUP_PATH.joinpath('log')
 LOGSRC_PATH = LOG_PATH.joinpath('src')
+
+
+PARAMETERS_PATH = SCRIPTS_PATH.joinpath(PROJECT).joinpath('parameters.json')
+with open(str(PARAMETERS_PATH), 'r') as f:
+    PARAMETERS = load(f)
+with open(str(PARAMETERS_PATH), 'r') as f:
+    PARAMETERS_TXT = f.read()
 
 
 if not IMAGES_PATH.exists():
@@ -103,10 +114,7 @@ DATA_OPTIONS = {'resample_freq': RESAMPLE_FREQ,
                 'lp_filter': 50,
                 }
 
-SPINDLE_OPTIONS = {'method': 'Nir2011',
-                   'frequency': (9, 16),
-                   'duration': (0.5, 2),
-                   }
+SPINDLE_OPTIONS = PARAMETERS['SPINDLE_OPTIONS']
 SPINDLE_OPTIONS.update(DATA_OPTIONS)
 
 # CHAN_TYPE = ('grid', 'strip')
