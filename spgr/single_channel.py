@@ -1,13 +1,13 @@
-from spgr.constants import (CHAN_TYPE,
-                            DATA_OPTIONS,
-                            HEMI_SUBJ,
-                            SPINDLE_OPTIONS,
-                            )
-from spgr.detect_spindles import get_spindles
-from spgr.lmer_stats import lmer
-from spgr.plot_spindles import plot_surf
-from spgr.read_data import get_data
-from spgr.spindle_source import get_morph_linear, get_chan_with_regions
+from .constants import (CHAN_TYPE,
+                        DATA_OPTIONS,
+                        HEMI_SUBJ,
+                        SPINDLE_OPTIONS,
+                        )
+from .detect_spindles import get_spindles
+from .lmer_stats import add_to_dataframe, lmer
+from .plot_spindles import plot_surf
+from .read_data import get_data
+from .spindle_source import get_morph_linear, get_chan_with_regions
 
 from .log import with_log
 
@@ -50,17 +50,6 @@ def get_spindle_param(subj, param, ref):
         values = data.data[0]
 
     return values
-
-
-def add_to_dataframe(df, subj, values, chan):
-
-    for one_chan, one_value in zip(chan.chan, values):
-        region = one_chan.attr['region']
-        if region[:3] == 'ctx':
-            df['subj'].append(subj)
-            df['region'].append(region[7:])
-            df['elec'].append(one_chan.label)
-            df['value'].append(one_value)
 
 
 def plot_average_values(REF, lg, images_dir):

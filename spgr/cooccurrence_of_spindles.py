@@ -6,10 +6,10 @@ from .constants import (CHAN_TYPE,
                         SPINDLE_OPTIONS,
                         )
 from .detect_spindles import get_spindles
-from .lmer_stats import lmer
+from .lmer_stats import add_to_dataframe, lmer
 from .plot_spindles import plot_surf
 from .plot_histogram import make_hist_overlap
-from .read_data import get_chan_used_in_analysis
+from .read_data import get_chan_used_in_analysis, get_data
 from .spindle_source import (get_chan_with_regions,
                              get_morph_linear,
                              )
@@ -54,6 +54,10 @@ def Cooccurrence_of_Spindles(lg, images_dir):
 
             all_values = []
             dataframe = {'subj': [], 'region': [], 'elec': [], 'value': []}
+            if NORMALIZATION == 'exclusive':
+                dataframe_confound = {'subj': [], 'region': [], 'elec': [],
+                                      'value': [], 'confound': []}
+
             for subj in HEMI_SUBJ:
                 spindles = get_spindles(subj, reref=REREF, **SPINDLE_OPTIONS)
                 spindle_group = create_spindle_groups(spindles)
@@ -75,6 +79,19 @@ def Cooccurrence_of_Spindles(lg, images_dir):
                 chan = get_chan_with_regions(subj, REREF)
                 add_to_dataframe(dataframe, subj, chan_prob, chan)
 
+                if NORMALIZATION == 'exclusive':
+                    data = get_data(subj, 'sleep', chan_type=CHAN_TYPE,
+                                    reref=REREF, **DATA_OPTIONS)
+
+                    dat_count = spindles.to_data('count')
+                    n_min = (data.number_of('trial') *
+                             (data.axis['time'][0][-1] -
+                              data.axis['time'][0][0])) / 60
+                    spindle_density = dat_count.data[0] / n_min
+
+                    add_to_dataframe(dataframe_confound, subj, chan_prob, chan,
+                                     spindle_density)
+
             lmer(dataframe, lg)
 
             if NORMALIZATION.startswith('cooccur'):
@@ -92,13 +109,6 @@ def Cooccurrence_of_Spindles(lg, images_dir):
             lg.info('![{}]({})'.format('{} {}'.format(NORMALIZATION, REREF),
                     png_file))
 
-
-def add_to_dataframe(df, subj, values, chan):
-
-    for one_chan, one_value in zip(chan.chan, values):
-        region = one_chan.attr['region']
-        if region[:3] == 'ctx':
-            df['subj'].append(subj)
-            df['region'].append(region[7:])
-            df['elec'].append(one_chan.label)
-            df['value'].append(one_value)
+            if NORMALIZATION == 'exclusive':
+                lmer(dataframe, lg,
+                     formula='value ~ 0 + confound + region + (1|subj)')
