@@ -52,7 +52,7 @@ def get_spindle_param(subj, param, ref):
     return values
 
 
-def plot_average_values(REF, lg, images_dir):
+def plot_average_values(REREF, lg, images_dir):
     for param in ('density', 'duration', 'peak_val', 'peak_freq'):
 
         if param == 'density':
@@ -74,14 +74,14 @@ def plot_average_values(REF, lg, images_dir):
         dataframe = {'subj': [], 'region': [], 'elec': [], 'value': []}
 
         for subj in HEMI_SUBJ:
-            values = get_spindle_param(subj, param, REF)
-            morphed.append(get_morph_linear(subj, values, REF))
+            values = get_spindle_param(subj, param, REREF)
+            morphed.append(get_morph_linear(subj, values, REREF))
 
-            chan = get_chan_with_regions(subj, REF)
+            chan = get_chan_with_regions(subj, REREF)
             add_to_dataframe(dataframe, subj, values, chan)
 
         lmer(dataframe, lg)
         v = plot_surf(morphed, threshold=threshold, limits=limits)
-        png_file = str(images_dir.joinpath('{}_{}.png'.format(param, REF)))
+        png_file = str(images_dir.joinpath('{}_{}.png'.format(param, REREF)))
         v.save(png_file)
-        lg.info('![{}]({})'.format('{} {}'.format(REF, param), png_file))
+        lg.info('![{}]({})'.format('{} {}'.format(REREF, param), png_file))
