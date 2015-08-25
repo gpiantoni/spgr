@@ -103,8 +103,8 @@ def get_regions_with_elec(reref='avg'):
     """
     all_regions = []
     for subj in HEMI_SUBJ:
-        chan = get_chan_with_regions(subj, 'avg')
-        all_regions.append(chan.return_attr('region'))
+        chan = get_chan_with_regions(subj, reref)
+        all_regions.extend(chan.return_attr('region'))
 
     region_names = set(x[7:] for x in all_regions if x[:4] == 'ctx_')
     lg.debug('Number of regions with at least one elec: {}'

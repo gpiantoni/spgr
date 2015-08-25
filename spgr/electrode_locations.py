@@ -1,4 +1,4 @@
-from numpy import empty, ones
+from numpy import empty, NaN, ones
 from phypno.attr import Freesurfer
 from phypno.viz import Viz3
 
@@ -42,7 +42,7 @@ def Electrode_Locations(lg, images_dir):
         lg.info('![{}]({})'.format(subj, png_file))
 
     lg.info('## Coverage')
-
+    """
     morphed = []
     for subj in HEMI_SUBJ:
 
@@ -58,17 +58,20 @@ def Electrode_Locations(lg, images_dir):
     png_file = str(images_dir.joinpath('coverage_average.png'))
     v.save(png_file)
     lg.info('![{}]({})'.format('coverage', png_file))
+    """
 
     lg.info('## Freesurfer Regions')
     regions_with_elec = get_regions_with_elec()
 
     colors = empty((surf_avg.vert.shape[0], 4))
     for i, vert in enumerate(avg_vert):
-        if avg_regions[i] in regions_with_elec:
+        if avg_regions[avg_vert[i]] in regions_with_elec:
             colors[i, :] = avg_color[vert, :4]
+        else:
+            colors[i, :] = NaN
 
     v = Viz3(color=PLOT_COLOR)
-    v.add_surf(surf_avg, values=colors)
+    v.add_surf(surf_avg, color=colors)
     png_file = str(images_dir.joinpath('fs_regions.png'))
     v.save(png_file)
     lg.info('![{}]({})'.format('regions', png_file))
