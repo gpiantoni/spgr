@@ -54,9 +54,6 @@ def Cooccurrence_of_Spindles(lg, images_dir):
 
             all_values = []
             dataframe = {'subj': [], 'region': [], 'elec': [], 'value': []}
-            if NORMALIZATION == 'exclusive':
-                dataframe_confound = {'subj': [], 'region': [], 'elec': [],
-                                      'value': [], 'confound': []}
 
             for subj in HEMI_SUBJ:
                 spindles = get_spindles(subj, reref=REREF, **SPINDLE_OPTIONS)
@@ -79,19 +76,6 @@ def Cooccurrence_of_Spindles(lg, images_dir):
                 chan = get_chan_with_regions(subj, REREF)
                 add_to_dataframe(dataframe, subj, chan_prob, chan)
 
-                if NORMALIZATION == 'exclusive':
-                    data = get_data(subj, 'sleep', chan_type=CHAN_TYPE,
-                                    reref=REREF, **DATA_OPTIONS)
-
-                    dat_count = spindles.to_data('count')
-                    n_min = (data.number_of('trial') *
-                             (data.axis['time'][0][-1] -
-                              data.axis['time'][0][0])) / 60
-                    spindle_density = dat_count.data[0] / n_min
-
-                    add_to_dataframe(dataframe_confound, subj, chan_prob, chan,
-                                     spindle_density)
-
             lmer(dataframe, lg)
 
             if NORMALIZATION.startswith('cooccur'):
@@ -108,7 +92,3 @@ def Cooccurrence_of_Spindles(lg, images_dir):
             v.save(png_file)
             lg.info('![{}]({})'.format('{} {}'.format(NORMALIZATION, REREF),
                     png_file))
-
-            if NORMALIZATION == 'exclusive':
-                lmer(dataframe, lg,
-                     formula='value ~ 0 + confound + region + (1|subj)')

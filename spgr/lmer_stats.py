@@ -10,7 +10,7 @@ lme4 = importr('lme4')
 multcomp = importr('multcomp')
 
 
-def add_to_dataframe(df, subj, values, chan, confound=None):
+def add_to_dataframe(df, subj, values, chan):
     """Add values for each electrode to the main frame.
     """
     for i, one_chan in enumerate(chan.chan):
@@ -21,8 +21,6 @@ def add_to_dataframe(df, subj, values, chan, confound=None):
             df['region'].append(region[7:])
             df['elec'].append(one_chan.label)
             df['value'].append(one_value)
-            if confound:
-                df['confound'].append = confound[i]
 
 
 def lmer(df_raw, lg, formula='value ~ 0 + region + (1|subj)', adjust='fdr',
