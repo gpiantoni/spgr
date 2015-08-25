@@ -1,4 +1,4 @@
-from numpy import ones
+from numpy import empty, ones
 from phypno.attr import Freesurfer
 from phypno.viz import Viz3
 
@@ -10,6 +10,7 @@ from .constants import (CHAN_TYPE,
                         REC_PATH,
                         SKIN_COLOR,
                         avg_vert,
+                        avg_color,
                         surf_avg,
                         )
 from .lobes import freesurfer_color_code, LOBE_COLOR_LIMITS
@@ -56,6 +57,18 @@ def Electrode_Locations(lg, images_dir):
     png_file = str(images_dir.joinpath('coverage_average.png'))
     v.save(png_file)
     lg.info('![{}]({})'.format('coverage', png_file))
+
+    lg.info('## Freesurfer Regions')
+
+    colors = empty((surf_avg.vert.shape[0], 4))
+    for i, vert in enumerate(avg_vert):
+        colors[i, :] = avg_color[vert, :4]
+
+    v = Viz3(color=PLOT_COLOR)
+    v.add_surf(surf_avg, values=colors)
+    png_file = str(images_dir.joinpath('fs_regions.png'))
+    v.save(png_file)
+    lg.info('![{}]({})'.format('regions', png_file))
 
     lg.info('## Lobes')
     freesurfer_code, color_code = freesurfer_color_code()

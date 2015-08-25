@@ -134,5 +134,5 @@ HISTOGRAM_WIDTH = 1
 
 fs = Freesurfer(FS_AVG)
 surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)
-avg_vert, _, avg_regions = fs.read_label(DEFAULT_HEMI,
-                                         parc_type=PARAMETERS['PARC_TYPE'])
+avg_vert, avg_color, avg_regions = fs.read_label(DEFAULT_HEMI,
+                                                 parc_type=PARAMETERS['PARC_TYPE'])
