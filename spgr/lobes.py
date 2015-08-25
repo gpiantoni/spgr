@@ -57,7 +57,7 @@ LOBE_COLORS = {'frontal': 60,
 
 
 def freesurfer_color_code():
-    TOTAL_N_REGIONS = 36
+    TOTAL_N_REGIONS = len(avg_regions)
     freesurfer_code = arange(TOTAL_N_REGIONS)
     freesurfer_code[0] = -1
 
