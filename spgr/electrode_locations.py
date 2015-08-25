@@ -11,10 +11,11 @@ from .constants import (CHAN_TYPE,
                         SKIN_COLOR,
                         avg_vert,
                         avg_color,
+                        avg_regions,
                         surf_avg,
                         )
 from .lobes import freesurfer_color_code, LOBE_COLOR_LIMITS
-from .spindle_source import get_morph_linear
+from .spindle_source import get_morph_linear, get_regions_with_elec
 from .plot_spindles import plot_surf
 from .read_data import get_chan_used_in_analysis
 
@@ -59,10 +60,12 @@ def Electrode_Locations(lg, images_dir):
     lg.info('![{}]({})'.format('coverage', png_file))
 
     lg.info('## Freesurfer Regions')
+    regions_with_elec = get_regions_with_elec()
 
     colors = empty((surf_avg.vert.shape[0], 4))
     for i, vert in enumerate(avg_vert):
-        colors[i, :] = avg_color[vert, :4]
+        if avg_regions[i] in regions_with_elec:
+            colors[i, :] = avg_color[vert, :4]
 
     v = Viz3(color=PLOT_COLOR)
     v.add_surf(surf_avg, values=colors)

@@ -87,3 +87,26 @@ def get_chan_with_regions(subj, reref):
         REGIONS[subj] = chan
 
     return chan
+
+
+def get_regions_with_elec(reref='avg'):
+    """Return the list of channels with at least one electrode.
+
+    It loops over every subject, assigns the region to each electrode, and then
+    takes the unique region names.
+
+    Notes
+    -----
+    Region names start with "ctx_?h" for aparc.a2009s at least. So we remove
+    that part of the name. By using "if" we also get rid of regions such as
+    white matter or other weird regions.
+    """
+    all_regions = []
+    for subj in HEMI_SUBJ:
+        chan = get_chan_with_regions(subj, 'avg')
+        all_regions.append(chan.return_attr('region'))
+
+    region_names = set(x[7:] for x in all_regions if x[:4] == 'ctx_')
+    lg.debug('Number of regions with at least one elec: {}'
+             ''.format(len(region_names)))
+    return list(region_names)
