@@ -1,3 +1,9 @@
+from numpy import array, sqrt, polyval, where
+from scipy.stats import linregress
+from vispy.io import write_png
+from vispy.plot import Fig
+from vispy.scene import Text, LinePlot
+
 from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
                         HEMI_SUBJ,
@@ -9,7 +15,8 @@ from .detect_spindles import get_spindles
 from .lmer_stats import add_to_dataframe, lmer
 from .plot_spindles import plot_surf
 from .plot_histogram import make_hist_overlap
-from .read_data import get_chan_used_in_analysis, get_data
+from .read_data import get_chan_used_in_analysis
+from .single_channel import get_spindle_param
 from .spindle_source import (get_chan_with_regions,
                              get_morph_linear,
                              )
@@ -54,6 +61,7 @@ def Cooccurrence_of_Spindles(lg, images_dir):
 
             all_values = []
             dataframe = {'subj': [], 'region': [], 'elec': [], 'value': []}
+            df_dens = {'subj': [], 'region': [], 'elec': [], 'value': []}
 
             for subj in HEMI_SUBJ:
                 spindles = get_spindles(subj, reref=REREF, **SPINDLE_OPTIONS)
@@ -70,13 +78,16 @@ def Cooccurrence_of_Spindles(lg, images_dir):
                 elif NORMALIZATION == 'exclusive':
                     chan_prob = ratio_spindles_with_chan(chan, spindle_group)
 
+                    spindle_dens = get_spindle_param(subj, 'density', REREF)
+                    add_to_dataframe(df_dens, subj, spindle_dens, chan)
+
                 morphed = get_morph_linear(subj, chan_prob, reref=REREF)
                 all_values.append(morphed)
 
                 chan = get_chan_with_regions(subj, REREF)
                 add_to_dataframe(dataframe, subj, chan_prob, chan)
 
-            lmer(dataframe, lg)
+            cooccur_coef, _ = lmer(dataframe, lg)
 
             if NORMALIZATION.startswith('cooccur'):
                 threshold = 0.01, 1
@@ -92,3 +103,68 @@ def Cooccurrence_of_Spindles(lg, images_dir):
             v.save(png_file)
             lg.info('![{}]({})'.format('{} {}'.format(NORMALIZATION, REREF),
                     png_file))
+
+            if NORMALIZATION == 'exclusive':
+                dens_coef, _ = lmer(df_dens, lg)
+                fig = _cooccur_v_density(dens_coef, cooccur_coef, lg)
+                img = fig.render()
+
+                png_file = str(images_dir.joinpath('density_v_cooccurrence.png'))
+                write_png(png_file, img)
+                lg.info('![cooccur_v_density]({})'.format(png_file))
+
+
+def _cooccur_v_density(dens_coef, cooccur_coef, lg):
+    """Compare spindle per minute vs cooccurrence to see if they are linked and
+    if there are some exceptions, like some regions that have higher spindle
+    cooccurrence than explained only by spindle count.
+
+
+    """
+    regions = array(sorted(dens_coef))
+    dens = array([dens_coef[one_region] for one_region in regions])
+    cooccur = array([cooccur_coef[one_region] for one_region in regions])
+
+    lreg = linregress(dens, cooccur)
+    lg.info('Correlation spindle density v cooccurrence r({}) = {:.3f}, '
+            'p = {:.3f}'.format(len(regions) - 2, lreg.rvalue, lreg.pvalue))
+    lg.info('Best-fit line: {: 5.3f}y + {: 5.3f}'.format(lreg.slope,
+                                                         lreg.intercept))
+    estimates = polyval((lreg.slope, lreg.intercept), dens)
+
+    dist_from_line = cooccur - estimates
+    deviance = sqrt(sum(dist_from_line ** 2) / (len(dist_from_line) - 2))
+    lg.info('deviance: {: 5.3f}'.format(deviance))
+
+    def _find_region_xy(region_name):
+        idx = where(regions == region_name)[0][0]
+        return array((dens[idx], cooccur[idx]))
+
+    threshold = deviance
+    offset = array([0.03, 0])
+
+    fig = Fig(show=False)
+    f = fig[0, 0]
+    f._configure_2d()
+    f.view.add(LinePlot((dens, cooccur), width=0, symbol='*'))
+    f.view.add(LinePlot((dens, estimates), width=3))
+
+    for one_region in regions[dist_from_line > threshold]:
+        pos = _find_region_xy(one_region) - offset
+        tv = Text(text=one_region, pos=pos, anchor_x='right')
+        f.view.add(tv)
+
+    for one_region in regions[dist_from_line < -threshold]:
+        pos = _find_region_xy(one_region) + offset
+        tv = Text(text=one_region, pos=pos, anchor_x='left')
+        f.view.add(tv)
+
+    f.view.camera.set_range(x=(0.3, 2), y=(0.05, 0.15))
+
+    f.yaxis.axis._text.font_size = 10
+    f.xaxis.axis._text.font_size = 10
+
+    f.xlabel.text = 'Estimated Spindles per Minute'
+    f.ylabel.text = 'Estimated Co-occurrence Probability'
+
+    return fig
