@@ -70,6 +70,7 @@ def Cooccurrence_of_Spindles(lg, images_dir):
                 chan = get_chan_used_in_analysis(subj, 'sleep',
                                                  chan_type=CHAN_TYPE,
                                                  reref=REREF, **DATA_OPTIONS)
+                chan = get_chan_with_regions(subj, REREF)
 
                 if NORMALIZATION.startswith('cooccur'):
                     chan_prob = cooccur_likelihood(chan, spindle_group,
@@ -84,7 +85,6 @@ def Cooccurrence_of_Spindles(lg, images_dir):
                 morphed = get_morph_linear(subj, chan_prob, reref=REREF)
                 all_values.append(morphed)
 
-                chan = get_chan_with_regions(subj, REREF)
                 add_to_dataframe(dataframe, subj, chan_prob, chan)
 
             cooccur_coef, _ = lmer(dataframe, lg)
@@ -109,7 +109,8 @@ def Cooccurrence_of_Spindles(lg, images_dir):
                 fig = _cooccur_v_density(dens_coef, cooccur_coef, lg)
                 img = fig.render()
 
-                png_file = str(images_dir.joinpath('density_v_cooccurrence.png'))
+                png_name = 'density_v_cooccurrence_{}.png'.format(REREF)
+                png_file = str(images_dir.joinpath(png_name))
                 write_png(png_file, img)
                 lg.info('![cooccur_v_density]({})'.format(png_file))
 
