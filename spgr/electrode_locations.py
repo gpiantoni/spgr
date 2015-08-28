@@ -1,4 +1,4 @@
-from numpy import empty, NaN, ones
+from numpy import ones
 from phypno.attr import Freesurfer
 from phypno.viz import Viz3
 
@@ -6,16 +6,10 @@ from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
                         FS_FOLDER,
                         HEMI_SUBJ,
-                        PLOT_COLOR,
                         REC_PATH,
                         SKIN_COLOR,
-                        avg_vert,
-                        avg_color,
-                        avg_regions,
-                        surf_avg,
                         )
-from .lobes import freesurfer_color_code, LOBE_COLOR_LIMITS
-from .spindle_source import get_morph_linear, get_regions_with_elec
+from .spindle_source import get_morph_linear
 from .plot_spindles import plot_surf
 from .read_data import get_chan_used_in_analysis
 
@@ -56,33 +50,3 @@ def Electrode_Locations(lg, images_dir):
     png_file = str(images_dir.joinpath('coverage_average.png'))
     v.save(png_file)
     lg.info('![{}]({})'.format('coverage', png_file))
-
-    lg.info('## Freesurfer Regions')
-    regions_with_elec = get_regions_with_elec()
-
-    colors = empty((surf_avg.vert.shape[0], 4))
-    for i, vert in enumerate(avg_vert):
-        if avg_regions[avg_vert[i]] in regions_with_elec:
-            colors[i, :] = avg_color[vert, :4]
-        else:
-            colors[i, :] = NaN
-
-    v = Viz3(color=PLOT_COLOR)
-    v.add_surf(surf_avg, color=colors)
-    png_file = str(images_dir.joinpath('fs_regions.png'))
-    v.save(png_file)
-    lg.info('![{}]({})'.format('regions', png_file))
-
-    lg.info('## Lobes')
-    freesurfer_code, color_code = freesurfer_color_code()
-
-    color_avg = avg_vert.copy()
-    for i0, i1 in zip(freesurfer_code, color_code):
-        color_avg[avg_vert == i0] = i1
-
-    v = Viz3(color=PLOT_COLOR)
-    v.add_surf(surf_avg, values=color_avg, colormap='jet',
-               limits_c=LOBE_COLOR_LIMITS)
-    png_file = str(images_dir.joinpath('fs_lobes.png'))
-    v.save(png_file)
-    lg.info('![{}]({})'.format('lobes', png_file))
