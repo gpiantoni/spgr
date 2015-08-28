@@ -119,8 +119,6 @@ def _cooccur_v_density(dens_coef, cooccur_coef, lg):
     """Compare spindle per minute vs cooccurrence to see if they are linked and
     if there are some exceptions, like some regions that have higher spindle
     cooccurrence than explained only by spindle count.
-
-
     """
     regions = array(sorted(dens_coef))
     dens = array([dens_coef[one_region] for one_region in regions])
@@ -144,7 +142,7 @@ def _cooccur_v_density(dens_coef, cooccur_coef, lg):
     threshold = deviance
     offset = array([0.03, 0])
 
-    fig = Fig(show=False)
+    fig = Fig(show=True)
     f = fig[0, 0]
     f._configure_2d()
     f.view.add(LinePlot((dens, cooccur), width=0, symbol='*'))
