@@ -2,13 +2,13 @@ from numpy import ones
 from phypno.attr import Freesurfer
 from phypno.viz import Viz3
 
-from .constants import (CHAN_TYPE,
+from .constants import (CHAN_COLOR,
+                        CHAN_TYPE,
                         DATA_OPTIONS,
                         FS_FOLDER,
                         HEMI_SUBJ,
                         REC_PATH,
-                        SKIN_COLOR,
-                        )
+                        SKIN_COLOR)
 from .spindle_source import get_morph_linear
 from .plot_spindles import plot_surf
 from .read_data import get_chan_used_in_analysis
@@ -27,7 +27,7 @@ def Electrode_Locations(lg, images_dir):
         surf = getattr(fs.read_brain(), hemi)
 
         v = Viz3(color='kw')
-        v.add_chan(chan, color=(200, 20, 20, 255))
+        v.add_chan(chan, color=CHAN_COLOR)
         v.add_surf(surf, color=SKIN_COLOR)
 
         png_file = str(images_dir.joinpath(subj + '.png'))

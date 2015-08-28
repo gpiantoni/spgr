@@ -4,7 +4,12 @@ import warnings
 from phypno.attr import Freesurfer
 from phypno.viz import Viz3
 
-from .constants import DEFAULT_HEMI, FS_AVG, PLOT_COLOR
+from .constants import (AZIMUTH,
+                        DEFAULT_HEMI,
+                        ELEVATION,
+                        FS_AVG,
+                        NAN_COLOR,
+                        PLOT_COLOR)
 
 fs = Freesurfer(FS_AVG)
 surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)
@@ -46,10 +51,9 @@ def plot_surf(all_values, threshold=(None, None), limits=None,
                 values[one_tri] = mean(values[one_tri])
 
     v = Viz3(color=PLOT_COLOR)
-    v.add_surf(surf_avg, values=values, limits_c=limits,
-               color=(100, 100, 100, 255))
-    v._widget.opts.update({'elevation': 15, 'azimuth': 17})
-
+    v.add_surf(surf_avg, values=values, limits_c=limits, color=NAN_COLOR)
+    v._canvas.view.camera.elevation = ELEVATION
+    v._canvas.view.camera.azimuth = AZIMUTH
     return v
 
 
