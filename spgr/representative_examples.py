@@ -55,6 +55,8 @@ def Representative_Examples(lg, images_dir):
             v.add_data(spindle_data, limits_y=RAW_LIMITS_Y)
             v.add_graphoelement([spindle, ], color=HIGHLIGHT_COLOR,
                                 height=HIGHLIGHT_HEIGHT)
+            v._fig[0, 0].xaxis.visible = False
+            v._fig[0, 0].yaxis.visible = False
 
             png_file = str(images_dir.joinpath('{}_{}.png'.format(region,
                                                                   subj)))
