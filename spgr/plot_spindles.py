@@ -50,7 +50,7 @@ def plot_surf(all_values, threshold=(None, None), limits=None,
             if not any(isnan(values[one_tri])):
                 values[one_tri] = mean(values[one_tri])
 
-    v = Viz3(color=PLOT_COLOR)
+    v = Viz3(color=PLOT_COLOR, show=False)
     v.add_surf(surf_avg, values=values, limits_c=limits, color=NAN_COLOR)
     v._canvas.view.camera.elevation = ELEVATION
     v._canvas.view.camera.azimuth = AZIMUTH

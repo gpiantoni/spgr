@@ -26,7 +26,7 @@ def Electrode_Locations(lg, images_dir):
         fs = Freesurfer(str(REC_PATH.joinpath(subj).joinpath(FS_FOLDER)))
         surf = getattr(fs.read_brain(), hemi)
 
-        v = Viz3(color='kw')
+        v = Viz3(color='kw', show=False)
         v.add_chan(chan, color=CHAN_COLOR)
         v.add_surf(surf, color=SKIN_COLOR)
 
