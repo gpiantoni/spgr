@@ -8,7 +8,8 @@ from .constants import (CHAN_COLOR,
                         FS_FOLDER,
                         HEMI_SUBJ,
                         REC_PATH,
-                        SKIN_COLOR)
+                        SKIN_COLOR,
+                        surf_avg)
 from .spindle_source import get_morph_linear
 from .plot_spindles import plot_surf
 from .read_data import get_chan_used_in_analysis
@@ -50,3 +51,10 @@ def Electrode_Locations(lg, images_dir):
     png_file = str(images_dir.joinpath('coverage_average.png'))
     v.save(png_file)
     lg.info('![{}]({})'.format('coverage', png_file))
+
+    lg.info('## Average surface')
+    v = Viz3()
+    v.add_surf(surf_avg, color=(1, 1, 1))
+    png_file = str(images_dir.joinpath('fs_avg.png'))
+    v.save(png_file)
+    lg.info('![{}]({})'.format('surface average', png_file))
