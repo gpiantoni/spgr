@@ -1,5 +1,5 @@
 from numpy import log, mean, where
-from phypno.trans import Select
+from phypno.trans import Filter, Select
 from phypno.viz import Viz1
 from scipy.signal import periodogram
 
@@ -7,6 +7,7 @@ from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
                         HEMI_SUBJ,
                         HIGHLIGHT_COLOR,
+                        HIGHLIGHT_HEIGHT,
                         PLOT_COLOR,
                         RAW_LIMITS_Y,
                         SPINDLE_OPTIONS,
@@ -20,10 +21,10 @@ from .spindle_source import get_chan_with_regions
 
 from .log import with_log
 
-
 REREF = 'avg'
 PAD = 1
 WINDOW = 1
+HIGHLIGHT_FILTER = 2, 30
 
 BEST_SPINDLE = 'sigma_ratio'  # 'area_under_curve' or 'sigma_ratio'
 
@@ -41,12 +42,19 @@ def Representative_Examples(lg, images_dir):
         data = get_data(subj, 'sleep', CHAN_TYPE, reref=REREF, **DATA_OPTIONS)
         best_spindles = find_best_spindles(subj, data)
 
+        filt = Filter(low_cut=HIGHLIGHT_FILTER[0],
+                      high_cut=HIGHLIGHT_FILTER[1],
+                      s_freq=data.s_freq)
+        data = filt(data)
+
         for region, spindle in best_spindles.items():
 
             spindle_data = find_spindle_data(data, spindle)
+
             v = Viz1(color=PLOT_COLOR)
             v.add_data(spindle_data, limits_y=RAW_LIMITS_Y)
-            v.add_graphoelement([spindle, ], color=HIGHLIGHT_COLOR)
+            v.add_graphoelement([spindle, ], color=HIGHLIGHT_COLOR,
+                                height=HIGHLIGHT_HEIGHT)
 
             png_file = str(images_dir.joinpath('{}_{}.png'.format(region,
                                                                   subj)))
