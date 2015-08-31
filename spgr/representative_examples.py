@@ -22,7 +22,7 @@ from .log import with_log
 
 
 REREF = 'avg'
-PAD = 2
+PAD = 1
 WINDOW = 1
 
 BEST_SPINDLE = 'sigma_ratio'  # 'area_under_curve' or 'sigma_ratio'
@@ -38,7 +38,7 @@ def Representative_Examples(lg, images_dir):
 
     for subj in HEMI_SUBJ:
 
-        data = get_data(subj, 'sleep', CHAN_TYPE, reref='avg', **DATA_OPTIONS)
+        data = get_data(subj, 'sleep', CHAN_TYPE, reref=REREF, **DATA_OPTIONS)
         best_spindles = find_best_spindles(subj, data)
 
         for region, spindle in best_spindles.items():
@@ -85,7 +85,8 @@ def find_best_spindles(subj, data):
     for one_sp in spindles:
         sp_region = chan(lambda x: x.label == one_sp['chan']).return_attr('region')[0]
 
-        if not sp_region.startswith('ctx-'):
+        # aparc uses "ctx-Xh" and aparc.a2009s uses "ctx_Xh"
+        if not sp_region.startswith('ctx'):
             continue
 
         sp_region = sp_region[len('ctx-Xh-'):]
@@ -127,8 +128,8 @@ def find_spindle_data(data, spindle):
     """
     i_trial = _find_trial_with_spindle(data, spindle)
 
-    sel = Select(time=(spindle['start_time'] - PAD,
-                       spindle['end_time'] + PAD),
+    center_time = (spindle['end_time'] + spindle['start_time']) / 2
+    sel = Select(time=(center_time - PAD, center_time + PAD),
                  trial=(i_trial, ), chan=(spindle['chan'], ))
     return sel(data)
 
