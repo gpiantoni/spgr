@@ -8,7 +8,6 @@ from .constants import (CHAN_TYPE,
                         HEMI_SUBJ,
                         HIGHLIGHT_COLOR,
                         HIGHLIGHT_HEIGHT,
-                        PLOT_COLOR,
                         RAW_LIMITS_Y,
                         SPINDLE_OPTIONS,
                         avg_regions,
@@ -20,6 +19,8 @@ from .read_data import get_data
 from .spindle_source import get_chan_with_regions
 
 from .log import with_log
+
+PLOT_SIZE = 12, 10
 
 REREF = 'avg'
 PAD = 1
@@ -51,7 +52,7 @@ def Representative_Examples(lg, images_dir):
 
             spindle_data = find_spindle_data(data, spindle)
 
-            v = Viz1(color=PLOT_COLOR)
+            v = Viz1(dpi=300, size_mm=PLOT_SIZE)
             v.add_data(spindle_data, limits_y=RAW_LIMITS_Y)
             v.add_graphoelement([spindle, ], color=HIGHLIGHT_COLOR,
                                 height=HIGHLIGHT_HEIGHT)

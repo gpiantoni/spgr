@@ -4,7 +4,7 @@ from vispy.scene.visuals import Rectangle
 
 from phypno.viz import Viz1
 
-from .constants import SPINDLE_OPTIONS, TICKS_FONT_SIZE
+from .constants import DPI, SPINDLE_OPTIONS, TICKS_FONT_SIZE
 from .detect_spindles import get_spindles
 from .stats_on_spindles import create_spindle_groups
 
@@ -14,8 +14,10 @@ X_MINOR_TICK = 1
 Y_MAJOR_TICK = 100
 Y_MINOR_TICK = 10
 
+FIG_SIZE = 40, 30  # actual size in mm for figure
 
-def make_hist_overlap(subj, color='kw', reref='avg', width=2, nchan=60):
+
+def make_hist_overlap(subj, reref='avg', width=2, nchan=60):
 
     spindles = get_spindles(subj, reref=reref, **SPINDLE_OPTIONS)
     spindle_group = create_spindle_groups(spindles)
@@ -23,14 +25,15 @@ def make_hist_overlap(subj, color='kw', reref='avg', width=2, nchan=60):
     spindle_size = [len(x) for x in spindle_group]
     hist, bin_edges = histogram(spindle_size, bins=arange(.5, nchan, width))
 
-    v = Viz1()
+    v = Viz1(dpi=DPI, size_mm=FIG_SIZE)
     plt = v._fig[0, 0]
     plt._configure_2d()
 
     for left_edge, col in zip(bin_edges[:-1], hist):
-        if col > 0:
-            rect = Rectangle(center=(left_edge + width / 2, v / 2), height=col,
-                             width=width, border_color='k', color=None)
+        if col > 0:  # vispy doesn't like it when hist has height = 0
+            rect = Rectangle(center=(left_edge + width / 2, col / 2),
+                             height=col, width=width, border_color='k',
+                             color=None)
             rect.border.set_data(width=2)  # border_width doesn't work
             plt.view.add(rect)
 

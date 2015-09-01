@@ -8,7 +8,7 @@ from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
                         HEMI_SUBJ,
                         HIGHLIGHT_COLOR,
-                        PLOT_COLOR,
+                        DPI,
                         SPINDLE_OPTIONS,
                         RAW_LIMITS_Y,
                         )
@@ -18,7 +18,7 @@ from .read_data import get_data
 from .log import with_log
 
 
-PLOT_SIZE = 960, 480
+PLOT_SIZE = 112, 50
 
 SUBJ = 'EM09'
 chan_names = ['GR' + str(i) for i in range(28, 55)]
@@ -77,8 +77,7 @@ def Spindle_Detection_Method(lg, images_dir):
 
 def _make_cooccur_plot(sel_data, sp):
 
-    v = Viz1(color=PLOT_COLOR, show=True)
-    v._fig.size = PLOT_SIZE
+    v = Viz1(show=True, size_mm=PLOT_SIZE, dpi=DPI)
     v.add_data(sel_data,
                limits_y=[RAW_LIMITS_Y[0] * 2, RAW_LIMITS_Y[1]*2])
     v.add_graphoelement(sp, color=HIGHLIGHT_COLOR, height=400)

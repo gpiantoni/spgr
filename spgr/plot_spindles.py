@@ -6,10 +6,10 @@ from phypno.viz import Viz3
 
 from .constants import (AZIMUTH,
                         DEFAULT_HEMI,
+                        DPI,
                         ELEVATION,
                         FS_AVG,
-                        NAN_COLOR,
-                        PLOT_COLOR)
+                        NAN_COLOR)
 
 fs = Freesurfer(FS_AVG)
 surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)
@@ -50,7 +50,7 @@ def plot_surf(all_values, threshold=(None, None), limits=None,
             if not any(isnan(values[one_tri])):
                 values[one_tri] = mean(values[one_tri])
 
-    v = Viz3(color=PLOT_COLOR, show=False)
+    v = Viz3(dpi=DPI, show=False)
     v.add_surf(surf_avg, values=values, limits_c=limits, color=NAN_COLOR)
     v._canvas.view.camera.elevation = ELEVATION
     v._canvas.view.camera.azimuth = AZIMUTH
@@ -83,7 +83,7 @@ def plot_lmer(coef, pvalues=None, limits=(0, 2), p_threshold=0.05):
         if pvalues[one_region] <= p_threshold:
             val[array(label_avg[0]) == label_avg[2].index(one_region)] = one_v
 
-    v = Viz3(color=PLOT_COLOR)
+    v = Viz3(dpi=DPI)
     v.add_surf(surf_avg, values=val, limits_c=limits,
                color=(100, 100, 100, 255))
     v._widget.opts.update({'elevation': 15, 'azimuth': 17})
