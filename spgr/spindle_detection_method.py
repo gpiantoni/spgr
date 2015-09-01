@@ -89,18 +89,18 @@ def _make_cooccur_plot(sel_data, sp):
         tick_labels = array(['0', '30'])
         return major_tick_fractions, minor_tick_fractions, tick_labels
 
-    for canvas in v._fig.plot_widgets:
-        canvas.xaxis.axis.ticker._get_tick_frac_labels = tick_frac
-        canvas.view.camera.set_range(x=(44851.5, 44878.5), y=(-200, 200))
-        canvas.xaxis.axis.major_tick_length = 10
-        canvas.xaxis.axis.minor_tick_length = 0
-        canvas.xaxis.axis._text.font_size = 14
+    for plt in v._fig.plot_widgets:
+        plt.xaxis.axis.ticker._get_tick_frac_labels = tick_frac
+        plt.view.camera.set_range(x=(44851.5, 44878.5), y=(-200, 200))
+        plt.xaxis.axis.major_tick_length = 10
+        plt.xaxis.axis.minor_tick_length = 0
+        plt.xaxis.axis._text.font_size = 14
 
-        canvas.yaxis.axis._text.font_size = 14
-        canvas.ylabel.text = 'amplitude (μV)'
-        canvas.ylabel._text_visual.font_size = 24
+        plt.yaxis.axis._text.font_size = 14
+        plt.ylabel.text = 'amplitude (μV)'
+        plt.ylabel._text_visual.font_size = 24
 
-    canvas.xlabel.text = 'time (s)'
-    canvas.xlabel._text_visual.font_size = 24
+    plt.xlabel.text = 'time (s)'
+    plt.xlabel._text_visual.font_size = 24
 
     return v

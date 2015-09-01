@@ -1,19 +1,18 @@
-from collections import Counter, defaultdict
+from numpy import arange, ceil, histogram, linspace
+from vispy.geometry import Rect
+from vispy.scene.visuals import Rectangle
 
-from numpy import arange, histogram, zeros
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import (QBrush,
-                         QPen,
-                         )
-from pyqtgraph import BarGraphItem
 from phypno.viz import Viz1
 
-from .constants import SPINDLE_OPTIONS
+from .constants import SPINDLE_OPTIONS, TICKS_FONT_SIZE
 from .detect_spindles import get_spindles
-from .spindle_source import get_chan_with_regions
 from .stats_on_spindles import create_spindle_groups
 
 
+X_MAJOR_TICK = 10
+X_MINOR_TICK = 1
+Y_MAJOR_TICK = 100
+Y_MINOR_TICK = 10
 
 
 def make_hist_overlap(subj, color='kw', reref='avg', width=2, nchan=60):
@@ -21,58 +20,42 @@ def make_hist_overlap(subj, color='kw', reref='avg', width=2, nchan=60):
     spindles = get_spindles(subj, reref=reref, **SPINDLE_OPTIONS)
     spindle_group = create_spindle_groups(spindles)
 
-    chan = get_chan_with_regions(subj, reref)
-
     spindle_size = [len(x) for x in spindle_group]
-    spindle_region = [_find_lobe_from_region(_find_region_for_spindle_group(x, chan)) for x in spindle_group]
+    hist, bin_edges = histogram(spindle_size, bins=arange(.5, nchan, width))
 
-    group_per_region = defaultdict(list)
+    v = Viz1()
+    plt = v._fig[0, 0]
+    plt._configure_2d()
 
-    for one_size, one_region in zip(spindle_size, spindle_region):
-        group_per_region[one_region].append(one_size)
+    for left_edge, col in zip(bin_edges[:-1], hist):
+        if col > 0:
+            rect = Rectangle(center=(left_edge + width / 2, v / 2), height=col,
+                             width=width, border_color='k', color=None)
+            rect.border.set_data(width=2)  # border_width doesn't work
+            plt.view.add(rect)
 
-    group_per_region = dict(group_per_region)
+    max_height = ceil(max(hist) / Y_MAJOR_TICK) * Y_MAJOR_TICK
+    plt.view.camera.set_state(rect=Rect(pos=(-0.1, -1),
+                                        size=(nchan, max_height)))
 
-    hist = arange(-width / 2, nchan, width)
-    y0 = zeros(hist.shape[0] - 1)
+    def xtick_frac():
+        tick_labels = [str(x) for x in range(0, nchan + X_MAJOR_TICK, X_MAJOR_TICK)]
+        major_tick_fractions = linspace(0, 1, len(tick_labels))
+        minor_tick_fractions = linspace(0, 1,  nchan / X_MINOR_TICK + 1)
 
-    v = Viz1(color='kw')
-    p = v._widget.addPlot(title=subj)
+        return major_tick_fractions, minor_tick_fractions, tick_labels
 
-    for lobe, x in group_per_region.items():
+    plt.xaxis.axis.ticker._get_tick_frac_labels = xtick_frac
+    plt.xaxis.axis._text.font_size = TICKS_FONT_SIZE
 
-        h0, h1 = histogram(x, bins=hist)
-        bar_color = colormap.mapToQColor(LOBE_COLORS[lobe])
-        bars = BarGraphItem(x0=h1[:-1], y0=y0, height=h0,
-                            width=width, pen=NoPen, brush=QBrush(bar_color))
+    def ytick_frac():
+        tick_labels = [str(x) for x in range(0, int(max_height) + Y_MAJOR_TICK, Y_MAJOR_TICK)]
+        major_tick_fractions = linspace(0, 1, len(tick_labels))
+        minor_tick_fractions = linspace(0, 1,  int(max_height) / Y_MINOR_TICK + 1)
 
-        p.addItem(bars)
-        y0 += h0
+        return major_tick_fractions, minor_tick_fractions, tick_labels
+
+    plt.yaxis.axis.ticker._get_tick_frac_labels = ytick_frac
+    plt.yaxis.axis._text.font_size = TICKS_FONT_SIZE
 
     return v
-
-
-def _find_region_for_spindle_group(gr, chan):
-    spindle_regions = []
-
-    for one_chan in gr:
-        sp_region = chan(lambda x: x.label == one_chan).return_attr('region')[0]
-        if not sp_region.startswith('ctx-'):
-            continue
-
-        sp_region = sp_region[len('ctx-Xh-'):]
-        spindle_regions.append(sp_region)
-
-    if not spindle_regions:
-        return 'Unspecified'
-    else:
-        c = Counter(spindle_regions)
-        return c.most_common(1)[0][0]
-
-
-def _find_lobe_from_region(region):
-    for lobe_name, regions_in_lobe in LOBES.items():
-        if region in regions_in_lobe:
-            return lobe_name
-    else:
-        return 'unknown'
