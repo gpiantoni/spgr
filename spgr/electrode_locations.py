@@ -5,6 +5,7 @@ from phypno.viz import Viz3
 from .constants import (CHAN_COLOR,
                         CHAN_TYPE,
                         DATA_OPTIONS,
+                        DPI,
                         FS_FOLDER,
                         HEMI_SUBJ,
                         REC_PATH,
@@ -15,6 +16,8 @@ from .plot_spindles import plot_surf
 from .read_data import get_chan_used_in_analysis
 
 from .log import with_log
+
+SINGLE_SUBJ_SURF = 20, 15
 
 
 @with_log
@@ -27,7 +30,7 @@ def Electrode_Locations(lg, images_dir):
         fs = Freesurfer(str(REC_PATH.joinpath(subj).joinpath(FS_FOLDER)))
         surf = getattr(fs.read_brain(), hemi)
 
-        v = Viz3(color='kw', show=False)
+        v = Viz3(show=False, dpi=DPI, size_mm=SINGLE_SUBJ_SURF)
         v.add_chan(chan, color=CHAN_COLOR)
         v.add_surf(surf, color=SKIN_COLOR)
 
@@ -53,7 +56,7 @@ def Electrode_Locations(lg, images_dir):
     lg.info('![{}]({})'.format('coverage', png_file))
 
     lg.info('## Average surface')
-    v = Viz3()
+    v = Viz3(size_mm=SURF_PLOT_SIZE, dpi=DPI)
     v.add_surf(surf_avg, color=(1, 1, 1))
     png_file = str(images_dir.joinpath('fs_avg.png'))
     v.save(png_file)

@@ -16,7 +16,7 @@ surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)
 label_avg = fs.read_label(DEFAULT_HEMI)
 
 
-def plot_surf(all_values, threshold=(None, None), limits=None,
+def plot_surf(all_values, size_mm, threshold=(None, None), limits=None,
               extra_smoothing=True):
     """Plot values onto the surface.
 
@@ -50,7 +50,7 @@ def plot_surf(all_values, threshold=(None, None), limits=None,
             if not any(isnan(values[one_tri])):
                 values[one_tri] = mean(values[one_tri])
 
-    v = Viz3(dpi=DPI, show=False)
+    v = Viz3(dpi=DPI, show=False, size_mm=size_mm)
     v.add_surf(surf_avg, values=values, limits_c=limits, color=NAN_COLOR)
     v._canvas.view.camera.elevation = ELEVATION
     v._canvas.view.camera.azimuth = AZIMUTH

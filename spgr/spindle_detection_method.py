@@ -11,6 +11,8 @@ from .constants import (CHAN_TYPE,
                         DPI,
                         SPINDLE_OPTIONS,
                         RAW_LIMITS_Y,
+                        LABEL_FONT_SIZE,
+                        TICKS_FONT_SIZE,
                         )
 from .detect_spindles import get_spindles
 from .read_data import get_data
@@ -93,13 +95,13 @@ def _make_cooccur_plot(sel_data, sp):
         plt.view.camera.set_range(x=(44851.5, 44878.5), y=(-200, 200))
         plt.xaxis.axis.major_tick_length = 10
         plt.xaxis.axis.minor_tick_length = 0
-        plt.xaxis.axis._text.font_size = 14
+        plt.xaxis.axis._text.font_size = TICKS_FONT_SIZE
 
-        plt.yaxis.axis._text.font_size = 14
+        plt.yaxis.axis._text.font_size = TICKS_FONT_SIZE
         plt.ylabel.text = 'amplitude (μV)'
-        plt.ylabel._text_visual.font_size = 24
+        plt.ylabel._text_visual.font_size = LABEL_FONT_SIZE
 
     plt.xlabel.text = 'time (s)'
-    plt.xlabel._text_visual.font_size = 24
+    plt.xlabel._text_visual.font_size = LABEL_FONT_SIZE
 
     return v
