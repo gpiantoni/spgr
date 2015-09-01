@@ -10,6 +10,7 @@ from .constants import (CHAN_COLOR,
                         HEMI_SUBJ,
                         REC_PATH,
                         SKIN_COLOR,
+                        SURF_PLOT_SIZE,
                         surf_avg)
 from .spindle_source import get_morph_linear
 from .plot_spindles import plot_surf
@@ -18,6 +19,7 @@ from .read_data import get_chan_used_in_analysis
 from .log import with_log
 
 SINGLE_SUBJ_SURF = 20, 15
+AVERAGE_BW_SURF = 90, 70
 
 
 @with_log
@@ -49,14 +51,15 @@ def Electrode_Locations(lg, images_dir):
 
         morphed.append(get_morph_linear(subj, values, reref='avg'))
 
-    v = plot_surf(morphed, limits=(0, 1), extra_smoothing=False)
+    v = plot_surf(morphed, limits=(0, 1), extra_smoothing=False,
+                  size_mm=SURF_PLOT_SIZE)
 
     png_file = str(images_dir.joinpath('coverage_average.png'))
     v.save(png_file)
     lg.info('![{}]({})'.format('coverage', png_file))
 
     lg.info('## Average surface')
-    v = Viz3(size_mm=SURF_PLOT_SIZE, dpi=DPI)
+    v = Viz3(size_mm=AVERAGE_BW_SURF, dpi=DPI)
     v.add_surf(surf_avg, color=(1, 1, 1))
     png_file = str(images_dir.joinpath('fs_avg.png'))
     v.save(png_file)

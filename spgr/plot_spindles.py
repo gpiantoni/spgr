@@ -52,8 +52,8 @@ def plot_surf(all_values, size_mm, threshold=(None, None), limits=None,
 
     v = Viz3(dpi=DPI, show=False, size_mm=size_mm)
     v.add_surf(surf_avg, values=values, limits_c=limits, color=NAN_COLOR)
-    v._canvas.view.camera.elevation = ELEVATION
-    v._canvas.view.camera.azimuth = AZIMUTH
+    v._plt.view.camera.elevation = ELEVATION
+    v._plt.view.camera.azimuth = AZIMUTH
     return v
 
 
