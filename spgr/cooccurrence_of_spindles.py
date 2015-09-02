@@ -4,6 +4,12 @@ from vispy.io import write_png
 from vispy.plot import Fig
 from vispy.scene import Text, LinePlot
 
+from copy import deepcopy
+from numpy import array, mean, std
+from numpy.random import uniform, seed
+from multiprocessing import Pool
+
+
 from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
                         HEMI_SUBJ,
@@ -53,7 +59,8 @@ def Cooccurrence_of_Spindles(lg, images_dir):
     lg.info('## Cooccurrence_of_Spindles')
 
     for REREF in ('avg', 15):
-        for NORMALIZATION in ('cooccur05', 'cooccur10', 'cooccur20'): #'exclusive'):
+        for NORMALIZATION in ('cooccur05', 'cooccur10', 'cooccur20',
+                              'exclusive'):
 
             lg.info('### reref {}, normalization {}'.format(REREF,
                                                             NORMALIZATION))
@@ -94,8 +101,8 @@ def Cooccurrence_of_Spindles(lg, images_dir):
                 threshold = 0.01, 1
                 limits = 0, .7
             elif NORMALIZATION == 'exclusive':
-                threshold = 0.01, None
-                limits = 0, .15
+                threshold = -9, 9
+                limits = -3, 3
 
             v = plot_surf(all_values, threshold=threshold, limits=limits,
                           size_mm=SURF_PLOT_SIZE)
@@ -106,7 +113,7 @@ def Cooccurrence_of_Spindles(lg, images_dir):
             lg.info('![{}]({})'.format('{} {}'.format(NORMALIZATION, REREF),
                     png_file))
 
-            if NORMALIZATION == 'exclusive':
+            if NORMALIZATION == 'exclusive' and False:
                 dens_coef, _ = lmer(df_dens, lg)
                 fig = _cooccur_v_density(dens_coef, cooccur_coef, lg)
                 img = fig.render()
@@ -115,6 +122,33 @@ def Cooccurrence_of_Spindles(lg, images_dir):
                 png_file = str(images_dir.joinpath(png_name))
                 write_png(png_file, img)
                 lg.info('![cooccur_v_density]({})'.format(png_file))
+
+
+def shuffle_ratio(chan, spindles):
+    spindle_group = create_spindle_groups(spindles)
+    ref_chan_prob = ratio_spindles_with_chan(chan, spindle_group)
+
+    start_min = min(x['start_time'] for x in spindles.spindle)
+    start_max = max(x['start_time'] for x in spindles.spindle)
+
+    def make_fake_chan_prob(i):
+        seed(i)
+        fake_spindles = deepcopy(spindles)
+        for fake_sp in fake_spindles.spindle:
+            dur = fake_sp['end_time'] - fake_sp['start_time']
+            fake_sp['start_time'] = uniform(start_min, start_max)
+            fake_sp['end_time'] = fake_sp['start_time'] + dur
+
+        fake_spindle_group = create_spindle_groups(fake_sp)
+        fake_chan_prob = ratio_spindles_with_chan(chan, fake_spindle_group)
+        return fake_chan_prob
+
+    N_RPT = 2000
+    with Pool() as p:
+        v = list(p.map(make_fake_chan_prob, range(N_RPT)))
+
+    b = array(v)
+    return (ref_chan_prob - mean(b, axis=0)) / std(b, axis=0)
 
 
 def _cooccur_v_density(dens_coef, cooccur_coef, lg):
