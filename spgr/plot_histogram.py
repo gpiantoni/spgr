@@ -61,4 +61,6 @@ def make_hist_overlap(subj, reref='avg', width=2, nchan=60):
     plt.yaxis.axis.ticker._get_tick_frac_labels = ytick_frac
     plt.yaxis.axis._text.font_size = TICKS_FONT_SIZE
 
+    plt.margin = 8  # otherwise xtick label overlaps with border
+
     return v

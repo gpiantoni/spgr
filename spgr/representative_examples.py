@@ -2,9 +2,11 @@ from numpy import log, mean, where
 from phypno.trans import Filter, Select
 from phypno.viz import Viz1
 from scipy.signal import periodogram
+from vispy.scene import LinePlot, Rectangle
 
 from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
+                        DPI,
                         HEMI_SUBJ,
                         HIGHLIGHT_COLOR,
                         HIGHLIGHT_HEIGHT,
@@ -51,13 +53,7 @@ def Representative_Examples(lg, images_dir):
         for region, spindle in best_spindles.items():
 
             spindle_data = find_spindle_data(data, spindle)
-
-            v = Viz1(dpi=300, size_mm=PLOT_SIZE)
-            v.add_data(spindle_data, limits_y=RAW_LIMITS_Y)
-            v.add_graphoelement([spindle, ], color=HIGHLIGHT_COLOR,
-                                height=HIGHLIGHT_HEIGHT)
-            v._fig[0, 0].xaxis.visible = False
-            v._fig[0, 0].yaxis.visible = False
+            v = _plot_highlighted_spindle(spindle_data, spindle)
 
             png_file = str(images_dir.joinpath('{}_{}.png'.format(region,
                                                                   subj)))
@@ -71,6 +67,52 @@ def Representative_Examples(lg, images_dir):
         lg.info('y: {}, z: {}'.format(y, z))
         for png_file in png_files:
             lg.info('![]({})'.format(png_file))
+
+
+def _plot_highlighted_spindle(spindle_data, spindle):
+    """Plot signal and spindles. Don't use viz1.add_data because it creates
+    axes by default and I don't know how to remove them. Instead we create a
+    simple figure.
+
+    Parameters
+    ----------
+    spindle_data : instance of ChanTime
+        data around the detected spindle
+    spindle : dict
+        detected spindle
+
+    Returns
+    -------
+    instance of Viz
+        the actual figure, so that you can save it to disk.
+    """
+    t = spindle_data.axis['time'][0]
+    x = spindle_data.data[0][0]
+
+    v = Viz1(dpi=DPI, size_mm=PLOT_SIZE)
+
+    # set defaults
+    plt = v._fig[0, 0]
+    plt.view.camera = 'panzoom'
+    plt.grid.margin = 0
+    plt.title.stretch = (1, 0)
+
+    # signal
+    line = LinePlot((t, x), connect='strip', color='k', line_kind='-',
+                    width=1.)
+    plt.view.add(line)
+    plt.view.camera.set_range(x=(t[0], t[-1]), y=(RAW_LIMITS_Y))
+
+    # highlight detected spindle
+    time_center = (spindle['end_time'] + spindle['start_time']) / 2
+    width = spindle['end_time'] - time_center
+
+    rect = Rectangle(center=(time_center, 0), width=width,
+                     color=HIGHLIGHT_COLOR, height=HIGHLIGHT_HEIGHT)
+    rect.order = -1
+    plt.view.add(rect)
+
+    return v
 
 
 def find_best_spindles(subj, data):

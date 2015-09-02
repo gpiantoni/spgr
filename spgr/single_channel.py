@@ -2,6 +2,7 @@ from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
                         HEMI_SUBJ,
                         SPINDLE_OPTIONS,
+                        SURF_PLOT_SIZE,
                         )
 from .detect_spindles import get_spindles
 from .lmer_stats import add_to_dataframe, lmer
@@ -81,7 +82,8 @@ def plot_average_values(REREF, lg, images_dir):
             add_to_dataframe(dataframe, subj, values, chan)
 
         lmer(dataframe, lg)
-        v = plot_surf(morphed, threshold=threshold, limits=limits)
+        v = plot_surf(morphed, threshold=threshold, limits=limits,
+                      size_mm=SURF_PLOT_SIZE)
         png_file = str(images_dir.joinpath('{}_{}.png'.format(param, REREF)))
         v.save(png_file)
         lg.info('![{}]({})'.format('{} {}'.format(REREF, param), png_file))
