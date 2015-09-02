@@ -1,4 +1,5 @@
 from logging import getLogger
+from pickle import load, dump
 
 from phypno import Data
 from phypno.attr import Freesurfer
@@ -11,6 +12,7 @@ from .constants import (REC_PATH,
                         HEMI_SUBJ,
                         CHAN_TYPE,
                         DATA_OPTIONS,
+                        GROUP_PATH,
                         SMOOTHING_STD,
                         SMOOTHING_THRESHOLD,
                         PARAMETERS,
@@ -20,11 +22,9 @@ from .read_data import get_chan_used_in_analysis
 
 lg = getLogger(__name__)
 
-SMOOTHING = {'std': None,
-             'threshold': None
-             }
-LINEAR = dict.fromkeys(list(HEMI_SUBJ))
-REGIONS = dict.fromkeys(list(HEMI_SUBJ))
+STORED_PATH = GROUP_PATH.joinpath('saved_regions')
+if not STORED_PATH.exists():
+    STORED_PATH.mkdir()
 
 
 def get_morph_linear(subj, values, reref):
@@ -51,20 +51,18 @@ def _reflect_to_avg(subj, data, chan):
     brain = fs.read_brain()
     surf = getattr(brain, DEFAULT_HEMI)
 
-    same_smoothing = (SMOOTHING['std'] == SMOOTHING_STD and
-                      SMOOTHING['threshold'] == SMOOTHING_THRESHOLD)
-    # check if 1. was precomputed, 2. same n of channels, 3. same parameters
-    if LINEAR[subj] and len(LINEAR[subj].chan) == chan.n_chan and same_smoothing:
-        l = LINEAR[subj]
-
+    linear_filename = ('linear_chan{:03d}_std{:03d}_thr{:03d}_{}.pkl'
+                       ''.format(chan.n_chan, SMOOTHING_STD,
+                                 SMOOTHING_THRESHOLD, subj))
+    linear_file = STORED_PATH.joinpath(linear_filename)
+    if linear_file.exists():
+        with open(linear_file, 'rb') as f:
+            l = load(f)
     else:
         l = Linear(surf, chan, std=SMOOTHING_STD,
                    threshold=SMOOTHING_THRESHOLD)
-
-        # we assign to the values of SMOOTHING, not to SMOOTHING
-        SMOOTHING['std'] = SMOOTHING_STD
-        SMOOTHING['threshold'] = SMOOTHING_THRESHOLD
-        LINEAR[subj] = l
+        with open(linear_file, 'wb') as f:
+            dump(l, f)
 
     m = Morph(surf)
     morphed_data = m(l(data))
@@ -77,14 +75,19 @@ def get_chan_with_regions(subj, reref):
     orig_chan = get_chan_used_in_analysis(subj, 'sleep', CHAN_TYPE,
                                           reref=reref, **DATA_OPTIONS)
 
-    if REGIONS[subj] and REGIONS[subj].n_chan == orig_chan.n_chan:
-        chan = REGIONS[subj]
+    region_filename = ('region_chan{:03d}_{}.pkl'
+                       ''.format(orig_chan.n_chan, subj))
+    region_file = STORED_PATH.joinpath(region_filename)
+    if region_file.exists():
+        with open(region_file, 'rb') as f:
+            chan = load(f)
     else:
         fs = Freesurfer(str(REC_PATH.joinpath(subj).joinpath(FS_FOLDER)))
         chan = assign_region_to_channels(orig_chan, fs,
                                          parc_type=PARAMETERS['PARC_TYPE'],
                                          exclude_regions=('Unknown', ))
-        REGIONS[subj] = chan
+        with open(region_file, 'wb') as f:
+            dump(chan, f)
 
     return chan
 
