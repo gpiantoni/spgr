@@ -52,8 +52,7 @@ def Cooccurrence_of_Spindles(lg, images_dir):
     lg.info('## Cooccurrence_of_Spindles')
 
     for REREF in ('avg', 15):
-        for NORMALIZATION in ('cooccur01', 'cooccur05', 'cooccur10',
-                              'exclusive'):
+        for NORMALIZATION in ('cooccur05', 'cooccur10', 'cooccur20'): #'exclusive'):
 
             lg.info('### reref {}, normalization {}'.format(REREF,
                                                             NORMALIZATION))
@@ -74,6 +73,8 @@ def Cooccurrence_of_Spindles(lg, images_dir):
                 if NORMALIZATION.startswith('cooccur'):
                     chan_prob = cooccur_likelihood(chan, spindle_group,
                                                    NORMALIZATION[-2:])
+                    chan_prob_1 = cooccur_likelihood(chan, spindle_group, '01')
+                    chan_prob = chan_prob / chan_prob_1
 
                 elif NORMALIZATION == 'exclusive':
                     chan_prob = ratio_spindles_with_chan(chan, spindle_group)
