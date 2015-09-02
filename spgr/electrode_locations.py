@@ -11,15 +11,14 @@ from .constants import (CHAN_COLOR,
                         REC_PATH,
                         SKIN_COLOR,
                         SURF_PLOT_SIZE,
+                        SINGLE_SUBJ_SURF,
+                        AVERAGE_BW_SURF,
                         surf_avg)
 from .spindle_source import get_morph_linear
 from .plot_spindles import plot_surf
 from .read_data import get_chan_used_in_analysis
 
 from .log import with_log
-
-SINGLE_SUBJ_SURF = 20, 15
-AVERAGE_BW_SURF = 90, 70
 
 
 @with_log
@@ -35,6 +34,7 @@ def Electrode_Locations(lg, images_dir):
         v = Viz3(show=False, dpi=DPI, size_mm=SINGLE_SUBJ_SURF)
         v.add_chan(chan, color=CHAN_COLOR)
         v.add_surf(surf, color=SKIN_COLOR)
+        v._plt.camera.scale_factor = 150
 
         png_file = str(images_dir.joinpath(subj + '.png'))
         v.save(png_file)

@@ -56,12 +56,12 @@ def _reflect_to_avg(subj, data, chan):
                                  SMOOTHING_THRESHOLD, subj))
     linear_file = STORED_PATH.joinpath(linear_filename)
     if linear_file.exists():
-        with open(linear_file, 'rb') as f:
+        with open(str(linear_file), 'rb') as f:
             l = load(f)
     else:
         l = Linear(surf, chan, std=SMOOTHING_STD,
                    threshold=SMOOTHING_THRESHOLD)
-        with open(linear_file, 'wb') as f:
+        with open(str(linear_file), 'wb') as f:
             dump(l, f)
 
     m = Morph(surf)
@@ -79,14 +79,14 @@ def get_chan_with_regions(subj, reref):
                        ''.format(orig_chan.n_chan, subj))
     region_file = STORED_PATH.joinpath(region_filename)
     if region_file.exists():
-        with open(region_file, 'rb') as f:
+        with open(str(region_file), 'rb') as f:
             chan = load(f)
     else:
         fs = Freesurfer(str(REC_PATH.joinpath(subj).joinpath(FS_FOLDER)))
         chan = assign_region_to_channels(orig_chan, fs,
                                          parc_type=PARAMETERS['PARC_TYPE'],
                                          exclude_regions=('Unknown', ))
-        with open(region_file, 'wb') as f:
+        with open(str(region_file), 'wb') as f:
             dump(chan, f)
 
     return chan
