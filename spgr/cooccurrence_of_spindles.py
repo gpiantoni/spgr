@@ -9,6 +9,7 @@ from .constants import (CHAN_TYPE,
                         HEMI_SUBJ,
                         HISTOGRAM_WIDTH,
                         SPINDLE_OPTIONS,
+                        SURF_PLOT_SIZE
                         )
 from .detect_spindles import get_spindles
 from .lmer_stats import add_to_dataframe, lmer
@@ -91,12 +92,13 @@ def Cooccurrence_of_Spindles(lg, images_dir):
 
             if NORMALIZATION.startswith('cooccur'):
                 threshold = 0.01, 1
-                limits = 0, 1
+                limits = 0, .7
             elif NORMALIZATION == 'exclusive':
                 threshold = 0.01, None
                 limits = 0, .15
 
-            v = plot_surf(all_values, threshold=threshold, limits=limits)
+            v = plot_surf(all_values, threshold=threshold, limits=limits,
+                          size_mm=SURF_PLOT_SIZE)
             png_name = 'cooccurrence_map_{}_{}.png'.format(NORMALIZATION,
                                                            REREF)
             png_file = str(images_dir.joinpath(png_name))
