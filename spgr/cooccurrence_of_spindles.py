@@ -8,7 +8,7 @@ from copy import deepcopy
 from numpy import array, mean, std
 from numpy.random import uniform, seed
 from multiprocessing import Pool
-
+from functools import partial
 
 from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
@@ -85,7 +85,7 @@ def Cooccurrence_of_Spindles(lg, images_dir):
                     chan_prob = chan_prob / chan_prob_1
 
                 elif NORMALIZATION == 'exclusive':
-                    chan_prob = ratio_spindles_with_chan(chan, spindle_group)
+                    chan_prob = shuffle_ratio(chan, spindles)
 
                     spindle_dens = get_spindle_param(subj, 'density', REREF)
                     add_to_dataframe(df_dens, subj, spindle_dens, chan)
@@ -124,6 +124,19 @@ def Cooccurrence_of_Spindles(lg, images_dir):
                 lg.info('![cooccur_v_density]({})'.format(png_file))
 
 
+def _make_fake_chan_prob(i, start_min, start_max, chan, spindles):
+    seed(i)
+    fake_spindles = deepcopy(spindles)
+    for fake_sp in fake_spindles.spindle:
+        dur = fake_sp['end_time'] - fake_sp['start_time']
+        fake_sp['start_time'] = uniform(start_min, start_max)
+        fake_sp['end_time'] = fake_sp['start_time'] + dur
+
+    fake_spindle_group = create_spindle_groups(fake_spindles)
+    fake_chan_prob = ratio_spindles_with_chan(chan, fake_spindle_group)
+    return fake_chan_prob
+
+
 def shuffle_ratio(chan, spindles):
     spindle_group = create_spindle_groups(spindles)
     ref_chan_prob = ratio_spindles_with_chan(chan, spindle_group)
@@ -131,21 +144,12 @@ def shuffle_ratio(chan, spindles):
     start_min = min(x['start_time'] for x in spindles.spindle)
     start_max = max(x['start_time'] for x in spindles.spindle)
 
-    def make_fake_chan_prob(i):
-        seed(i)
-        fake_spindles = deepcopy(spindles)
-        for fake_sp in fake_spindles.spindle:
-            dur = fake_sp['end_time'] - fake_sp['start_time']
-            fake_sp['start_time'] = uniform(start_min, start_max)
-            fake_sp['end_time'] = fake_sp['start_time'] + dur
-
-        fake_spindle_group = create_spindle_groups(fake_sp)
-        fake_chan_prob = ratio_spindles_with_chan(chan, fake_spindle_group)
-        return fake_chan_prob
-
+    _make_fake_partial = partial(_make_fake_chan_prob, start_min=start_min,
+                                 start_max=start_max, chan=chan,
+                                 spindles=spindles)
     N_RPT = 2000
     with Pool() as p:
-        v = list(p.map(make_fake_chan_prob, range(N_RPT)))
+        v = list(p.map(_make_fake_partial, range(N_RPT)))
 
     b = array(v)
     return (ref_chan_prob - mean(b, axis=0)) / std(b, axis=0)
