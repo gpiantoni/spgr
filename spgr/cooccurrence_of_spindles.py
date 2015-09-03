@@ -103,7 +103,7 @@ def Cooccurrence_of_Spindles(lg, images_dir):
                 limits = 0, .7
             elif NORMALIZATION == 'exclusive':
                 threshold = 0.01, None
-                limits = 0, .1
+                limits = 0, .15
 
             v = plot_surf(all_values, threshold=threshold, limits=limits,
                           size_mm=SURF_PLOT_SIZE)

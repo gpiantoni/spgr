@@ -101,6 +101,9 @@ def _make_cooccur_plot(sel_data, sp):
         plt.ylabel.text = 'amplitude (μV)'
         plt.ylabel._text_visual.font_size = LABEL_FONT_SIZE
 
+        plt.margin = 25  # otherwise xtick label overlaps with border
+        plt.view.border_color = 'w'
+
     plt.xlabel.text = 'time (s)'
     plt.xlabel._text_visual.font_size = LABEL_FONT_SIZE
 
