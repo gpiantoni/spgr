@@ -85,7 +85,8 @@ def Cooccurrence_of_Spindles(lg, images_dir):
                     chan_prob = chan_prob / chan_prob_1
 
                 elif NORMALIZATION == 'exclusive':
-                    chan_prob = shuffle_ratio(chan, spindles)
+                    # chan_prob = shuffle_ratio(chan, spindles)
+                    chan_prob = ratio_spindles_with_chan(chan, spindle_group)
 
                     spindle_dens = get_spindle_param(subj, 'density', REREF)
                     add_to_dataframe(df_dens, subj, spindle_dens, chan)
@@ -101,8 +102,8 @@ def Cooccurrence_of_Spindles(lg, images_dir):
                 threshold = 0.01, 1
                 limits = 0, .7
             elif NORMALIZATION == 'exclusive':
-                threshold = -9, 9
-                limits = -3, 3
+                threshold = 0.01, None
+                limits = 0, .1
 
             v = plot_surf(all_values, threshold=threshold, limits=limits,
                           size_mm=SURF_PLOT_SIZE)
