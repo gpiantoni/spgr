@@ -59,7 +59,7 @@ def Cooccurrence_of_Spindles(lg, images_dir):
     lg.info('## Cooccurrence_of_Spindles')
 
     for REREF in ('avg', 15):
-        for NORMALIZATION in ('cooccur05', 'cooccur10', 'cooccur20',
+        for NORMALIZATION in ('cooccur01', 'cooccur05', 'cooccur10',
                               'exclusive'):
 
             lg.info('### reref {}, normalization {}'.format(REREF,
