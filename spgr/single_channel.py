@@ -1,6 +1,8 @@
 from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
                         HEMI_SUBJ,
+                        SINGLE_CHAN_LIMITS,
+                        SINGLE_CHAN_THRESHOLD,
                         SPINDLE_OPTIONS,
                         SURF_PLOT_SIZE,
                         )
@@ -56,19 +58,8 @@ def get_spindle_param(subj, param, ref):
 def plot_average_values(REREF, lg, images_dir):
     for param in ('density', 'duration', 'peak_val', 'peak_freq'):
 
-        if param == 'density':
-            threshold = 0.01, None
-            limits = 0, 2
-        elif param == 'duration':
-            threshold = 0.5, 2
-            limits = 1, 1.5
-        elif param == 'peak_val':
-            threshold = 0.001, None
-            limits = 0, 70
-        elif param == 'peak_freq':
-            threshold = SPINDLE_OPTIONS['frequency']
-            limits = (SPINDLE_OPTIONS['frequency'][0] + 2,
-                      SPINDLE_OPTIONS['frequency'][1] - 2)
+        threshold = SINGLE_CHAN_THRESHOLD[param]
+        limits = SINGLE_CHAN_LIMITS[param]
 
         morphed = []
 
