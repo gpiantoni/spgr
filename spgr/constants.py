@@ -127,6 +127,22 @@ FS_AVG = join(environ['FREESURFER_HOME'], 'subjects', 'fsaverage')
 
 
 DPI = PARAMETERS['DPI']
+RAW_LIMITS_Y = (-100, 100)
+HISTOGRAM_WIDTH = 1
+
+SINGLE_CHAN_THRESHOLD = {'density': (0.01, None),
+                         'duration': (0.5, 2),
+                         'peak_val': (0.001, None),
+                         'peak_freq': SPINDLE_OPTIONS['frequency'],
+                         }
+
+SINGLE_CHAN_LIMITS = {'density': (0, 2),
+                      'duration': (0.5, 2),
+                      'peak_val': (0, 70),
+                      'peak_freq': (SPINDLE_OPTIONS['frequency'][0] + 2,
+                                    SPINDLE_OPTIONS['frequency'][1] - 3),
+                      }
+
 CHAN_COLOR = 0.8, 0.1, 0.1, 1.
 SKIN_COLOR = 0.93, 0.82, 0.81, 0.94
 NAN_COLOR = 0.4, 0.4, 0.4, 1.
@@ -141,9 +157,6 @@ LABEL_FONT_SIZE = 10
 
 ELEVATION = 15
 AZIMUTH = 90
-
-RAW_LIMITS_Y = (-100, 100)
-HISTOGRAM_WIDTH = 1
 
 fs = Freesurfer(FS_AVG)
 surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)
