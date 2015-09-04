@@ -75,8 +75,9 @@ def get_chan_with_regions(subj, reref):
     orig_chan = get_chan_used_in_analysis(subj, 'sleep', CHAN_TYPE,
                                           reref=reref, **DATA_OPTIONS)
 
-    region_filename = ('region_chan{:03d}_{}.pkl'
-                       ''.format(orig_chan.n_chan, subj))
+    region_filename = ('{}_chan{:03d}_{}.pkl'
+                       ''.format(PARAMETERS['PARC_TYPE'],
+                                 orig_chan.n_chan, subj))
     region_file = STORED_PATH.joinpath(region_filename)
     if region_file.exists():
         with open(str(region_file), 'rb') as f:
