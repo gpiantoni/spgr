@@ -147,5 +147,7 @@ HISTOGRAM_WIDTH = 1
 
 fs = Freesurfer(FS_AVG)
 surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)
+# avg_regions is being used only by representative_examples,
+# otherwise you need to change this
 avg_vert, avg_color, avg_regions = fs.read_label(DEFAULT_HEMI,
-                                                 parc_type=PARAMETERS['PARC_TYPE'])
+                                                 parc_type='aparc')
