@@ -131,7 +131,7 @@ def find_best_spindles(subj, data):
         dictionary, each brain region has the best spindle.
     """
     spindles = get_spindles(subj, reref=REREF, **SPINDLE_OPTIONS)
-    chan = get_chan_with_regions(subj, REREF)
+    chan = get_chan_with_regions(subj, REREF, 'aparc')
 
     best_spindles = {}
 

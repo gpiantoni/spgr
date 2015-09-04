@@ -70,13 +70,16 @@ def _reflect_to_avg(subj, data, chan):
     return morphed_data
 
 
-def get_chan_with_regions(subj, reref):
+def get_chan_with_regions(subj, reref, parc_type=None):
+
+    if parc_type is None:
+        parc_type = PARAMETERS['PARC_TYPE']
 
     orig_chan = get_chan_used_in_analysis(subj, 'sleep', CHAN_TYPE,
                                           reref=reref, **DATA_OPTIONS)
 
     region_filename = ('{}_chan{:03d}_{}.pkl'
-                       ''.format(PARAMETERS['PARC_TYPE'],
+                       ''.format(parc_type,
                                  orig_chan.n_chan, subj))
     region_file = STORED_PATH.joinpath(region_filename)
     if region_file.exists():
@@ -84,8 +87,7 @@ def get_chan_with_regions(subj, reref):
             chan = load(f)
     else:
         fs = Freesurfer(str(REC_PATH.joinpath(subj).joinpath(FS_FOLDER)))
-        chan = assign_region_to_channels(orig_chan, fs,
-                                         parc_type=PARAMETERS['PARC_TYPE'],
+        chan = assign_region_to_channels(orig_chan, fs, parc_type=parc_type,
                                          exclude_regions=('Unknown', ))
         with open(str(region_file), 'wb') as f:
             dump(chan, f)
