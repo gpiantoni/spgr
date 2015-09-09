@@ -113,6 +113,4 @@ def get_regions_with_elec(reref='avg'):
         all_regions.extend(chan.return_attr('region'))
 
     region_names = set(x[7:] for x in all_regions if x[:4] == 'ctx_')
-    lg.debug('Number of regions with at least one elec: {}'
-             ''.format(len(region_names)))
     return list(region_names)
