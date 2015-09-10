@@ -60,9 +60,9 @@ def _embed_png(matched):
 
 def git_hash(package):
     package_path = package.__path__[0] + '/../.git'
-    version = check_output('git --git-dir ' + package_path +
-                           ' rev-parse HEAD', shell=True).decode('utf-8')
-    return version
+    log_msg = check_output('git --git-dir ' + package_path +
+                           ' log --oneline -1', shell=True).decode('utf-8')
+    return log_msg.strip()
 
 
 def git_branch(package):
