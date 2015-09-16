@@ -96,6 +96,10 @@ def _determine_spindle_group(spindles):
     -------
     vector
         vector with indices that divide the single-spindles in groups.
+
+    Notes
+    -----
+    TODO: It excludes the first group.
     """
     overlap = estimate_overlap(spindles)
     overlap_sum = sum(overlap, axis=1)
