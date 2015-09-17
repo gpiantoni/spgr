@@ -35,8 +35,8 @@ def make_hist_overlap(subj, reref='avg', width=2, nchan=60):
 
     v = Viz1(dpi=DPI, size_mm=FIG_SIZE)
     plt = v._fig[0, 0]
-    plt._configure_2d()
-
+    plt.plot((arange(1, nchan, width), hist))
+    """
     for left_edge, col in zip(bin_edges[:-1], hist):
         if col > 0:  # vispy doesn't like it when hist has height = 0
             rect = Rectangle(center=(left_edge + width / 2, col / 2),
@@ -48,7 +48,7 @@ def make_hist_overlap(subj, reref='avg', width=2, nchan=60):
     max_height = ceil(max(hist) / Y_MAJOR_TICK) * Y_MAJOR_TICK
     plt.view.camera.set_state(rect=Rect(pos=(-0.1, -1),
                                         size=(nchan, max_height)))
-    """
+
     def xtick_frac():
         tick_labels = [str(x) for x in arange(0, nchan + X_MAJOR_TICK, X_MAJOR_TICK)]
         major_tick_fractions = linspace(0, 1, len(tick_labels))
@@ -68,8 +68,8 @@ def make_hist_overlap(subj, reref='avg', width=2, nchan=60):
 
     plt.yaxis.axis.ticker._get_tick_frac_labels = ytick_frac
     plt.yaxis.axis._text.font_size = TICKS_FONT_SIZE
-    """
+
     plt.margin = 25  # otherwise xtick label overlaps with border
     plt.view.border_color = 'w'
-
+    """
     return v
