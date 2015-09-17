@@ -107,7 +107,7 @@ def Cooccurrence_of_Spindles(lg, images_dir):
         cooccur_coef, _ = lmer(dataframe, lg)
 
         threshold = 0.01, None
-        limits = 0, .15
+        limits = 3, 6
 
         v = plot_surf(all_values, threshold=threshold, limits=limits,
                       size_mm=SURF_PLOT_SIZE)
