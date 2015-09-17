@@ -21,7 +21,7 @@ from .detect_spindles import get_spindles
 from .lmer_stats import add_to_dataframe, lmer
 from .plot_spindles import plot_surf
 from .plot_histogram import make_hist_overlap
-from .read_data import get_chan_used_in_analysis
+from .read_data import get_chan_used_in_analysis, get_data
 from .single_channel import get_spindle_param
 from .spindle_source import (get_chan_with_regions,
                              get_morph_linear,
@@ -53,76 +53,69 @@ def Cooccurrence_Histogram(lg, images_dir):
             lg.info('![{}]({})'.format('{} {}'.format(REREF, subj), png_file))
 
 
+from numpy import zeros, mean, median
+from numpy import concatenate
+
+def count_sp_at_any_time(sp, t_range):
+    t_in = zeros(t_range.shape, dtype=int)
+    for one_sp in sp.spindle:
+        t_in += ((t_range >= one_sp['start_time']) & (t_range < one_sp['end_time'])).astype(int)
+
+    return t_in
+
+
 @with_log
 def Cooccurrence_of_Spindles(lg, images_dir):
 
     lg.info('## Cooccurrence_of_Spindles')
 
-    for REREF in ('avg', 15):
-        for NORMALIZATION in ('cooccur01', 'cooccur05', 'cooccur10',
-                              'exclusive'):
+    for REREF in ('avg', 15)[:1]:
 
-            lg.info('### reref {}, normalization {}'.format(REREF,
-                                                            NORMALIZATION))
+        lg.info('### reref {}'.format(REREF))
 
-            all_values = []
-            dataframe = {'subj': [], 'region': [], 'elec': [], 'value': []}
-            df_dens = {'subj': [], 'region': [], 'elec': [], 'value': []}
+        all_values = []
+        dataframe = {'subj': [], 'region': [], 'elec': [], 'value': []}
 
-            for subj in HEMI_SUBJ:
-                spindles = get_spindles(subj, reref=REREF, **SPINDLE_OPTIONS)
-                spindle_group = create_spindle_groups(spindles)
+        for subj in HEMI_SUBJ:
+            spindles = get_spindles(subj, reref=REREF, **SPINDLE_OPTIONS)
 
-                chan = get_chan_used_in_analysis(subj, 'sleep',
-                                                 chan_type=CHAN_TYPE,
-                                                 reref=REREF, **DATA_OPTIONS)
-                chan = get_chan_with_regions(subj, REREF)
+            chan = get_chan_used_in_analysis(subj, 'sleep', chan_type=CHAN_TYPE, reref=REREF, **DATA_OPTIONS)
+            chan = get_chan_with_regions(subj, REREF)
 
-                if NORMALIZATION.startswith('cooccur'):
-                    chan_prob = cooccur_likelihood(chan, spindle_group,
-                                                   NORMALIZATION[-2:])
-                    chan_prob_1 = cooccur_likelihood(chan, spindle_group, '01')
-                    chan_prob = chan_prob / chan_prob_1
+            data = get_data(subj, period_name='sleep', chan_type=CHAN_TYPE, reref=REREF, **DATA_OPTIONS)
+            t_range = concatenate(data.axis['time'][:])
 
-                elif NORMALIZATION == 'exclusive':
-                    # chan_prob = shuffle_ratio(chan, spindles)
-                    chan_prob = ratio_spindles_with_chan(chan, spindle_group)
+            p = count_sp_at_any_time(spindles, t_range)
+            t_range_with_sp = t_range[p >= 1]
+            p_with_sp = p[p >= 1]
+            chan_prob = zeros(chan.n_chan)
+            chan = get_chan_with_regions(subj, REREF)
 
-                    spindle_dens = get_spindle_param(subj, 'density', REREF)
-                    add_to_dataframe(df_dens, subj, spindle_dens, chan)
+            for i, one_chan in enumerate(chan.chan):
+                t_at_sp = zeros(t_range_with_sp.shape, dtype=bool)
+                for one_sp in spindles.spindle:
+                    if one_sp['chan'] == one_chan.label:
+                        t_at_sp = t_at_sp | ((t_range_with_sp >= one_sp['start_time']) & (t_range_with_sp < one_sp['end_time']))
 
-                morphed = get_morph_linear(subj, chan_prob, reref=REREF)
-                all_values.append(morphed)
+                chan_prob[i] = mean(p_with_sp[t_at_sp]) # / mean(p_with_sp[~t_at_sp])
 
-                add_to_dataframe(dataframe, subj, chan_prob, chan)
+            morphed = get_morph_linear(subj, chan_prob, reref=REREF)
+            all_values.append(morphed)
 
-            cooccur_coef, _ = lmer(dataframe, lg)
+            add_to_dataframe(dataframe, subj, chan_prob, chan)
 
-            if NORMALIZATION.startswith('cooccur'):
-                threshold = 0.01, 1
-                limits = 0, .7
-            elif NORMALIZATION == 'exclusive':
-                threshold = 0.01, None
-                limits = 0, .15
+        cooccur_coef, _ = lmer(dataframe, lg)
 
-            v = plot_surf(all_values, threshold=threshold, limits=limits,
-                          size_mm=SURF_PLOT_SIZE)
-            png_name = 'cooccurrence_map_{}_{}.png'.format(NORMALIZATION,
-                                                           REREF)
-            png_file = str(images_dir.joinpath(png_name))
-            v.save(png_file)
-            lg.info('![{}]({})'.format('{} {}'.format(NORMALIZATION, REREF),
-                    png_file))
+        threshold = 0.01, None
+        limits = 0, .15
 
-            if NORMALIZATION == 'exclusive' and False:
-                dens_coef, _ = lmer(df_dens, lg)
-                fig = _cooccur_v_density(dens_coef, cooccur_coef, lg)
-                img = fig.render()
-
-                png_name = 'density_v_cooccurrence_{}.png'.format(REREF)
-                png_file = str(images_dir.joinpath(png_name))
-                write_png(png_file, img)
-                lg.info('![cooccur_v_density]({})'.format(png_file))
+        v = plot_surf(all_values, threshold=threshold, limits=limits,
+                      size_mm=SURF_PLOT_SIZE)
+        png_name = 'cooccurrence_map_{}.png'.format(REREF)
+        png_file = str(images_dir.joinpath(png_name))
+        v.save(png_file)
+        lg.info('![{}]({})'.format('{}'.format(REREF),
+                png_file))
 
 
 def _make_fake_chan_prob(i, start_min, start_max, chan, spindles):
