@@ -22,13 +22,13 @@ from .lmer_stats import add_to_dataframe, lmer
 from .plot_spindles import plot_surf
 from .plot_histogram import make_hist_overlap
 from .read_data import get_chan_used_in_analysis, get_data
-from .single_channel import get_spindle_param
 from .spindle_source import (get_chan_with_regions,
                              get_morph_linear,
                              )
 from .stats_on_spindles import (cooccur_likelihood,
                                 create_spindle_groups,
                                 ratio_spindles_with_chan,
+                                count_sp_at_any_time,
                                 )
 
 from .log import with_log
@@ -40,7 +40,7 @@ def Cooccurrence_Histogram(lg, images_dir):
     lg.info('## Histogram of Co-occurrence of Spindles')
 
     for REREF in ('avg', 15):
-        for subj in HEMI_SUBJ:
+        for subj in list(HEMI_SUBJ)[:1]:
             if REREF == 'avg':
                 nchan = 30
             else:
@@ -51,17 +51,6 @@ def Cooccurrence_Histogram(lg, images_dir):
                                                subj)))
             v.save(png_file)
             lg.info('![{}]({})'.format('{} {}'.format(REREF, subj), png_file))
-
-
-from numpy import zeros, mean, median
-from numpy import concatenate
-
-def count_sp_at_any_time(sp, t_range):
-    t_in = zeros(t_range.shape, dtype=int)
-    for one_sp in sp.spindle:
-        t_in += ((t_range >= one_sp['start_time']) & (t_range < one_sp['end_time'])).astype(int)
-
-    return t_in
 
 
 @with_log

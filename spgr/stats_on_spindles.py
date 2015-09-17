@@ -16,6 +16,15 @@ from numpy import (argsort,
 lg = getLogger('spgr')
 
 
+def count_sp_at_any_time(sp, t_range):
+    t_in = zeros(t_range.shape, dtype=int)
+    for one_sp in sp.spindle:
+        t_in += ((t_range >= one_sp['start_time']) & (t_range < one_sp['end_time'])).astype(int)
+
+    return t_in
+
+
+
 def estimate_overlap(spindles):
     """Calculate overlap between single-channel spindles.
 
