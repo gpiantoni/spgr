@@ -39,8 +39,8 @@ def Cooccurrence_Histogram(lg, images_dir):
 
     lg.info('## Histogram of Co-occurrence of Spindles')
 
-    for REREF in ('avg', 15):
-        for subj in list(HEMI_SUBJ)[:1]:
+    for REREF in ('avg', 15)[:1]:
+        for subj in HEMI_SUBJ:
             if REREF == 'avg':
                 nchan = 30
             else:
@@ -58,7 +58,7 @@ def Cooccurrence_of_Spindles(lg, images_dir):
 
     lg.info('## Cooccurrence_of_Spindles')
 
-    for REREF in ('avg', 15)[:1]:
+    for REREF in ('avg', 15):
 
         lg.info('### reref {}'.format(REREF))
 
