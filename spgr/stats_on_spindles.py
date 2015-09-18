@@ -2,6 +2,7 @@ from logging import getLogger
 
 from numpy import (concatenate,
                    mean,
+                   median,
                    zeros)
 
 from .constants import (CHAN_TYPE,
@@ -38,11 +39,12 @@ def count_sp_at_any_time(sp, t_range):
     return t_in
 
 
-def count_cooccur_per_chan(subj, reref):
+def count_cooccur_per_chan(subj, reref, summarize='mean'):
     """At any given time point, for each channel count how many other channels
     have a spindle. This creates a distribution (x-axis: number of spindles,
     y-axis: number of channels with the number of spindles) where each point is
-    a time point. Then you can summarize the distribution by taking the mean.
+    a time point. Then you can summarize the distribution by taking the mean
+    or the median.
 
     Parameters
     ----------
@@ -57,7 +59,7 @@ def count_cooccur_per_chan(subj, reref):
         of n_chan length, where each value represents the mean of the
         distribution of spindles that cooccur.
     """
-    spindles = get_spindles(subj, reref, **SPINDLE_OPTIONS)
+    spindles = get_spindles(subj, reref=reref, **SPINDLE_OPTIONS)
 
     data = get_data(subj, period_name='sleep', chan_type=CHAN_TYPE,
                     reref=reref, **DATA_OPTIONS)
@@ -72,11 +74,15 @@ def count_cooccur_per_chan(subj, reref):
     for i, one_chan in enumerate(chan_list):
         t_at_sp = zeros(t_range_with_sp.shape, dtype=bool)
         for one_sp in spindles.spindle:
-            if one_sp['chan'] == chan_list:
+            if one_sp['chan'] == one_chan:
                 t_at_sp = (t_at_sp |
                            ((t_range_with_sp >= one_sp['start_time']) &
                             (t_range_with_sp < one_sp['end_time'])))
 
-        chan_prob[i] = mean(p_with_sp[t_at_sp])
+        if summarize == 'mean':
+            chan_prob[i] = mean(p_with_sp[t_at_sp])
+
+        elif summarize == 'median':
+            chan_prob[i] = median(p_with_sp[t_at_sp])
 
     return chan_prob

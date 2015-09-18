@@ -1,5 +1,6 @@
 from .constants import (HEMI_SUBJ,
                         HISTOGRAM_WIDTH,
+                        PARAMETERS,
                         SURF_PLOT_SIZE)
 from .lmer_stats import add_to_dataframe, lmer
 from .plot_spindles import plot_surf
@@ -42,7 +43,8 @@ def Cooccurrence_of_Spindles(lg, images_dir):
         dataframe = {'subj': [], 'region': [], 'elec': [], 'value': []}
 
         for subj in HEMI_SUBJ:
-            chan_val = count_cooccur_per_chan(subj, reref)
+            chan_val = count_cooccur_per_chan(subj, reref,
+                                              PARAMETERS['summarize_cooccur'])
 
             morphed = get_morph_linear(subj, chan_val, reref=reref)
             all_values.append(morphed)
@@ -50,10 +52,18 @@ def Cooccurrence_of_Spindles(lg, images_dir):
             chan = get_chan_with_regions(subj, reref)
             add_to_dataframe(dataframe, subj, chan_val, chan)
 
-        cooccur_coef, _ = lmer(dataframe, lg)
+        lg.info('Corrected at FDR 0.05')
+        lmer(dataframe, lg)
+
+        lg.info('Uncorrected at 0.05')
+        lmer(dataframe, lg, adjust='none')
 
         threshold = 0.01, None
-        limits = 3, 6
+
+        if reref == 'avg':
+            limits = 3, 7
+        else:
+            limits = 7, 12
 
         v = plot_surf(all_values, threshold=threshold, limits=limits,
                       size_mm=SURF_PLOT_SIZE)
