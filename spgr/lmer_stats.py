@@ -50,7 +50,7 @@ def lmer(df_raw, lg, formula='value ~ 0 + region + (1|subj)', adjust='fdr',
     single_regions = sorted(set(df_raw['region']))
 
     formula = robjects.Formula(formula)
-    adjustment = multcomp.adjusted('fdr')
+    adjustment = multcomp.adjusted(adjust)
 
     contr = _create_contrasts(single_regions)
 

@@ -52,10 +52,10 @@ def Cooccurrence_of_Spindles(lg, images_dir):
             chan = get_chan_with_regions(subj, reref)
             add_to_dataframe(dataframe, subj, chan_val, chan)
 
-        lg.info('Corrected at FDR 0.05')
+        lg.info('\nCorrected at FDR 0.05')
         lmer(dataframe, lg)
 
-        lg.info('Uncorrected at 0.05')
+        lg.info('\nUncorrected at 0.05')
         lmer(dataframe, lg, adjust='none')
 
         threshold = 0.01, None
