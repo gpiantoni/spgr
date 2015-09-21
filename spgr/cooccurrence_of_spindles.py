@@ -55,15 +55,12 @@ def Cooccurrence_of_Spindles(lg, images_dir):
         lg.info('\nCorrected at FDR 0.05')
         lmer(dataframe, lg)
 
-        lg.info('\nUncorrected at 0.05')
-        lmer(dataframe, lg, adjust='none')
-
         threshold = 0.01, None
 
         if reref == 'avg':
-            limits = 3, 7
+            limits = 3, 6
         else:
-            limits = 7, 12
+            limits = 5, 10
 
         v = plot_surf(all_values, threshold=threshold, limits=limits,
                       size_mm=SURF_PLOT_SIZE)
