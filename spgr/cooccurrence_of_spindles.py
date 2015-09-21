@@ -39,8 +39,8 @@ def Cooccurrence_Histogram(lg, images_dir):
             lg.info('![{}]({})'.format('{} {}'.format(reref, subj), png_file))
 
         lg.info('Average number of channels with co-occurring spindles:'
-                'mean {}, range {} - {}'.format(mean(all_p), min(all_p),
-                                                max(all_p)))
+                'mean {: 6.2f}, range {: 6.2f} - {: 6.2f}'
+                ''.format(mean(all_p), min(all_p), max(all_p)))
 
 
 @with_log
