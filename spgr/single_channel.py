@@ -20,11 +20,9 @@ def Single_Channel_Statistics(lg, images_dir):
 
     lg.info('## Spindle Properties: Descriptive')
 
-    lg.info('### Reference to Average')
-    plot_average_values('avg', lg, images_dir)
-
-    lg.info('### Bipolar Reference')
-    plot_average_values(15, lg, images_dir)
+    for reref in ('avg', 15):
+        lg.info('### reref {}'.format(reref))
+        plot_average_values(reref, lg, images_dir)
 
 
 def get_spindle_param(subj, param, ref):

@@ -1,3 +1,5 @@
+from numpy import max, mean, min
+
 from .constants import (HEMI_SUBJ,
                         HISTOGRAM_WIDTH,
                         PARAMETERS,
@@ -17,17 +19,28 @@ def Cooccurrence_Histogram(lg, images_dir):
     lg.info('## Histogram of Co-occurrence of Spindles')
 
     for reref in ('avg', 15):
+        lg.info('### reref {}'.format(reref))
+
+        all_p = []
         for subj in HEMI_SUBJ:
             if reref == 'avg':
                 nchan = 30
             else:
                 nchan = 60
-            v = make_hist_overlap(subj, reref=reref,
-                                  width=HISTOGRAM_WIDTH, nchan=nchan)
+            v, p_mean = make_hist_overlap(subj, reref=reref,
+                                          width=HISTOGRAM_WIDTH, nchan=nchan)
+            all_p.append(p_mean)
+            lg.info('mean channels with co-occuring spindles for {}: {: 6.2f}'
+                    ''.format(subj, p_mean))
+
             png_file = str(images_dir.joinpath('hist_{}_{}.png'.format(reref,
                                                subj)))
             v.save(png_file)
             lg.info('![{}]({})'.format('{} {}'.format(reref, subj), png_file))
+
+        lg.info('Average number of channels with co-occurring spindles:'
+                'mean {}, range {} - {}'.format(mean(all_p), min(all_p),
+                                                max(all_p)))
 
 
 @with_log

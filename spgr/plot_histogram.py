@@ -1,4 +1,4 @@
-from numpy import arange, concatenate, histogram, linspace
+from numpy import arange, concatenate, histogram, linspace, mean
 from vispy.geometry import Rect
 from vispy.scene.visuals import Rectangle
 
@@ -77,4 +77,4 @@ def make_hist_overlap(subj, reref='avg', width=2, nchan=60):
     plt.margin = 25  # otherwise xtick label overlaps with border
     plt.view.border_color = 'w'
 
-    return v
+    return v, mean(p_with_sp)
