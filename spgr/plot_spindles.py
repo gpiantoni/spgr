@@ -16,16 +16,13 @@ surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)
 label_avg = fs.read_label(DEFAULT_HEMI)
 
 
-def plot_surf(all_values, size_mm, threshold=(None, None), limits=None,
-              extra_smoothing=True):
+def plot_surf(all_values, size_mm, limits=None, extra_smoothing=True):
     """Plot values onto the surface.
 
     Parameters
     ----------
     all_values : list of Data
         values for each subject
-    threshold : tuple of 2 float or of None
-        low and high thresholds to include the values
     limits : tuple of 2 floats
         values used for color scaling
 
@@ -34,11 +31,6 @@ def plot_surf(all_values, size_mm, threshold=(None, None), limits=None,
     instance of Viz3
         plot with the surfaces
     """
-    for x in all_values:
-        if threshold[0]:
-            x.data[0][x.data[0] < threshold[0]] = NaN
-        if threshold[1]:
-            x.data[0][x.data[0] > threshold[1]] = NaN
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")  # some columns are completely NaN

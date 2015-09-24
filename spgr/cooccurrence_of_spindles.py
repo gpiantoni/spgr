@@ -68,15 +68,12 @@ def Cooccurrence_of_Spindles(lg, images_dir):
         lg.info('\nCorrected at FDR 0.05')
         lmer(dataframe, lg)
 
-        threshold = 0.01, None
-
         if reref == 'avg':
             limits = 3, 6
         else:
             limits = 5, 10
 
-        v = plot_surf(all_values, threshold=threshold, limits=limits,
-                      size_mm=SURF_PLOT_SIZE)
+        v = plot_surf(all_values, limits=limits, size_mm=SURF_PLOT_SIZE)
         png_name = 'cooccurrence_map_{}.png'.format(reref)
         png_file = str(images_dir.joinpath(png_name))
         v.save(png_file)

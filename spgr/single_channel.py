@@ -2,7 +2,6 @@ from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
                         HEMI_SUBJ,
                         SINGLE_CHAN_LIMITS,
-                        SINGLE_CHAN_THRESHOLD,
                         SPINDLE_OPTIONS,
                         SURF_PLOT_SIZE,
                         )
@@ -56,7 +55,6 @@ def get_spindle_param(subj, param, ref):
 def plot_average_values(REREF, lg, images_dir):
     for param in ('density', 'duration', 'peak_val', 'peak_freq'):
 
-        threshold = SINGLE_CHAN_THRESHOLD[param]
         limits = SINGLE_CHAN_LIMITS[param]
 
         morphed = []
@@ -71,8 +69,7 @@ def plot_average_values(REREF, lg, images_dir):
             add_to_dataframe(dataframe, subj, values, chan)
 
         lmer(dataframe, lg)
-        v = plot_surf(morphed, threshold=threshold, limits=limits,
-                      size_mm=SURF_PLOT_SIZE)
+        v = plot_surf(morphed, limits=limits, size_mm=SURF_PLOT_SIZE)
         png_file = str(images_dir.joinpath('{}_{}.png'.format(param, REREF)))
         v.save(png_file)
         lg.info('![{}]({})'.format('{} {}'.format(REREF, param), png_file))

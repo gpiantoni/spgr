@@ -130,12 +130,6 @@ DPI = PARAMETERS['DPI']
 RAW_LIMITS_Y = (-100, 100)
 HISTOGRAM_WIDTH = 1
 
-SINGLE_CHAN_THRESHOLD = {'density': (0.01, None),
-                         'duration': (0.5, 2),
-                         'peak_val': (0.001, None),
-                         'peak_freq': SPINDLE_OPTIONS['frequency'],
-                         }
-
 SINGLE_CHAN_LIMITS = {'density': (0, 2),
                       'duration': (0.5, 2),
                       'peak_val': (0, 70),
