@@ -13,6 +13,7 @@ from .constants import (REC_PATH,
                         CHAN_TYPE,
                         DATA_OPTIONS,
                         GROUP_PATH,
+                        MORPH_SMOOTHING,
                         SMOOTHING_STD,
                         SMOOTHING_THRESHOLD,
                         PARAMETERS,
@@ -64,7 +65,7 @@ def _reflect_to_avg(subj, data, chan):
         with open(str(linear_file), 'wb') as f:
             dump(l, f)
 
-    m = Morph(surf)
+    m = Morph(surf, smooth=MORPH_SMOOTHING)
     morphed_data = m(l(data))
 
     return morphed_data
