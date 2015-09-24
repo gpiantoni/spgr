@@ -28,19 +28,19 @@ if not STORED_PATH.exists():
     STORED_PATH.mkdir()
 
 
-def get_morph_linear(subj, values, reref):
+def get_morph_linear(subj, values, reref, to_surf='fsaverage'):
     lg.debug('Projecting values for {}'.format(subj))
 
     chan = get_chan_used_in_analysis(subj, 'sleep', CHAN_TYPE, reref=reref,
                                      **DATA_OPTIONS)
 
     data = Data(values, chan=chan.return_label())
-    morphed_data = _reflect_to_avg(subj, data, chan)
+    morphed_data = _reflect_to_avg(subj, data, chan, to_surf)
 
     return morphed_data
 
 
-def _reflect_to_avg(subj, data, chan):
+def _reflect_to_avg(subj, data, chan, to_surf):
     """Simplest and inaccurate way to project onto the hemisphere of interest.
     We just reflect the channels from the wrong side to the side of interest.
     """
@@ -65,7 +65,7 @@ def _reflect_to_avg(subj, data, chan):
         with open(str(linear_file), 'wb') as f:
             dump(l, f)
 
-    m = Morph(surf, smooth=MORPH_SMOOTHING)
+    m = Morph(surf, to_surf=to_surf, smooth=MORPH_SMOOTHING)
     morphed_data = m(l(data))
 
     return morphed_data
