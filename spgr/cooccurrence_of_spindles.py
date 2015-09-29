@@ -1,6 +1,7 @@
 from numpy import max, mean, min
 
-from .constants import (HEMI_SUBJ,
+from .constants import (COOCCUR_CHAN_LIMITS,
+                        HEMI_SUBJ,
                         HISTOGRAM_WIDTH,
                         PARAMETERS,
                         SURF_PLOT_SIZE)
@@ -50,6 +51,8 @@ def Cooccurrence_of_Spindles(lg, images_dir):
 
     for reref in ('avg', 15):
 
+        limits = COOCCUR_CHAN_LIMITS[reref]
+
         lg.info('### reref {}'.format(reref))
 
         dataframe = {'subj': [], 'region': [], 'elec': [], 'value': []}
@@ -62,11 +65,6 @@ def Cooccurrence_of_Spindles(lg, images_dir):
 
         lg.info('\nCorrected at FDR 0.05')
         coef, pvalues = lmer(dataframe, lg)
-
-        if reref == 'avg':
-            limits = 3, 6
-        else:
-            limits = 5, 10
 
         v = plot_lmer(coef, pvalues=pvalues, limits=limits,
                       size_mm=SURF_PLOT_SIZE)

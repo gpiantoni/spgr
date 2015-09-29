@@ -137,6 +137,10 @@ SINGLE_CHAN_LIMITS = {'density': (0, 2),
                                     SPINDLE_OPTIONS['frequency'][1] - 3),
                       }
 
+COOCCUR_CHAN_LIMITS = {'avg': (3, 6),
+                       15: (5, 10)
+                       }
+
 COLORMAP = PARAMETERS['COLORMAP']
 SATURATION_LEVEL = 0.4
 CHAN_COLOR = 0.8, 0.1, 0.1, 1.
