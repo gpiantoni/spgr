@@ -5,9 +5,9 @@ from .constants import (HEMI_SUBJ,
                         PARAMETERS,
                         SURF_PLOT_SIZE)
 from .lmer_stats import add_to_dataframe, lmer
-from .plot_spindles import plot_surf
+from .plot_spindles import plot_lmer
 from .plot_histogram import make_hist_overlap
-from .spindle_source import get_morph_linear, get_chan_with_regions
+from .spindle_source import get_chan_with_regions
 from .stats_on_spindles import count_cooccur_per_chan
 
 from .log import with_log
@@ -52,28 +52,24 @@ def Cooccurrence_of_Spindles(lg, images_dir):
 
         lg.info('### reref {}'.format(reref))
 
-        all_values = []
         dataframe = {'subj': [], 'region': [], 'elec': [], 'value': []}
 
         for subj in HEMI_SUBJ:
             chan_val = count_cooccur_per_chan(subj, reref,
                                               PARAMETERS['summarize_cooccur'])
-
-            morphed = get_morph_linear(subj, chan_val, reref=reref)
-            all_values.append(morphed)
-
             chan = get_chan_with_regions(subj, reref)
             add_to_dataframe(dataframe, subj, chan_val, chan)
 
         lg.info('\nCorrected at FDR 0.05')
-        lmer(dataframe, lg)
+        coef, pvalues = lmer(dataframe, lg)
 
         if reref == 'avg':
             limits = 3, 6
         else:
             limits = 5, 10
 
-        v = plot_surf(all_values, limits=limits, size_mm=SURF_PLOT_SIZE)
+        v = plot_lmer(coef, pvalues=pvalues, limits=limits,
+                      size_mm=SURF_PLOT_SIZE)
         png_name = 'cooccurrence_map_{}.png'.format(reref)
         png_file = str(images_dir.joinpath(png_name))
         v.save(png_file)
