@@ -87,19 +87,15 @@ def plot_lmer(coef, size_mm, pvalues=None, limits=(0, 2), p_threshold=0.05):
 
     for one_region, one_v in coef.items():
         idx = array(avg_vert) == avg_regions.index(one_region)
-        norm_v = normalize(one_v, limits)
-        if pvalues[one_region] < 0.05:
-            level = 1
+        norm_v = normalize(one_v, *limits)
+        if pvalues[one_region] <= p_threshold:
+            level = 1.
         else:
             level = 0.4
         val[idx, :] = saturate(cm[norm_v], level).rgba
 
     hasnan = isnan(val).all(axis=1)
     val[hasnan, :] = NAN_COLOR
-
-    for one_region, one_v in coef.items():
-        if pvalues[one_region] <= p_threshold:
-            val[array(avg_vert) == avg_regions.index(one_region)] = one_v
 
     v = Viz3(dpi=DPI, show=False, size_mm=size_mm)
     v.add_surf(avg_surf, vertex_colors=val, color=NAN_COLOR)
