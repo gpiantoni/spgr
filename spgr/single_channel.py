@@ -7,9 +7,9 @@ from .constants import (CHAN_TYPE,
                         )
 from .detect_spindles import get_spindles
 from .lmer_stats import add_to_dataframe, lmer
-from .plot_spindles import plot_surf
+from .plot_spindles import plot_lmer
 from .read_data import get_data
-from .spindle_source import get_morph_linear, get_chan_with_regions
+from .spindle_source import get_chan_with_regions
 
 from .log import with_log
 
@@ -57,19 +57,16 @@ def plot_average_values(REREF, lg, images_dir):
 
         limits = SINGLE_CHAN_LIMITS[param]
 
-        morphed = []
-
         dataframe = {'subj': [], 'region': [], 'elec': [], 'value': []}
 
         for subj in HEMI_SUBJ:
             values = get_spindle_param(subj, param, REREF)
-            morphed.append(get_morph_linear(subj, values, REREF))
-
             chan = get_chan_with_regions(subj, REREF)
             add_to_dataframe(dataframe, subj, values, chan)
 
-        lmer(dataframe, lg)
-        v = plot_surf(morphed, limits=limits, size_mm=SURF_PLOT_SIZE)
+        coef, pvalues = lmer(dataframe, lg)
+        v = plot_lmer(coef, pvalues=pvalues, limits=limits,
+                      size_mm=SURF_PLOT_SIZE)
         png_file = str(images_dir.joinpath('{}_{}.png'.format(param, REREF)))
         v.save(png_file)
         lg.info('![{}]({})'.format('{} {}'.format(REREF, param), png_file))
