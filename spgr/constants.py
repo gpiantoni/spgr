@@ -1,7 +1,6 @@
 from json import load
-from os.path import expanduser, join
+from os.path import expanduser
 from pathlib import Path
-from os import environ
 
 from phypno.attr import Freesurfer
 
@@ -137,7 +136,7 @@ SINGLE_CHAN_LIMITS = {'density': (0, 2),
                                     SPINDLE_OPTIONS['frequency'][1] - 3),
                       }
 
-COOCCUR_CHAN_LIMITS = {'avg': (3, 6),
+COOCCUR_CHAN_LIMITS = {'avg': (4, 6),
                        15: (5, 10)
                        }
 
@@ -155,8 +154,9 @@ AVERAGE_BW_SURF = 45, 32  # the actual dimensions are 90, 65 but it's too big wh
 TICKS_FONT_SIZE = 8
 LABEL_FONT_SIZE = 10
 
-ELEVATION = 15
-AZIMUTH = 90
+CENTER = (25, -15, 18)
+ELEVATION = -6
+AZIMUTH = 96
 
 fs = Freesurfer(str(FS_AVG))
 avg_surf = getattr(fs.read_brain(), DEFAULT_HEMI)
