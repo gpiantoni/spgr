@@ -51,8 +51,9 @@ def Electrode_Locations(lg, images_dir):
 
         morphed.append(get_morph_linear(subj, values, reref='avg'))
 
-    v = plot_surf(morphed, limits=(0, 1), extra_smoothing=False,
-                  size_mm=SURF_PLOT_SIZE)
+    n_subj = len(HEMI_SUBJ)
+    v = plot_surf(morphed, limits=(0, n_subj), extra_smoothing=False,
+                  size_mm=SURF_PLOT_SIZE, fun='sum')
 
     png_file = str(images_dir.joinpath('coverage_average.png'))
     v.save(png_file)

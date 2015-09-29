@@ -87,7 +87,12 @@ def get_chan_with_regions(subj, reref, parc_type=None):
         with open(str(region_file), 'rb') as f:
             chan = load(f)
     else:
-        fs = Freesurfer(str(REC_PATH.joinpath(subj).joinpath(FS_FOLDER)))
+        if parc_type.startswith('aparc.laus'):
+            fs_lut_name = 'aparc.annot.' + parc_type.split('.')[-1] + '.ctab'
+            fs_lut = REC_PATH / subj / FS_FOLDER / 'label' / fs_lut_name
+        else:
+            fs_lut = None
+        fs = Freesurfer(str(REC_PATH / subj / FS_FOLDER), fs_lut=str(fs_lut))
         chan = assign_region_to_channels(orig_chan, fs, parc_type=parc_type,
                                          exclude_regions=('Unknown', ))
         with open(str(region_file), 'wb') as f:

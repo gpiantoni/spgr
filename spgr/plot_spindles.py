@@ -1,4 +1,4 @@
-from numpy import array, asarray, NaN, nanmean, mean, isnan, zeros
+from numpy import array, asarray, NaN, nanmean, nansum, mean, isnan, zeros
 import warnings
 
 from phypno.attr import Freesurfer
@@ -16,25 +16,34 @@ surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)
 label_avg = fs.read_label(DEFAULT_HEMI)
 
 
-def plot_surf(all_values, size_mm, limits=None, extra_smoothing=True):
+def plot_surf(all_values, size_mm, limits=None, extra_smoothing=True,
+              fun='mean'):
     """Plot values onto the surface.
 
     Parameters
     ----------
     all_values : list of Data
         values for each subject
+    size_mm : tuple of 2 int
+        size in pixels of the final image
     limits : tuple of 2 floats
         values used for color scaling
+    extra_smoothing : bool
+        if it should apply some extra smoothing
+    fun : str
+        'mean' or 'sum'
 
     Returns
     -------
     instance of Viz3
         plot with the surfaces
     """
-
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")  # some columns are completely NaN
-        values = nanmean(asarray([x.data[0] for x in all_values]), axis=0)
+        if fun == 'mean':
+            values = nanmean(asarray([x.data[0] for x in all_values]), axis=0)
+        elif fun == 'sum':
+            values = nansum(asarray([x.data[0] for x in all_values]), axis=0)
 
     if extra_smoothing:
         # apply some quick smoothing (but rather strong, useful to avoid the clown fish effect)
