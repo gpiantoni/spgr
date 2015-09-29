@@ -144,7 +144,7 @@ HIGHLIGHT_COLOR = PARAMETERS['HIGHLIGHT_COLOR']  # color to highlight spindles
 HIGHLIGHT_HEIGHT = 200
 SURF_PLOT_SIZE = 50, 35
 SINGLE_SUBJ_SURF = 20, 15
-AVERAGE_BW_SURF = 90, 65
+AVERAGE_BW_SURF = 45, 32  # the actual dimensions are 90, 65 but it's too big when saving with read_pixels
 
 TICKS_FONT_SIZE = 8
 LABEL_FONT_SIZE = 10
