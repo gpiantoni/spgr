@@ -123,7 +123,7 @@ CHAN_TYPE = ('grid', )
 DEFAULT_HEMI = 'rh'
 SMOOTHING_STD = 10
 SMOOTHING_THRESHOLD = 20
-FS_AVG = join(environ['FREESURFER_HOME'], 'subjects', 'fsaverage')
+FS_AVG = GROUP_PATH / 'fsaverage'
 MORPH_SMOOTHING = None
 
 DPI = PARAMETERS['DPI']
@@ -153,7 +153,7 @@ LABEL_FONT_SIZE = 10
 ELEVATION = 15
 AZIMUTH = 90
 
-fs = Freesurfer(FS_AVG)
+fs = Freesurfer(str(FS_AVG))
 avg_surf = getattr(fs.read_brain(), DEFAULT_HEMI)
 avg_vert, _, avg_regions = fs.read_label(DEFAULT_HEMI,
                                          parc_type=PARAMETERS['PARC_TYPE'])
