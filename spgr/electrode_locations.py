@@ -13,7 +13,7 @@ from .constants import (CHAN_COLOR,
                         SURF_PLOT_SIZE,
                         SINGLE_SUBJ_SURF,
                         AVERAGE_BW_SURF,
-                        surf_avg)
+                        avg_surf)
 from .spindle_source import get_morph_linear, get_regions_with_elec
 from .plot_spindles import plot_surf
 from .read_data import get_chan_used_in_analysis
@@ -61,7 +61,7 @@ def Electrode_Locations(lg, images_dir):
 
     lg.info('## Average surface')
     v = Viz3(size_mm=AVERAGE_BW_SURF, dpi=DPI)
-    v.add_surf(surf_avg, color=(1, 1, 1))
+    v.add_surf(avg_surf, color=(1, 1, 1))
     png_file = str(images_dir.joinpath('fs_avg.png'))
     v.save(png_file)
     lg.info('![{}]({})'.format('surface average', png_file))

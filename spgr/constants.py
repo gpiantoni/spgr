@@ -137,6 +137,7 @@ SINGLE_CHAN_LIMITS = {'density': (0, 2),
                                     SPINDLE_OPTIONS['frequency'][1] - 3),
                       }
 
+COLORMAP = PARAMETERS['COLORMAP']
 CHAN_COLOR = 0.8, 0.1, 0.1, 1.
 SKIN_COLOR = 0.93, 0.82, 0.81, 0.94
 NAN_COLOR = 0.4, 0.4, 0.4, 1.
@@ -153,8 +154,6 @@ ELEVATION = 15
 AZIMUTH = 90
 
 fs = Freesurfer(FS_AVG)
-surf_avg = getattr(fs.read_brain(), DEFAULT_HEMI)
-# avg_regions is being used only by representative_examples,
-# otherwise you need to change this
-avg_vert, avg_color, avg_regions = fs.read_label(DEFAULT_HEMI,
-                                                 parc_type='aparc')
+avg_surf = getattr(fs.read_brain(), DEFAULT_HEMI)
+avg_vert, _, avg_regions = fs.read_label(DEFAULT_HEMI,
+                                         parc_type=PARAMETERS['PARC_TYPE'])

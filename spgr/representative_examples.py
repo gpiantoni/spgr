@@ -6,15 +6,15 @@ from vispy.scene import LinePlot, Rectangle
 
 from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
+                        DEFAULT_HEMI,
                         DPI,
                         HEMI_SUBJ,
                         HIGHLIGHT_COLOR,
                         HIGHLIGHT_HEIGHT,
                         RAW_LIMITS_Y,
                         SPINDLE_OPTIONS,
-                        avg_regions,
-                        avg_vert,
-                        surf_avg,
+                        avg_surf,
+                        fs,
                         )
 from .detect_spindles import get_spindles
 from .read_data import get_data
@@ -23,6 +23,9 @@ from .spindle_source import get_chan_with_regions
 from .log import with_log
 
 PLOT_SIZE = 12, 10
+
+# representative examples were chosen based on aparc
+avg_vert, _, avg_regions = fs.read_label(DEFAULT_HEMI, parc_type='aparc')
 
 REREF = 'avg'
 PAD = 1
@@ -247,5 +250,5 @@ def power_in_bands(x, s_freq):
 
 def _find_region_xyz(region):
     vert_in_region = avg_vert == avg_regions.index(region)
-    xyz_vert_in_region = surf_avg.vert[vert_in_region, :]
+    xyz_vert_in_region = avg_surf.vert[vert_in_region, :]
     return mean(xyz_vert_in_region, axis=0)
