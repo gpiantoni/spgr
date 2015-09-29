@@ -138,6 +138,7 @@ SINGLE_CHAN_LIMITS = {'density': (0, 2),
                       }
 
 COLORMAP = PARAMETERS['COLORMAP']
+SATURATION_LEVEL = 0.4
 CHAN_COLOR = 0.8, 0.1, 0.1, 1.
 SKIN_COLOR = 0.93, 0.82, 0.81, 0.94
 NAN_COLOR = 0.4, 0.4, 0.4, 1.

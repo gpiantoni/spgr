@@ -10,6 +10,7 @@ from .constants import (AZIMUTH,
                         DPI,
                         ELEVATION,
                         NAN_COLOR,
+                        SATURATION_LEVEL,
                         avg_surf,
                         avg_vert,
                         avg_regions,
@@ -86,12 +87,15 @@ def plot_lmer(coef, size_mm, pvalues=None, limits=(0, 2), p_threshold=0.05):
     val.fill(NaN)
 
     for one_region, one_v in coef.items():
+        if one_region not in avg_regions:
+            continue
+
         idx = array(avg_vert) == avg_regions.index(one_region)
         norm_v = normalize(one_v, *limits)
         if pvalues[one_region] <= p_threshold:
             level = 1.
         else:
-            level = 0.4
+            level = SATURATION_LEVEL
         val[idx, :] = saturate(cm[norm_v], level).rgba
 
     hasnan = isnan(val).all(axis=1)
