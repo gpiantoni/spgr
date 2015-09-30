@@ -103,12 +103,7 @@ def SESSION(subj):
     else:
         return 'A'
 
-
-HP_FILTER = 1
-LP_FILTER = 40
-RESAMPLE_FREQ = 256
-
-DATA_OPTIONS = {'resample_freq': RESAMPLE_FREQ,
+DATA_OPTIONS = {'resample_freq': 256,
                 'hp_filter': 0.5,
                 'lp_filter': 50,
                 }
@@ -133,7 +128,7 @@ SINGLE_CHAN_LIMITS = {'density': (0, 2),
                       'duration': (0.5, 2),
                       'peak_val': (0, 70),
                       'peak_freq': (SPINDLE_OPTIONS['frequency'][0] + 2,
-                                    SPINDLE_OPTIONS['frequency'][1] - 3),
+                                    SPINDLE_OPTIONS['frequency'][1] - 2),
                       }
 
 COOCCUR_CHAN_LIMITS = {'avg': (4, 6),

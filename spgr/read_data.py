@@ -11,14 +11,12 @@ from phypno.trans import Filter, Montage, Resample
 from phypno.trans.montage import create_bipolar_chan
 
 from .constants import (DATA_PATH,
+                        DATA_OPTIONS,
                         REC_PATH,
                         REC_FOLDER,
                         ELEC_FOLDER,
                         SCORE_FOLDER,
                         XLTEK_FOLDER,
-                        HP_FILTER,
-                        LP_FILTER,
-                        RESAMPLE_FREQ,
                         SESSION)
 
 lg = getLogger(__name__)
@@ -66,8 +64,9 @@ def select_scores(stages, duration, all_subj, choose='max'):
 
 
 def save_data(subj, score_file, period_name, stages, chan_type=(),
-              hp_filter=HP_FILTER, lp_filter=LP_FILTER,
-              resample_freq=RESAMPLE_FREQ):
+              hp_filter=DATA_OPTIONS['hp_filter'],
+              lp_filter=DATA_OPTIONS['lp_filter'],
+              resample_freq=DATA_OPTIONS['resample_freq']):
     """Save recordings for one subject, based on some parameters
 
     Parameters
@@ -161,8 +160,9 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
     return len(selected_chan), duration
 
 
-def list_subj(period_name, chan_type=(), hp_filter=HP_FILTER,
-              lp_filter=LP_FILTER, resample_freq=RESAMPLE_FREQ):
+def list_subj(period_name, chan_type=(), hp_filter=DATA_OPTIONS['hp_filter'],
+              lp_filter=DATA_OPTIONS['lp_filter'],
+              resample_freq=DATA_OPTIONS['resample_freq']):
     """Return list of subjects matching some parameters.
 
     Parameters
@@ -195,8 +195,10 @@ def list_subj(period_name, chan_type=(), hp_filter=HP_FILTER,
     return all_subj
 
 
-def get_data(subj, period_name, chan_type=(), hp_filter=HP_FILTER,
-             lp_filter=LP_FILTER, resample_freq=RESAMPLE_FREQ, reref=REREF):
+def get_data(subj, period_name, chan_type=(),  reref=REREF,
+             hp_filter=DATA_OPTIONS['hp_filter'],
+             lp_filter=DATA_OPTIONS['lp_filter'],
+             resample_freq=DATA_OPTIONS['resample_freq']):
     """Get the data for one subject quickly.
 
     Parameters
@@ -246,9 +248,10 @@ def get_data(subj, period_name, chan_type=(), hp_filter=HP_FILTER,
     return data
 
 
-def get_chan_used_in_analysis(subj, period_name, chan_type=(),
-                              hp_filter=HP_FILTER, lp_filter=LP_FILTER,
-                              resample_freq=RESAMPLE_FREQ, reref=REREF):
+def get_chan_used_in_analysis(subj, period_name, chan_type=(), reref=REREF,
+                              hp_filter=DATA_OPTIONS['hp_filter'],
+                              lp_filter=DATA_OPTIONS['lp_filter'],
+                              resample_freq=DATA_OPTIONS['resample_freq']):
     """Read quickly the channels used in the analysis
 
     Parameters
