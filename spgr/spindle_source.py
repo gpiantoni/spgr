@@ -6,13 +6,15 @@ from phypno.attr import Freesurfer
 from phypno.attr.chan import assign_region_to_channels
 from phypno.source import Linear, Morph
 
-from .constants import (REC_PATH,
+from .constants import (APARC_FOLDER,
+                        PROJ_FOLDER,
+                        DATA_PATH,
+                        REC_PATH,
                         FS_FOLDER,
                         DEFAULT_HEMI,
                         HEMI_SUBJ,
                         CHAN_TYPE,
                         DATA_OPTIONS,
-                        GROUP_PATH,
                         MORPH_SMOOTHING,
                         SMOOTHING_STD,
                         SMOOTHING_THRESHOLD,
@@ -22,10 +24,6 @@ from .read_data import get_chan_used_in_analysis
 
 
 lg = getLogger(__name__)
-
-STORED_PATH = GROUP_PATH.joinpath('saved_regions')
-if not STORED_PATH.exists():
-    STORED_PATH.mkdir()
 
 
 def get_morph_linear(subj, values, reref, to_surf='fsaverage'):
@@ -44,6 +42,7 @@ def _reflect_to_avg(subj, data, chan, to_surf):
     """Simplest and inaccurate way to project onto the hemisphere of interest.
     We just reflect the channels from the wrong side to the side of interest.
     """
+
     if HEMI_SUBJ[subj] != DEFAULT_HEMI:
         for one_chan in chan.chan:
             one_chan.xyz *= (-1, 1, 1)
@@ -55,7 +54,10 @@ def _reflect_to_avg(subj, data, chan, to_surf):
     linear_filename = ('linear_chan{:03d}_std{:03d}_thr{:03d}_{}.pkl'
                        ''.format(chan.n_chan, SMOOTHING_STD,
                                  SMOOTHING_THRESHOLD, subj))
-    linear_file = STORED_PATH.joinpath(linear_filename)
+    subj_dir = DATA_PATH / subj / PROJ_FOLDER
+    if not subj_dir.exists():
+        subj_dir.mkdir()
+    linear_file = subj_dir / linear_filename
     if linear_file.exists():
         with open(str(linear_file), 'rb') as f:
             l = load(f)
@@ -82,7 +84,11 @@ def get_chan_with_regions(subj, reref, parc_type=None):
     region_filename = ('{}_chan{:03d}_{}.pkl'
                        ''.format(parc_type,
                                  orig_chan.n_chan, subj))
-    region_file = STORED_PATH.joinpath(region_filename)
+    subj_dir = DATA_PATH / subj / APARC_FOLDER
+    if not subj_dir.exists():
+        subj_dir.mkdir()
+
+    region_file = APARC_FOLDER / region_filename
     if region_file.exists():
         with open(str(region_file), 'rb') as f:
             chan = load(f)

@@ -7,13 +7,10 @@ from numpy import asarray, hstack
 from phypno.detect import DetectSpindle
 from phypno.graphoelement import Spindles
 
-from .constants import GROUP_PATH
+from .constants import DATA_PATH, SPINDLE_FOLDER
 from .read_data import get_data
 
-lg = getLogger('spgr')
-SPINDLE_DIR = GROUP_PATH.joinpath('detected_spindles')
-if not SPINDLE_DIR.exists():
-    SPINDLE_DIR.mkdir()
+lg = getLogger(__name__)
 
 try:
     from lsf import map_lsf
@@ -31,7 +28,10 @@ def get_spindles(subj, method='Nir2011', frequency=(None, None),
                     '{duration[0]}-{duration[1]}s_{reref}_{resample_freq}_'
                     '{hp_filter}-{lp_filter}Hz.pkl'.format(**locals()))
 
-    spindle_file = SPINDLE_DIR.joinpath(spindle_name)
+    subj_dir = DATA_PATH / subj / SPINDLE_FOLDER
+    if not subj_dir.exists():
+        subj_dir.mkdir()
+    spindle_file = subj_dir / spindle_name
     if spindle_file.exists():
         with open(str(spindle_file), 'rb') as f:
             spindles = load(f)

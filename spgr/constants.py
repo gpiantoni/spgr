@@ -13,8 +13,6 @@ XLTEK_FOLDER = Path('eeg/raw/xltek')
 SCORE_FOLDER = Path('doc/scores')
 ELEC_FOLDER = Path('doc/elec')
 FS_FOLDER = Path('mri/proc/freesurfer')
-REC_FOLDER = Path('rec')
-
 
 PROJECT_PATH = HOME.joinpath('projects').joinpath(PROJECT)
 SCRIPTS_PATH = PROJECT_PATH.joinpath('scripts')
@@ -37,6 +35,8 @@ if not IMAGES_PATH.exists():
 if not LOGSRC_PATH.exists():
     LOGSRC_PATH.mkdir(parents=True)
 
+# READ DATA-------------------------------------------------------------------#
+REC_FOLDER = Path('rec')
 
 PERIOD = 'sleep'
 STAGES = ('NREM2', )
@@ -108,11 +108,17 @@ DATA_OPTIONS = {'resample_freq': 256,
                 'lp_filter': 50,
                 }
 
+# CHAN_TYPE = ('grid', 'strip')
+CHAN_TYPE = ('grid', )
+
+# SPINDLE OPTIONS-------------------------------------------------------------#
+SPINDLE_FOLDER = Path('spindles')
 SPINDLE_OPTIONS = PARAMETERS['SPINDLE_OPTIONS']
 SPINDLE_OPTIONS.update(DATA_OPTIONS)
 
-# CHAN_TYPE = ('grid', 'strip')
-CHAN_TYPE = ('grid', )
+# SURFACE OPTIONS-------------------------------------------------------------#
+APARC_FOLDER = Path('aparc')
+PROJ_FOLDER = Path('proj')
 
 DEFAULT_HEMI = 'rh'
 SMOOTHING_STD = 10
@@ -120,6 +126,12 @@ SMOOTHING_THRESHOLD = 20
 FS_AVG = GROUP_PATH / 'fsaverage'
 MORPH_SMOOTHING = None
 
+fs = Freesurfer(str(FS_AVG))
+avg_surf = getattr(fs.read_brain(), DEFAULT_HEMI)
+avg_vert, _, avg_regions = fs.read_label(DEFAULT_HEMI,
+                                         parc_type=PARAMETERS['PARC_TYPE'])
+
+# PLOT OPTIONS----------------------------------------------------------------#
 DPI = PARAMETERS['DPI']
 RAW_LIMITS_Y = (-100, 100)
 HISTOGRAM_WIDTH = 1
@@ -152,8 +164,3 @@ LABEL_FONT_SIZE = 10
 CENTER = (25, -15, 18)
 ELEVATION = -6
 AZIMUTH = 96
-
-fs = Freesurfer(str(FS_AVG))
-avg_surf = getattr(fs.read_brain(), DEFAULT_HEMI)
-avg_vert, _, avg_regions = fs.read_label(DEFAULT_HEMI,
-                                         parc_type=PARAMETERS['PARC_TYPE'])
