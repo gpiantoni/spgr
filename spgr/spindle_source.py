@@ -88,7 +88,7 @@ def get_chan_with_regions(subj, reref, parc_type=None):
     if not subj_dir.exists():
         subj_dir.mkdir()
 
-    region_file = APARC_FOLDER / region_filename
+    region_file = subj_dir / region_filename
     if region_file.exists():
         with open(str(region_file), 'rb') as f:
             chan = load(f)
