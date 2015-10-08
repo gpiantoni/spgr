@@ -6,3 +6,4 @@ from .single_channel import Single_Channel_Statistics
 from .cooccurrence_of_spindles import (Cooccurrence_Histogram,
                                        Cooccurrence_of_Spindles,
                                        )
+from .spindle_direction import Direction_of_Spindles
