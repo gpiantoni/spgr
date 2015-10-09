@@ -118,11 +118,14 @@ def get_regions_with_elec(reref='avg'):
     Region names start with "ctx_?h" for aparc.a2009s at least. So we remove
     that part of the name. By using "if" we also get rid of regions such as
     white matter or other weird regions.
+
+    now it sorts alphabetically but there should be a better way to organize
+    it.
     """
     all_regions = []
     for subj in HEMI_SUBJ:
         chan = get_chan_with_regions(subj, reref)
         all_regions.extend(chan.return_attr('region'))
 
-    region_names = set(x[7:] for x in all_regions if x[:4] == 'ctx_')
-    return list(region_names)
+    region_names = set(x[7:] for x in all_regions if x[:3] == 'ctx')
+    return sorted(list(region_names))

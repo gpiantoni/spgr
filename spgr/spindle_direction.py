@@ -1,16 +1,22 @@
-from numpy import nanmean, NaN, isfinite, log, zeros
+from functools import partial
+from multiprocessing import Pool
+from numpy import nanmean, NaN, isfinite, log, zeros, nansum, abs, array, max, nanmax, nanmin, r_
 
-from .constants import (COOCCUR_CHAN_LIMITS,
-                        HEMI_SUBJ,
-                        PARAMETERS,
+from .constants import (HEMI_SUBJ,
                         SPINDLE_OPTIONS,
                         SURF_PLOT_SIZE)
 from .detect_spindles import get_spindles
-from .lmer_stats import add_to_dataframe, lmer
 from .plot_spindles import plot_lmer
-from .spindle_source import get_chan_with_regions
+from .spindle_source import get_chan_with_regions, get_regions_with_elec
 
 from .log import with_log
+
+
+from numpy import triu
+from numpy.random import binomial, seed
+
+NULL_PROBABILITY=.5
+N_RND = 1000
 
 
 @with_log
@@ -20,48 +26,69 @@ def Direction_of_Spindles(lg, images_dir):
 
     for reref in ('avg', 15):
 
-        limits = COOCCUR_CHAN_LIMITS[reref]
-
         lg.info('### reref {}'.format(reref))
 
-        dataframe = {'subj': [], 'region': [], 'elec': [], 'value': []}
+        regions = get_regions_with_elec(reref)
+
+        x = zeros((len(regions), len(regions)))
 
         for subj in HEMI_SUBJ:
-            chan_val = spindle_direct(subj, reref)
-            chan = get_chan_with_regions(subj, reref)
-            add_to_dataframe(dataframe, subj, chan_val, chan)
 
-        lg.info('\nCorrected at FDR 0.05')
-        coef, pvalues = lmer(dataframe, lg)
+            spindles = get_spindles(subj, reref=reref, **SPINDLE_OPTIONS)
+            chan = get_chan_with_regions(subj, reref=reref)
+            chan_with_regions = dict(zip(spindles.chan_name,
+                                         chan.return_attr('region',
+                                                          spindles.chan_name)))
 
-        v = plot_lmer(coef, pvalues=pvalues, limits=limits,
-                      size_mm=SURF_PLOT_SIZE)
-        png_name = 'cooccurrence_map_{}.png'.format(reref)
+            for sp0 in spindles.spindle:  # this is the lead
+                for sp1 in spindles.spindle:  # this is the follower
+
+                    if ((sp1['start_time'] > sp0['start_time']) and
+                        (sp1['start_time'] < sp0['end_time'])):
+
+                        region0 = chan_with_regions[sp0['chan']]
+                        region1 = chan_with_regions[sp1['chan']]
+                        try:
+                            i0 = regions.index(region0[7:])
+                            i1 = regions.index(region1[7:])
+                            x[i0, i1] += 1
+                        except ValueError:  # if it's not in the regions of interest
+                            pass
+
+        d = sum(x, axis=1) / (sum(x, axis=0) + sum(x, axis=1)) * 100
+        coef = dict(zip(regions, d))
+        """
+        _partial_null = partial(_compute_null_direction, x)
+
+        with Pool() as p:
+            n_d = p.map(_partial_null, range(N_RND))
+        n_d = r_[n_d]
+
+
+        lg.info('\nCorrected at Bonferroni 0.05')
+        if pvalues[region] < p_threshold:
+            lg.info('{:30} coef={:.3f}  p={:.4f}'.format(region, coef[region],
+                                                         pvalues[region]))
+        """
+        v = plot_lmer(coef, limits=(40, 60), size_mm=SURF_PLOT_SIZE)
+        png_name = 'direction_map_{}.png'.format(reref)
         png_file = str(images_dir.joinpath(png_name))
         v.save(png_file)
         lg.info('![{}]({})'.format('{}'.format(reref),
                 png_file))
 
 
-def spindle_direct(subj, reref):
+def _compute_null_direction(x, seed_value):
+    s_x = triu(x + x.T)
 
-    spindles = get_spindles(subj, reref=reref, **SPINDLE_OPTIONS)
-    chan_names = list(spindles.chan_name)
-    n_chan = len(spindles.chan_name)
+    seed(seed_value)
+    x2 = zeros(x.shape)
 
-    chan_names = list(spindles.chan_name)
-    n_chan = len(spindles.chan_name)
+    for i0 in range(x.shape[0]):
+        for i1 in range(x.shape[1]):
+            if i0 <= i1:
+                b = binomial(s_x[i0, i1], NULL_PROBABILITY)
+                x2[i0, i1] = b
+                x2[i1, i0] = s_x[i0, i1] - b
 
-    x = zeros((n_chan, n_chan))
-
-    for sp0 in spindles.spindle:
-        for sp1 in spindles.spindle:
-            if (sp0['start_time'] > sp1['start_time']) and (sp0['start_time'] < sp1['end_time']):
-                i0 = chan_names.index(sp0['chan'])
-                i1 = chan_names.index(sp1['chan'])
-                x[i0, i1] += 1
-
-    c = log(x / x.T)
-    c[~ isfinite(c)] = NaN
-
-    return nanmean(c, axis=0)
+    return sum(x2, axis=1) / (sum(x2, axis=0) + sum(x2, axis=1)) * 100
