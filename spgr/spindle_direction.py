@@ -1,6 +1,6 @@
 from functools import partial
 from multiprocessing import Pool
-from numpy import nanmean, NaN, isfinite, log, zeros, nansum, abs, array, max, nanmax, nanmin, r_
+from numpy import nanmean, NaN, isfinite, log, zeros, nansum, abs, array, max, nanmax, nanmin, r_, sum, c_, min, seterr
 
 from .constants import (HEMI_SUBJ,
                         SPINDLE_OPTIONS,
@@ -16,7 +16,7 @@ from numpy import triu
 from numpy.random import binomial, seed
 
 NULL_PROBABILITY=.5
-N_RND = 1000
+N_RND = 10000
 
 
 @with_log
@@ -29,9 +29,7 @@ def Direction_of_Spindles(lg, images_dir):
         lg.info('### reref {}'.format(reref))
 
         regions = get_regions_with_elec(reref)
-
         x = zeros((len(regions), len(regions)))
-
         for subj in HEMI_SUBJ:
 
             spindles = get_spindles(subj, reref=reref, **SPINDLE_OPTIONS)
@@ -54,23 +52,34 @@ def Direction_of_Spindles(lg, images_dir):
                             x[i0, i1] += 1
                         except ValueError:  # if it's not in the regions of interest
                             pass
+        d = _calc_dir_summary(x)
 
-        d = sum(x, axis=1) / (sum(x, axis=0) + sum(x, axis=1)) * 100
         coef = dict(zip(regions, d))
-        """
+
         _partial_null = partial(_compute_null_direction, x)
 
         with Pool() as p:
             n_d = p.map(_partial_null, range(N_RND))
         n_d = r_[n_d]
 
+        p_threshold = 0.05
 
         lg.info('\nCorrected at Bonferroni 0.05')
-        if pvalues[region] < p_threshold:
-            lg.info('{:30} coef={:.3f}  p={:.4f}'.format(region, coef[region],
-                                                         pvalues[region]))
-        """
-        v = plot_lmer(coef, limits=(40, 60), size_mm=SURF_PLOT_SIZE)
+
+        uncorr_pv = min(c_[sum(d >= n_d, axis=0) / N_RND,
+                           sum(d <= n_d, axis=0) / N_RND], axis=1)
+        pv = uncorr_pv * 2 * len(regions)  # two-direction + Bonferroni
+
+        pvalues = dict(zip(regions, pv))
+
+        for region, _ in sorted(coef.items(), key=lambda x: x[1]):
+
+            if pvalues[region] < p_threshold:
+                lg.info('{:30} coef={:.3f}  p={:.4f}'.format(region,
+                                                             coef[region],
+                                                             pvalues[region]))
+        limits = (log(3 / 4), log(4 / 3))
+        v = plot_lmer(coef, limits=limits, size_mm=SURF_PLOT_SIZE)
         png_name = 'direction_map_{}.png'.format(reref)
         png_file = str(images_dir.joinpath(png_name))
         v.save(png_file)
@@ -91,4 +100,15 @@ def _compute_null_direction(x, seed_value):
                 x2[i0, i1] = b
                 x2[i1, i0] = s_x[i0, i1] - b
 
-    return sum(x2, axis=1) / (sum(x2, axis=0) + sum(x2, axis=1)) * 100
+    return _calc_dir_summary(x2)
+
+
+def _calc_dir_summary(x):
+    # d = sum(x, axis=1) / (sum(x, axis=0) + sum(x, axis=1)) * 100
+
+    seterr(all="ignore")
+    c = log(x / x.T)
+    c[~ isfinite(c)] = NaN
+    d = nanmean(c, axis=1)
+
+    return d
