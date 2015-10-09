@@ -92,7 +92,7 @@ def plot_lmer(coef, size_mm, pvalues=None, limits=(0, 2), p_threshold=0.05):
 
         idx = array(avg_vert) == avg_regions.index(one_region)
         norm_v = normalize(one_v, *limits)
-        if pvalues is None:
+        if True: # pvalues is None:
             val[idx, :] = cm[norm_v].rgba
 
         else:  # I think there is something wrong here

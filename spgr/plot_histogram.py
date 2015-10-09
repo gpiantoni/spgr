@@ -7,6 +7,7 @@ from phypno.viz import Viz1
 from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
                         DPI,
+                        HIST_FIG_SIZE,
                         SPINDLE_OPTIONS,
                         TICKS_FONT_SIZE)
 from .detect_spindles import get_spindles
@@ -19,8 +20,6 @@ X_MINOR_TICK = 1
 Y_MAX = 30
 Y_MAJOR_TICK = 10
 Y_MINOR_TICK = 1
-
-FIG_SIZE = 40, 30  # actual size in mm for figure
 
 
 def make_hist_overlap(subj, reref='avg', width=2, nchan=60):
@@ -38,7 +37,7 @@ def make_hist_overlap(subj, reref='avg', width=2, nchan=60):
     h_chan = hist * arange(1, nchan, width)
     hist_norm = h_chan / sum(h_chan) * 100
 
-    v = Viz1(dpi=DPI, size_mm=FIG_SIZE)
+    v = Viz1(dpi=DPI, size_mm=HIST_FIG_SIZE)
     plt = v._fig[0, 0]
     plt._configure_2d()
 
