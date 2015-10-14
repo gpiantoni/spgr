@@ -149,6 +149,9 @@ COOCCUR_CHAN_LIMITS = {'avg': (4, 6),
                        15: (5, 10)
                        }
 
+DIR_MAT_RATIO = 2 / 1
+DIR_SURF_RATIO = 4 / 3
+
 COLORMAP = PARAMETERS['COLORMAP']
 SATURATION_LEVEL = 0.4
 CHAN_COLOR = 0.8, 0.1, 0.1, 1.
