@@ -1,5 +1,11 @@
+from numpy import concatenate, linspace, uint8
+from vispy.color import get_colormap
+from vispy.io.image import write_png
+
 from .constants import (CHAN_TYPE,
+                        COLORMAP,
                         DATA_OPTIONS,
+                        DPI,
                         HEMI_SUBJ,
                         SINGLE_CHAN_LIMITS,
                         SPINDLE_OPTIONS,
@@ -22,6 +28,8 @@ def Single_Channel_Statistics(lg, images_dir):
     for reref in ('avg', 15):
         lg.info('### reref {}'.format(reref))
         plot_average_values(reref, lg, images_dir)
+
+    make_colorbar(images_dir)
 
 
 def get_spindle_param(subj, param, ref):
@@ -70,3 +78,18 @@ def plot_average_values(REREF, lg, images_dir):
         png_file = str(images_dir.joinpath('{}_{}.png'.format(param, REREF)))
         v.save(png_file)
         lg.info('![{}]({})'.format('{} {}'.format(REREF, param), png_file))
+
+
+def make_colorbar(lg, images_dir):
+    cm = get_colormap(COLORMAP)
+
+    c = cm[linspace(1., 0., DPI)].rgb
+    c = (c * 255).astype(uint8)
+    c = c[None, ]  # add extra dimension
+    c.resize((c.shape[1], c.shape[0], c.shape[2]))
+    c = concatenate((c, ) * DPI, axis=1)
+
+    png_file = str(images_dir.joinpath('colorbar.png'))
+    write_png(png_file, c)
+    lg.info('### colorbar')
+    lg.info('![{}]({})'.format('colorbar', png_file))
