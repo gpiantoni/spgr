@@ -2,7 +2,6 @@ from numpy import max, mean, min
 
 from .constants import (COOCCUR_CHAN_LIMITS,
                         HEMI_SUBJ,
-                        HISTOGRAM_WIDTH,
                         PARAMETERS,
                         SURF_PLOT_SIZE)
 from .lmer_stats import add_to_dataframe, lmer
@@ -24,12 +23,8 @@ def Cooccurrence_Histogram(lg, images_dir):
 
         all_p = []
         for subj in HEMI_SUBJ:
-            if reref == 'avg':
-                nchan = 30
-            else:
-                nchan = 60
-            v, p_mean = make_hist_overlap(subj, reref=reref,
-                                          width=HISTOGRAM_WIDTH, nchan=nchan)
+
+            v, p_mean = make_hist_overlap(subj, reref=reref)
             all_p.append(p_mean)
             lg.info('mean channels with co-occuring spindles for {}: {: 6.2f}'
                     ''.format(subj, p_mean))

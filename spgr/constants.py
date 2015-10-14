@@ -134,10 +134,13 @@ avg_vert, _, avg_regions = fs.read_label(DEFAULT_HEMI,
 # PLOT OPTIONS----------------------------------------------------------------#
 DPI = PARAMETERS['DPI']
 RAW_LIMITS_Y = (-100, 100)
-HISTOGRAM_WIDTH = 1
+HIST_WIDTH = 1
+HIST_BAR_COLOR = 'k'
+HIST_N_CHAN = {'avg': 20,
+               15: 40}
 
 SINGLE_CHAN_LIMITS = {'density': (0, 1.5),
-                      'duration': (0.5, 2),
+                      'duration': (1, 1.5),
                       'peak_val': (0, 70),
                       'peak_freq': (11, 13),
                       }
@@ -157,6 +160,7 @@ SURF_PLOT_SIZE = 50, 35
 SINGLE_SUBJ_SURF = 20, 15
 AVERAGE_BW_SURF = 45, 32  # the actual dimensions are 90, 65 but it's too big when saving with read_pixels
 HIST_FIG_SIZE = 30, 25  # actual size in mm for figure
+SPDET_FIG_SIZE = 120, 50  # 112, 50
 
 TICKS_FONT_SIZE = 8
 LABEL_FONT_SIZE = 10
