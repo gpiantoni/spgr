@@ -13,14 +13,12 @@ from .constants import (CHAN_TYPE,
                         RAW_LIMITS_Y,
                         LABEL_FONT_SIZE,
                         TICKS_FONT_SIZE,
+                        SPDET_FIG_SIZE,
                         )
 from .detect_spindles import get_spindles
 from .read_data import get_data
 
 from .log import with_log
-
-
-PLOT_SIZE = 112, 50
 
 SUBJ = 'EM09'
 chan_names = ['GR' + str(i) for i in range(28, 55)]
@@ -79,7 +77,7 @@ def Spindle_Detection_Method(lg, images_dir):
 
 def _make_cooccur_plot(sel_data, sp):
 
-    v = Viz1(show=True, size_mm=PLOT_SIZE, dpi=DPI)
+    v = Viz1(show=True, size_mm=SPDET_FIG_SIZE, dpi=DPI)
     v.add_data(sel_data,
                limits_y=[RAW_LIMITS_Y[0] * 2, RAW_LIMITS_Y[1]*2])
     v.add_graphoelement(sp, color=HIGHLIGHT_COLOR, height=400)
@@ -98,13 +96,13 @@ def _make_cooccur_plot(sel_data, sp):
         plt.xaxis.axis._text.font_size = TICKS_FONT_SIZE
 
         plt.yaxis.axis._text.font_size = TICKS_FONT_SIZE
-        plt.ylabel.text = 'amplitude (μV)'
-        plt.ylabel._text_visual.font_size = LABEL_FONT_SIZE
+        # plt.ylabel.text = 'amplitude (μV)'
+        # plt.ylabel._text_visual.font_size = LABEL_FONT_SIZE
 
         plt.margin = 25  # otherwise xtick label overlaps with border
         plt.view.border_color = 'w'
 
-    plt.xlabel.text = 'time (s)'
+    # plt.xlabel.text = 'time (s)'
     plt.xlabel._text_visual.font_size = LABEL_FONT_SIZE
 
     return v
