@@ -30,7 +30,7 @@ all_func = OrderedDict([('-r', 'Read_ECoG_Recordings'),
                         ('-s', 'Single_Channel_Statistics'),
                         ('-t', 'Cooccurrence_Histogram'),
                         ('-c', 'Cooccurrence_of_Spindles'),
-                        ('-a', 'Direction_of_Spindles'),  # Arrow
+                        ('-l', 'Direction_of_Spindles'),  # leading / lagging
                         ])
 
 parser = ArgumentParser(prog='spgr',
