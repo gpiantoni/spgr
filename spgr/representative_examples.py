@@ -12,6 +12,7 @@ from .constants import (CHAN_TYPE,
                         HIGHLIGHT_COLOR,
                         HIGHLIGHT_HEIGHT,
                         RAW_LIMITS_Y,
+                        REPR_PLOT_SIZE,
                         SPINDLE_OPTIONS,
                         avg_surf,
                         fs,
@@ -22,7 +23,6 @@ from .spindle_source import get_chan_with_regions
 
 from .log import with_log
 
-PLOT_SIZE = 12, 10
 
 # representative examples were chosen based on aparc
 avg_vert, _, avg_regions = fs.read_label(DEFAULT_HEMI, parc_type='aparc')
@@ -92,7 +92,7 @@ def _plot_highlighted_spindle(spindle_data, spindle):
     t = spindle_data.axis['time'][0]
     x = spindle_data.data[0][0]
 
-    v = Viz1(dpi=DPI, size_mm=PLOT_SIZE)
+    v = Viz1(dpi=DPI, size_mm=REPR_PLOT_SIZE)
 
     # set defaults
     plt = v._fig[0, 0]

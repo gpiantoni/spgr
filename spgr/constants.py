@@ -135,7 +135,8 @@ avg_vert, _, avg_regions = fs.read_label(DEFAULT_HEMI,
 DPI = PARAMETERS['DPI']
 RAW_LIMITS_Y = (-100, 100)
 HIST_WIDTH = 1
-HIST_BAR_COLOR = 'k'
+HIST_BAR_COLOR = 'w'
+HIST_BAR_WIDTH = 4
 HIST_N_CHAN = {'avg': 20,
                15: 40}
 
@@ -160,10 +161,11 @@ NAN_COLOR = 0.4, 0.4, 0.4, 1.
 HIGHLIGHT_COLOR = PARAMETERS['HIGHLIGHT_COLOR']  # color to highlight spindles
 HIGHLIGHT_HEIGHT = 200
 SURF_PLOT_SIZE = 50, 35
+REPR_PLOT_SIZE = 10, 8
 SINGLE_SUBJ_SURF = 20, 15
-AVERAGE_BW_SURF = 45, 32  # the actual dimensions are 90, 65 but it's too big when saving with read_pixels
-HIST_FIG_SIZE = 30, 25  # actual size in mm for figure
-SPDET_FIG_SIZE = 120, 50  # 112, 50
+AVERAGE_BW_SURF = 40, 30  # the actual dimensions are 80, 60 but it's too big when saving with read_pixels
+HIST_FIG_SIZE = 40, 30  # actual size in mm for figure
+
 
 TICKS_FONT_SIZE = 8
 LABEL_FONT_SIZE = 10

@@ -10,6 +10,7 @@ from .constants import (CHAN_TYPE,
                         HIST_FIG_SIZE,
                         HIST_WIDTH,
                         HIST_BAR_COLOR,
+                        HIST_BAR_WIDTH,
                         HIST_N_CHAN,
                         SPINDLE_OPTIONS,
                         TICKS_FONT_SIZE)
@@ -52,7 +53,7 @@ def make_hist_overlap(subj, reref='avg'):
             rect = Rectangle(center=(left_edge + width / 2, col / 2),
                              height=col, width=width, border_color='k',
                              color=HIST_BAR_COLOR)
-            rect.border.set_data(width=2)  # border_width doesn't work
+            rect.border.set_data(width=HIST_BAR_WIDTH)  # border_width doesn't work
             plt.view.add(rect)
 
     plt.view.camera.set_state(rect=Rect(pos=(0, 0), size=(nchan, Y_MAX)))
