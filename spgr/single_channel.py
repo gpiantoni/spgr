@@ -2,7 +2,8 @@ from numpy import concatenate, linspace, uint8
 from vispy.color import get_colormap
 from vispy.io.image import write_png
 
-from .constants import (CHAN_TYPE,
+from .constants import (ALL_REREF,
+                        CHAN_TYPE,
                         COLORMAP,
                         DATA_OPTIONS,
                         DPI,
@@ -25,7 +26,7 @@ def Single_Channel_Statistics(lg, images_dir):
 
     lg.info('## Spindle Properties: Descriptive')
 
-    for reref in ('avg', 15):
+    for reref in ALL_REREF:
         lg.info('### reref {}'.format(reref))
         plot_average_values(reref, lg, images_dir)
 

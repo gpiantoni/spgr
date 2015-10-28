@@ -1,4 +1,5 @@
-from .constants import (CHAN_TYPE,
+from .constants import (ALL_REREF,
+                        CHAN_TYPE,
                         HEMI_SUBJ,
                         SPINDLE_OPTIONS,
                         )
@@ -21,7 +22,7 @@ def Spindle_Detection_Method(lg, images_dir):
                       dur0=SPINDLE_OPTIONS['duration'][0],
                       dur1=SPINDLE_OPTIONS['duration'][1]))
 
-    for ref in ('avg', 15):
+    for ref in ALL_REREF:
         for subj in HEMI_SUBJ:
             print(subj)
             sp = get_spindles(subj, chan_type=CHAN_TYPE, reref=ref,

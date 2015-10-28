@@ -1,6 +1,7 @@
 from numpy import max, mean, min
 
-from .constants import (COOCCUR_CHAN_LIMITS,
+from .constants import (ALL_REREF,
+                        COOCCUR_CHAN_LIMITS,
                         HEMI_SUBJ,
                         PARAMETERS,
                         SURF_PLOT_SIZE)
@@ -18,7 +19,7 @@ def Cooccurrence_Histogram(lg, images_dir):
 
     lg.info('## Histogram of Co-occurrence of Spindles')
 
-    for reref in ('avg', 15):
+    for reref in ALL_REREF:
         lg.info('### reref {}'.format(reref))
 
         all_p = []
@@ -44,7 +45,7 @@ def Cooccurrence_of_Spindles(lg, images_dir):
 
     lg.info('## Cooccurrence_of_Spindles')
 
-    for reref in ('avg', 15):
+    for reref in ALL_REREF:
 
         limits = COOCCUR_CHAN_LIMITS[reref]
 

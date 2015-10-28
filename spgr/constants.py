@@ -110,6 +110,7 @@ DATA_OPTIONS = {'resample_freq': 256,
 
 # CHAN_TYPE = ('grid', 'strip')
 CHAN_TYPE = ('grid', )
+ALL_REREF = ('avg', )
 
 # SPINDLE OPTIONS-------------------------------------------------------------#
 SPINDLE_FOLDER = Path('spindles')

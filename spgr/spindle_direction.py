@@ -15,7 +15,8 @@ from vispy.plot import Fig
 from vispy.scene.visuals import Image
 from vispy.io import write_png
 
-from .constants import (COLORMAP,
+from .constants import (ALL_REREF,
+                        COLORMAP,
                         DIR_MAT_RATIO,
                         DIR_SURF_RATIO,
                         HEMI_SUBJ,
@@ -82,7 +83,7 @@ def Direction_of_Spindles(lg, images_dir):
 
     lg.info('## Cooccurrence_of_Spindles')
 
-    for reref in ('avg', 15)[:1]:
+    for reref in ALL_REREF:
 
         lg.info('### reref {}'.format(reref))
 
