@@ -30,7 +30,7 @@ def Single_Channel_Statistics(lg, images_dir):
         lg.info('### reref {}'.format(reref))
         plot_average_values(reref, lg, images_dir)
 
-    make_colorbar(images_dir)
+    make_colorbar(lg, images_dir)
 
 
 def get_spindle_param(subj, param, ref):

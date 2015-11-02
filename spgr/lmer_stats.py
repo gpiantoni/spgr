@@ -1,6 +1,5 @@
 from numpy import diag, ones, r_
 
-"""
 from rpy2 import robjects
 from rpy2.robjects.numpy2ri import activate
 from rpy2.robjects.packages import importr
@@ -9,7 +8,7 @@ from rpy2.robjects.packages import importr
 activate()
 lme4 = importr('lme4')
 multcomp = importr('multcomp')
-"""
+
 
 def add_to_dataframe(df, subj, values, chan):
     """Add values for each electrode to the main frame.
@@ -175,19 +174,14 @@ def _add_intercept(coeff):
     return coeff
 
 
-class DataFrame:
-    pass
-
-
-"""
 class DataFrame(robjects.DataFrame):
-    \"""Dataframe to convert dictionary into robjections.Dataframe
+    """Dataframe to convert dictionary into robjections.Dataframe
 
     Parameters
     ----------
     d : dict
         dictionary with values as float or str
-    \"""
+    """
     def __init__(self, d):
         d_conv = {}
         for key, values in d.items():
@@ -198,4 +192,3 @@ class DataFrame(robjects.DataFrame):
                 d_conv[key] = robjects.FloatVector(values)
 
         super().__init__(d_conv)
-"""
