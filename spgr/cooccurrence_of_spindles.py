@@ -4,6 +4,8 @@ from .constants import (ALL_REREF,
                         COOCCUR_CHAN_LIMITS,
                         HEMI_SUBJ,
                         PARAMETERS,
+                        P_CORRECTION,
+                        P_THRESHOLD,
                         SURF_PLOT_SIZE)
 from .lmer_stats import add_to_dataframe, lmer
 from .plot_spindles import plot_lmer
@@ -59,9 +61,9 @@ def Cooccurrence_of_Spindles(lg, images_dir):
             chan = get_chan_with_regions(subj, reref)
             add_to_dataframe(dataframe, subj, chan_val, chan)
 
-        lg.info('\nCorrected at FDR 0.05')
-        coef, pvalues = lmer(dataframe, lg)
-
+        lg.info('\nCorrected at {} {}'.format(P_CORRECTION, P_THRESHOLD))
+        coef, pvalues = lmer(dataframe, lg, adjust=P_CORRECTION,
+                             pvalue=P_THRESHOLD)
         v = plot_lmer(coef, pvalues=pvalues, limits=limits,
                       size_mm=SURF_PLOT_SIZE)
         png_name = 'cooccurrence_map_{}.png'.format(reref)

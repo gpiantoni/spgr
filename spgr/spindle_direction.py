@@ -1,6 +1,7 @@
 from functools import partial
 from multiprocessing import Pool
-from numpy import (c_,
+from numpy import (array,
+                   c_,
                    isfinite,
                    flipud,
                    log,
@@ -20,6 +21,8 @@ from .constants import (ALL_REREF,
                         DIR_MAT_RATIO,
                         DIR_SURF_RATIO,
                         HEMI_SUBJ,
+                        P_CORRECTION,
+                        P_THRESHOLD,
                         SPINDLE_OPTIONS,
                         SURF_PLOT_SIZE)
 from .detect_spindles import get_spindles
@@ -31,6 +34,11 @@ from .log import with_log
 
 from numpy import triu
 from numpy.random import binomial, seed
+from rpy2.robjects.numpy2ri import activate
+from rpy2.robjects import r
+
+activate()  # conversion R <-> numpy
+p_adjust = r['p.adjust']
 
 
 NULL_PROBABILITY = .5
@@ -135,19 +143,18 @@ def Direction_of_Spindles(lg, images_dir):
             n_d = p.map(_partial_null, range(N_RND))
         n_d = r_[n_d]
 
-        p_threshold = 0.05
-
-        lg.info('\nCorrected at Bonferroni 0.05')
+        lg.info('\nCorrected at {} {}'.format(P_CORRECTION, P_THRESHOLD))
 
         uncorr_pv = min(c_[sum(d >= n_d, axis=0) / N_RND,
                            sum(d <= n_d, axis=0) / N_RND], axis=1)
-        pv = uncorr_pv * 2 * len(regions)  # two-direction + Bonferroni
+        pv = array(p_adjust(uncorr_pv * 2,  # two-tailed
+                            method=P_CORRECTION))
 
         pvalues = dict(zip(regions, pv))
 
         for region, _ in sorted(coef.items(), key=lambda x: x[1]):
 
-            if pvalues[region] < p_threshold:
+            if pvalues[region] < P_THRESHOLD:
                 lg.info('{:30} coef={:.3f}  p={:.4f}'.format(region,
                                                              coef[region],
                                                              pvalues[region]))

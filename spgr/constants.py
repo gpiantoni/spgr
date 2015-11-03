@@ -132,6 +132,9 @@ avg_surf = getattr(fs.read_brain(), DEFAULT_HEMI)
 avg_vert, _, avg_regions = fs.read_label(DEFAULT_HEMI,
                                          parc_type=PARAMETERS['PARC_TYPE'])
 
+P_THRESHOLD = 0.05
+P_CORRECTION = 'fdr'
+
 # PLOT OPTIONS----------------------------------------------------------------#
 DPI = PARAMETERS['DPI']
 RAW_LIMITS_Y = (-100, 100)

@@ -8,6 +8,8 @@ from .constants import (ALL_REREF,
                         DATA_OPTIONS,
                         DPI,
                         HEMI_SUBJ,
+                        P_CORRECTION,
+                        P_THRESHOLD,
                         SINGLE_CHAN_LIMITS,
                         SPINDLE_OPTIONS,
                         SURF_PLOT_SIZE,
@@ -73,7 +75,9 @@ def plot_average_values(REREF, lg, images_dir):
             chan = get_chan_with_regions(subj, REREF)
             add_to_dataframe(dataframe, subj, values, chan)
 
-        coef, pvalues = lmer(dataframe, lg)
+        lg.info('\nCorrected at {} {}'.format(P_CORRECTION, P_THRESHOLD))
+        coef, pvalues = lmer(dataframe, lg, adjust=P_CORRECTION,
+                             pvalue=P_THRESHOLD)
         v = plot_lmer(coef, pvalues=pvalues, limits=limits,
                       size_mm=SURF_PLOT_SIZE)
         png_file = str(images_dir.joinpath('{}_{}.png'.format(param, REREF)))
