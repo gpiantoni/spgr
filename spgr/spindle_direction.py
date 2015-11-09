@@ -163,9 +163,16 @@ def Direction_of_Spindles(lg, images_dir):
         for region, _ in sorted(coef.items(), key=lambda x: x[1]):
 
             if pvalues[region] < P_THRESHOLD:
-                lg.info('{:30} coef={:.3f}  p={:.4f}'.format(region,
-                                                             coef[region],
-                                                             pvalues[region]))
+
+                if coef[region] > 0:
+                    coef_print = '{:5.3f}:1'.format(exp(coef[region]))
+                else:
+                    coef_print = '1:{:5.3f}'.format(exp(-coef[region]))
+
+                lg.info('{:30} coef = {:7},  p-value = {:.3f}'
+                        ''.format(region,
+                                  coef_print,
+                                  pvalues[region]))
         limits = -log(DIR_SURF_RATIO), log(DIR_SURF_RATIO)
         v = plot_lmer(coef, limits=limits, size_mm=SURF_PLOT_SIZE)
         png_name = 'direction_map_{}.png'.format(reref)
