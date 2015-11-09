@@ -264,9 +264,9 @@ def _direction_summary(lg, x):
     fill_diagonal(c, NaN)
     cnt = x + x.T
 
-    lg.info(' {:<30} {:<30} {:<15} {:<10}'
-            ''.format('From', 'To', 'Spindle Pairs', 'Ratio'))
-    lg.info('-' * 30 + ' ' + '-' * 30 + ' ' + '-' * 15 + ' ' + '-' * 10 + ' ')
+    lg.info(' {:<30} {:<30} {:<15} {:<12}'
+            ''.format('From', 'To', '# Spindle Pairs', 'Ratio'))
+    lg.info('-' * 30 + ' ' + '-' * 30 + ' ' + '-' * 17 + ' ' + '-' * 12 + ' ')
 
     pairs = []
 
@@ -279,7 +279,7 @@ def _direction_summary(lg, x):
             pairs.append(one_pair)
 
     for one_pair in sorted(pairs, key=lambda k: k['ratio'], reverse=True):
-        lg.info('{from:<30} {to:<30}{cnt: 15d} {ratio: 10.2f} '
+        lg.info('{from:<30} {to:<30}{cnt: 17d} {ratio: 10.2f}:1 '
                 ''.format(**one_pair))
 
     lg.info('\n')  # otherwise no figure in html
