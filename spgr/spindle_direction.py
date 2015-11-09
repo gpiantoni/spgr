@@ -205,6 +205,13 @@ def _make_direction_matrix(x):
     region = (160, 34, 480, 479)
     img = f.render(region)
 
+    """convert img to transparent, if IMAGE_NAN_COLOR has unique values
+    img_r = img.reshape(-1, 4)
+    nan_vxl = (img_r == (array(IMAGE_NAN_COLOR) * 255).astype('uint8')).all(axis=1)
+    img_r[nan_vxl, :] = array([0, 0, 0, 0])
+    img = img_r.reshape((img.shape[0], img.shape[1], 4))
+    """
+
     return img
 
 
