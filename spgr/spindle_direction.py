@@ -2,7 +2,9 @@ from functools import partial
 from multiprocessing import Pool
 from numpy import (array,
                    c_,
+                   exp,
                    isfinite,
+                   fill_diagonal,
                    flipud,
                    log,
                    min,
@@ -11,6 +13,7 @@ from numpy import (array,
                    r_,
                    seterr,
                    sum,
+                   where,
                    zeros)
 from vispy.plot import Fig
 from vispy.scene.visuals import Image
@@ -19,6 +22,8 @@ from vispy.io import write_png
 from .constants import (ALL_REREF,
                         COLORMAP,
                         DIR_MAT_RATIO,
+                        DIR_SUMMARY_RATIO,
+                        DIR_SUMMARY_MINCNT,
                         DIR_SURF_RATIO,
                         HEMI_SUBJ,
                         IMAGE_NAN_COLOR,
@@ -126,6 +131,8 @@ def Direction_of_Spindles(lg, images_dir):
 
         old_warnings = seterr(all="ignore")
 
+        _direction_summary(lg, x)
+
         img = _make_direction_matrix(x)
 
         png_name = 'direction_image_{}.png'.format(reref)
@@ -180,6 +187,7 @@ def _make_direction_matrix(x):
 
     c = log(x / x.T)
     c[~isfinite(c)] = NaN
+    fill_diagonal(c, NaN)
 
     # colormap only accepts column vector
     val = flipud(c).reshape((-1, ))
@@ -239,3 +247,47 @@ def _calc_dir_summary(x):
     d = nanmean(c, axis=1)
 
     return d
+
+
+def _direction_summary(lg, x):
+    """Create a table with the summary of the direction results"""
+
+    c = log(x / x.T)
+    c[~isfinite(c)] = NaN
+    fill_diagonal(c, NaN)
+    cnt = x + x.T
+
+    lg.info(' {:<30} {:<30} {:<15} {:<10}'
+            ''.format('From', 'To', 'Spindle Pairs', 'Ratio'))
+    lg.info('-' * 30 + ' ' + '-' * 30 + ' ' + '-' * 15 + ' ' + '-' * 10 + ' ')
+
+    pairs = []
+
+    for i0, i1 in zip(*where(c > log(DIR_SUMMARY_RATIO))):
+        if cnt[i0, i1] >= DIR_SUMMARY_MINCNT:
+            one_pair = {'from': _rename_region(REGIONS[i0]),
+                        'to': _rename_region(REGIONS[i1]),
+                        'cnt': int(cnt[i0, i1]),
+                        'ratio': exp(c[i0, i1])}
+            pairs.append(one_pair)
+
+    for one_pair in sorted(pairs, key=lambda k: k['ratio'], reverse=True):
+        lg.info('{from:<30} {to:<30}{cnt: 15d} {ratio: 10.2f} '
+                ''.format(**one_pair))
+
+    lg.info('\n')  # otherwise no figure in html
+
+
+def _rename_region(s):
+    s = ' ('.join(s.split('_')) + ')'
+    s = s.replace('medial', 'medial ')
+    s = s.replace('lateral', 'lateral ')
+    s = s.replace('superior', 'superior ')
+    s = s.replace('middle', 'middle ')
+    s = s.replace('inferior', 'inferior ')
+    s = s.replace('rostral', 'rostral ')
+    s = s.replace('caudal', 'caudal ')
+    s = s.replace('orbito', 'orbital ')
+    s = s.replace('pars', 'pars ')
+    s = s.replace('pole', ' pole')
+    return s
