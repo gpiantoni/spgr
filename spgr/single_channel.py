@@ -29,7 +29,6 @@ def Single_Channel_Statistics(lg, images_dir):
     lg.info('## Spindle Properties: Descriptive')
 
     for reref in ALL_REREF:
-        lg.info('### reref {}'.format(reref))
         plot_average_values(reref, lg, images_dir)
 
     make_colorbar(lg, images_dir)
@@ -64,7 +63,7 @@ def get_spindle_param(subj, param, ref):
 
 
 def plot_average_values(REREF, lg, images_dir):
-    for param in ('density', 'duration', 'peak_val', 'peak_freq'):
+    for param in ('density', 'peak_freq', 'peak_val', 'duration'):
 
         limits = SINGLE_CHAN_LIMITS[param]
 
@@ -74,6 +73,8 @@ def plot_average_values(REREF, lg, images_dir):
             values = get_spindle_param(subj, param, REREF)
             chan = get_chan_with_regions(subj, REREF)
             add_to_dataframe(dataframe, subj, values, chan)
+
+        lg.info('### {} ({})'.format(param, REREF))
 
         lg.info('\nCorrected at {} {}'.format(P_CORRECTION, P_THRESHOLD))
         coef, pvalues = lmer(dataframe, lg, adjust=P_CORRECTION,
