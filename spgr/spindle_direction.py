@@ -21,6 +21,7 @@ from .constants import (ALL_REREF,
                         DIR_MAT_RATIO,
                         DIR_SURF_RATIO,
                         HEMI_SUBJ,
+                        IMAGE_NAN_COLOR,
                         P_CORRECTION,
                         P_THRESHOLD,
                         SPINDLE_OPTIONS,
@@ -171,13 +172,30 @@ def Direction_of_Spindles(lg, images_dir):
 
 def _make_direction_matrix(x):
 
+    from numpy import isnan
+    from phypno.viz.base import normalize
+    from vispy.color import get_colormap
+
+    cm = get_colormap(COLORMAP)
+
     c = log(x / x.T)
-    c[~isfinite(c)] = 0  # it'd be better to use NaN in matrix image
+    c[~isfinite(c)] = NaN
+
+    # colormap only accepts column vector
+    val = flipud(c).reshape((-1, ))
+    val = normalize(val, -log(DIR_MAT_RATIO), log(DIR_MAT_RATIO))
+    clr = cm[val].rgba
+
+    # convert empty values to NaN color
+    hasnan = isnan(clr).all(axis=1)
+    clr[hasnan, :] = IMAGE_NAN_COLOR
+
+    # convert back to square matrix + color dimension
+    clr = clr.reshape((c.shape[0], c.shape[1], 4))
 
     f = Fig()
     plt = f[0, 0]
-    im = Image(flipud(c), cmap=COLORMAP, clim=(-log(DIR_MAT_RATIO),
-                                               log(DIR_MAT_RATIO)))
+    im = Image(clr)
     plt.view.add(im)
 
     plt.view.camera = 'panzoom'
