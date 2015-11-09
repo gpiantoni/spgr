@@ -88,7 +88,7 @@ def _report_values(lg, coef, pvalues, intercept, p_threshold):
             has_intercept = True
 
         if pvalues[region] < p_threshold:
-            lg.info('{:30} coef={:.3f}  p={:.4f}'.format(region, coef[region],
+            lg.info('{:30} coef={:.3f}  p={:.3f}'.format(region, coef[region],
                                                          pvalues[region]))
 
     if not has_intercept:  # in theory, this should never happen
