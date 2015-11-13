@@ -264,7 +264,7 @@ def _direction_summary(lg, x):
     fill_diagonal(c, NaN)
     cnt = x + x.T
 
-    lg.info(' {:<30} {:<30} {:<15} {:<12}'
+    lg.info(' {:<30} {:<30} {:<17} {:<12}'
             ''.format('From', 'To', '# Spindle Pairs', 'Ratio'))
     lg.info('-' * 30 + ' ' + '-' * 30 + ' ' + '-' * 17 + ' ' + '-' * 12 + ' ')
 
@@ -279,7 +279,7 @@ def _direction_summary(lg, x):
             pairs.append(one_pair)
 
     for one_pair in sorted(pairs, key=lambda k: k['ratio'], reverse=True):
-        lg.info('{from:<30} {to:<30}{cnt: 17d} {ratio: 10.2f}:1 '
+        lg.info('{from:<30} {to:<30}{cnt: 17d} {ratio: 10.3f}:1 '
                 ''.format(**one_pair))
 
     lg.info('\n')  # otherwise no figure in html
@@ -294,7 +294,6 @@ def _rename_region(s):
     s = s.replace('inferior', 'inferior ')
     s = s.replace('rostral', 'rostral ')
     s = s.replace('caudal', 'caudal ')
-    s = s.replace('orbito', 'orbital ')
     s = s.replace('pars', 'pars ')
     s = s.replace('pole', ' pole')
     return s
