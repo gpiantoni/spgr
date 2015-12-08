@@ -30,7 +30,7 @@ def make_hist_overlap(subj, reref='avg'):
 
     nchan = HIST_N_CHAN[reref]
 
-    width=HIST_WIDTH
+    width = HIST_WIDTH
 
     spindles = get_spindles(subj, reref=reref, **SPINDLE_OPTIONS)
     data = get_data(subj, period_name='sleep', chan_type=CHAN_TYPE,
