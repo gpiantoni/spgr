@@ -10,7 +10,6 @@ HOME = Path(expanduser('~'))
 
 REC_PATH = HOME.joinpath('recordings')
 XLTEK_FOLDER = Path('eeg/raw/xltek')
-SCORE_FOLDER = Path('doc/scores')
 ELEC_FOLDER = Path('doc/elec')
 FS_FOLDER = Path('mri/proc/freesurfer')
 
@@ -21,7 +20,7 @@ GROUP_PATH = PROJECT_PATH.joinpath('group')
 IMAGES_PATH = GROUP_PATH.joinpath('images')
 LOG_PATH = GROUP_PATH.joinpath('log')
 LOGSRC_PATH = LOG_PATH.joinpath('src')
-
+SCORES_PATH = GROUP_PATH.joinpath('scores')
 
 PARAMETERS_PATH = SCRIPTS_PATH.joinpath(PROJECT).joinpath('parameters.json')
 with open(str(PARAMETERS_PATH), 'r') as f:

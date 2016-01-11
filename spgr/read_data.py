@@ -14,9 +14,9 @@ from phypno.trans.montage import create_bipolar_chan
 from .constants import (DATA_PATH,
                         DATA_OPTIONS,
                         REC_PATH,
+                        SCORES_PATH,
                         REC_FOLDER,
                         ELEC_FOLDER,
-                        SCORE_FOLDER,
                         XLTEK_FOLDER,
                         SESSION)
 
@@ -109,9 +109,7 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
     d = Dataset(str(xltek_file))
     lg.info('Sampling Frequency {} Hz '.format(d.header['s_freq']))
 
-    score_dir = REC_PATH.joinpath(subj).joinpath(SCORE_FOLDER)
-    score = Annotations(str(score_dir.joinpath(score_file)))
-
+    score = Annotations(str(score_file))
     chan_dir = REC_PATH.joinpath(subj).joinpath(ELEC_FOLDER)
     chan_file = chan_dir.joinpath(score_file.name.replace('_scores.xml',
                                                           '_channels.json'))
@@ -338,11 +336,7 @@ def _select_scores_per_subj(stages, duration, subj, choose='max'):
     path to file
         scoring file with the longest duration in the stage(s) of interest.
     """
-    score_dir = REC_PATH.joinpath(subj).joinpath(SCORE_FOLDER)
-    all_scores = score_dir.glob('*')
-
-    if not all_scores:
-        raise IndexError('No scores files for ' + subj)
+    all_scores = SCORES_PATH.rglob(subj + '_*')
 
     time_in_period = {}
     for one_score in all_scores:
