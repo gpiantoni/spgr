@@ -1,3 +1,4 @@
+from datetime import timedelta
 from glob import glob
 from json import load as json_load
 from logging import getLogger
@@ -121,7 +122,14 @@ def save_data(subj, score_file, period_name, stages, chan_type=(),
 
     start_time = [x['start'] for x in score.epochs if x['stage'] in stages]
     end_time = [x['end'] for x in score.epochs if x['stage'] in stages]
+
+
+    abs_time = d.header['start_time']
+    abs_start = abs_time + timedelta(seconds=start_time[0])
+    abs_end = abs_time + timedelta(seconds=end_time[-1])
     duration = sum([x1 - x0 for x0, x1 in zip(start_time, end_time)])
+    lg.info('Start Time: ' + str(abs_start))
+    lg.info('End Time: ' + str(abs_end))
     lg.info('Duration: {0: 3.1f} min'.format(duration / 60))
 
     data = d.read_data(begtime=start_time, endtime=end_time,
