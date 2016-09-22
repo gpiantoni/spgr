@@ -1,4 +1,5 @@
 from numpy import max, mean, min
+from pickle import Pickler, Unpickler
 
 from .constants import (ALL_REREF,
                         COOCCUR_CHAN_LIMITS,
@@ -53,13 +54,22 @@ def Cooccurrence_of_Spindles(lg, images_dir):
 
         lg.info('### reref {}'.format(reref))
 
-        dataframe = {'subj': [], 'region': [], 'elec': [], 'value': []}
+        dataframe_file = images_dir / ('dataframe_' + reref + '.pkl')
+        if dataframe_file.exists():
+            with dataframe_file.open('rb') as f:
+                dataframe = Unpickler(f).load()
+        else:
 
-        for subj in HEMI_SUBJ:
-            chan_val = count_cooccur_per_chan(subj, reref,
-                                              PARAMETERS['summarize_cooccur'])
-            chan = get_chan_with_regions(subj, reref)
-            add_to_dataframe(dataframe, subj, chan_val, chan)
+            dataframe = {'subj': [], 'region': [], 'elec': [], 'value': []}
+
+            for subj in HEMI_SUBJ:
+                chan_val = count_cooccur_per_chan(subj, reref,
+                                                  PARAMETERS['summarize_cooccur'])
+                chan = get_chan_with_regions(subj, reref)
+                add_to_dataframe(dataframe, subj, chan_val, chan)
+
+            with dataframe_file.open('wb') as f:
+                Pickler(f).dump(dataframe)
 
         lg.info('\nCorrected at {} {}'.format(P_CORRECTION, P_THRESHOLD))
         coef, pvalues = lmer(dataframe, lg, adjust=P_CORRECTION,
