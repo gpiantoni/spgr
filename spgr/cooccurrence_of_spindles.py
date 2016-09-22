@@ -55,7 +55,9 @@ def Cooccurrence_of_Spindles(lg, images_dir):
 
         lg.info('### reref {}'.format(reref))
 
-        dataframe_file = GROUP_PATH / ('dataframe_' + reref + '.pkl')
+        dataframe_file = GROUP_PATH / ('dataframe_' + reref + '_' +
+                                       PARAMETERS['summarize_cooccur'] + '.pkl')
+
         if dataframe_file.exists():
             with dataframe_file.open('rb') as f:
                 dataframe = Unpickler(f).load()
