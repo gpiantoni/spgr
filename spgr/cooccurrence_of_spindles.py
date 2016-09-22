@@ -3,6 +3,7 @@ from pickle import Pickler, Unpickler
 
 from .constants import (ALL_REREF,
                         COOCCUR_CHAN_LIMITS,
+                        GROUP_PATH,
                         HEMI_SUBJ,
                         PARAMETERS,
                         P_CORRECTION,
@@ -54,7 +55,7 @@ def Cooccurrence_of_Spindles(lg, images_dir):
 
         lg.info('### reref {}'.format(reref))
 
-        dataframe_file = images_dir / ('dataframe_' + reref + '.pkl')
+        dataframe_file = GROUP_PATH / ('dataframe_' + reref + '.pkl')
         if dataframe_file.exists():
             with dataframe_file.open('rb') as f:
                 dataframe = Unpickler(f).load()
