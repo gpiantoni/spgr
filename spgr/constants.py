@@ -149,7 +149,7 @@ SINGLE_CHAN_LIMITS = {'density': (0, 1.5),
                       'peak_freq': (11, 13),
                       }
 
-COOCCUR_CHAN_LIMITS = {'avg': (4, 6),
+COOCCUR_CHAN_LIMITS = {'avg': (3, 5.5),
                        15: (5, 10)
                        }
 

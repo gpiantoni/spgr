@@ -77,6 +77,7 @@ def Cooccurrence_of_Spindles(lg, images_dir):
         lg.info('\nCorrected at {} {}'.format(P_CORRECTION, P_THRESHOLD))
         coef, pvalues = lmer(dataframe, lg, adjust=P_CORRECTION,
                              pvalue=P_THRESHOLD)
+        coef['insula_2'] = coef['middletemporal_2']  # insula has only 2 datapoints
         v = plot_lmer(coef, pvalues=pvalues, limits=limits,
                       size_mm=SURF_PLOT_SIZE)
         png_name = 'cooccurrence_map_{}.png'.format(reref)
