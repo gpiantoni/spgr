@@ -257,13 +257,17 @@ def get_data(subj, period_name, chan_type=(),  reref=REREF,
 def get_chan_used_in_analysis(subj, period_name, chan_type=(), reref=REREF,
                               hp_filter=DATA_OPTIONS['hp_filter'],
                               lp_filter=DATA_OPTIONS['lp_filter'],
-                              resample_freq=DATA_OPTIONS['resample_freq']):
+                              resample_freq=DATA_OPTIONS['resample_freq'],
+                              return_all_chan=False):
     """Read quickly the channels used in the analysis
 
     Parameters
     ----------
     all_subj : str
         subject code to read
+    return_all_chan : bool
+        whether it should return one argument (only channels used in the
+        analysis) or two arguments (also all the possible channels)
 
     Returns
     -------
@@ -313,7 +317,10 @@ def get_chan_used_in_analysis(subj, period_name, chan_type=(), reref=REREF,
     if isinstance(reref, float) or isinstance(reref, int):
         chosen_chan = create_bipolar_chan(chosen_chan, reref)[0]
 
-    return chosen_chan
+    if return_all_chan:
+        return chosen_chan, chan
+    else:
+        return chosen_chan
 
 
 def _select_scores_per_subj(stages, duration, subj, choose='max'):

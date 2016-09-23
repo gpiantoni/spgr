@@ -1,5 +1,9 @@
+from collections import Counter
 from logging import getLogger
 from pickle import load, dump
+from re import split
+
+from numpy import array, max, mean, min
 
 from phypno import Data
 from phypno.attr import Freesurfer
@@ -73,6 +77,42 @@ def _reflect_to_avg(subj, data, chan, to_surf):
     return morphed_data
 
 
+def rejected_chan(lg, all_subj, good_chan, all_chan):
+
+    n_good_chan = array([x.n_chan for x in good_chan])
+    lg.info('channels used in analysis: mean %.2f (range %d-%d)',
+            mean(n_good_chan), min(n_good_chan), max(n_good_chan))
+
+    gr_chan = []
+    for chan in all_chan:
+        gr_chan.append(chan(lambda x: 'gr' in x.label.lower()))
+    n_gr_chan = array([x.n_chan for x in gr_chan])
+    lg.info('channels with a grid: mean %.2f (range %d-%d)',
+            mean(n_gr_chan), min(n_gr_chan), max(n_gr_chan))
+
+    bad_chan = []
+    for chan0, chan1 in zip(good_chan, gr_chan):
+        good_labels = chan0.return_label()
+        bad_chan.append(chan1(lambda x: x.label not in good_labels))
+    n_bad_chan = array([x.n_chan for x in bad_chan])
+    lg.info('bad channels with a grid: mean %.2f (range %d-%d)',
+            mean(n_bad_chan), min(n_bad_chan), max(n_bad_chan))
+
+    perc_bad_chan = n_bad_chan / n_gr_chan * 100
+    lg.info('percent bad channels with a grid: mean %.2f (range %.2f-%.2f)',
+            mean(perc_bad_chan), min(perc_bad_chan), max(perc_bad_chan))
+
+    all_regions = []
+    for subj, chan in zip(all_subj, bad_chan):
+        chan = _assign_labels(subj, chan, PARAMETERS['PARC_TYPE'])
+        regions = chan.return_attr('region')
+        for region in regions:
+            all_regions.append(split('[-_]', region)[2])
+
+    for region, n_elec in Counter(all_regions).most_common():
+        lg.info(region + ': ' + str(n_elec))
+
+
 def get_chan_with_regions(subj, reref, parc_type=None):
 
     if parc_type is None:
@@ -93,17 +133,38 @@ def get_chan_with_regions(subj, reref, parc_type=None):
         with open(str(region_file), 'rb') as f:
             chan = load(f)
     else:
-        if parc_type.startswith('aparc.laus'):
-            fs_lut_name = 'aparc.annot.' + parc_type.split('.')[-1] + '.ctab'
-            fs_lut = str(REC_PATH / subj / FS_FOLDER / 'label' / fs_lut_name)
-        else:
-            fs_lut = None
-        fs = Freesurfer(str(REC_PATH / subj / FS_FOLDER), fs_lut=fs_lut)
-        chan = assign_region_to_channels(orig_chan, fs, parc_type=parc_type,
-                                         exclude_regions=('Unknown', ))
+        chan = _assign_labels(subj, orig_chan, parc_type)
         with open(str(region_file), 'wb') as f:
             dump(chan, f)
 
+    return chan
+
+
+def _assign_labels(subj, chan, parc_type):
+    """Subfunction to assign region labels to chan
+
+    Parameters
+    ----------
+    subj : str
+        subject code
+    chan : instance of Channels
+        the channels to compute the labels of
+    parc_type : str
+        the type of parcellation
+
+    Returns
+    -------
+    instance of Channels
+        channels with the regions
+    """
+    if parc_type.startswith('aparc.laus'):
+        fs_lut_name = 'aparc.annot.' + parc_type.split('.')[-1] + '.ctab'
+        fs_lut = str(REC_PATH / subj / FS_FOLDER / 'label' / fs_lut_name)
+    else:
+        fs_lut = None
+    fs = Freesurfer(str(REC_PATH / subj / FS_FOLDER), fs_lut=fs_lut)
+    chan = assign_region_to_channels(chan, fs, parc_type=parc_type,
+                                     exclude_regions=('Unknown', ))
     return chan
 
 
