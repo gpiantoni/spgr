@@ -1,18 +1,22 @@
 from logging import getLogger
 
-from numpy import (concatenate,
+from numpy import (arange,
+                   concatenate,
                    mean,
                    median,
+                   percentile,
+                   where,
                    zeros)
 
 from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
+                        PARAMETERS,
                         SPINDLE_OPTIONS)
 from .detect_spindles import get_spindles
 from .read_data import get_data
 
 lg = getLogger('spgr')
-
+PERCENT = PARAMETERS['PERCENTILE']
 
 def count_sp_at_any_time(sp, t_range):
     """At any given time point, check how many spindles you observe in all the
@@ -86,3 +90,40 @@ def count_cooccur_per_chan(subj, reref, summarize='mean'):
             chan_prob[i] = median(p_with_sp[t_at_sp])
 
     return chan_prob
+
+
+def get_cooccur_percent(subj, reref, lg):
+    spindles = get_spindles(subj, reref=reref, **SPINDLE_OPTIONS)
+    t = [x['start_time'] for x in spindles.spindle]
+    s_freq = 256
+    t_range = arange(min(t), max(t), 1 / s_freq)
+    p = count_sp_at_any_time(spindles, t_range)
+
+    df_i = _compute_percent(lg, spindles, t_range, p, 'isolated')
+    df_c = _compute_percent(lg, spindles, t_range, p, 'cooccurring')
+
+    return df_i, df_c
+
+
+def _compute_percent(lg, spindles, t_range, p, sp_type):
+
+    p_with = p[p >= 1]
+    if sp_type == 'isolated':
+        p_pool = where((p <= percentile(p_with, PERCENT)) & p >= 1)[0]
+    elif sp_type == 'cooccurring':
+        p_pool = where((p >= percentile(p_with, 100 - PERCENT)))[0]
+    i_t = t_range[p_pool]
+
+    all_sp = []
+    for sp in spindles.spindle:
+        if any((sp['start_time'] <= i_t) & (sp['end_time'] >= i_t)):
+            all_sp.append(sp)
+
+    lg.info('Number of {} spindles: {}'.format(sp_type, len(all_sp)))
+
+    df = {'freq': mean([x['peak_freq'] for x in all_sp]),
+          'ampl': mean([x['peak_val'] for x in all_sp]),
+          'dur': mean([x['end_time'] - x['start_time'] for x in all_sp]),
+          }
+
+    return df

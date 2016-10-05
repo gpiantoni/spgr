@@ -14,6 +14,7 @@ from spgr import (Read_ECoG_Recordings,
                   Single_Channel_Statistics,
                   Cooccurrence_Histogram,
                   Cooccurrence_of_Spindles,
+                  Cooccurrence_Percentile,
                   Direction_of_Spindles,
                   )
 
@@ -30,6 +31,7 @@ all_func = OrderedDict([('-r', 'Read_ECoG_Recordings'),
                         ('-s', 'Single_Channel_Statistics'),
                         ('-t', 'Cooccurrence_Histogram'),
                         ('-c', 'Cooccurrence_of_Spindles'),
+                        ('-p', 'Cooccurrence_Percentile'),
                         ('-l', 'Direction_of_Spindles'),  # leading / lagging
                         ])
 

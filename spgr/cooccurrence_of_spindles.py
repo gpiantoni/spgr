@@ -13,7 +13,7 @@ from .lmer_stats import add_to_dataframe, lmer
 from .plot_spindles import plot_lmer
 from .plot_histogram import make_hist_overlap
 from .spindle_source import get_chan_with_regions
-from .stats_on_spindles import count_cooccur_per_chan
+from .stats_on_spindles import count_cooccur_per_chan, get_cooccur_percent
 
 from .log import with_log
 
@@ -85,3 +85,16 @@ def Cooccurrence_of_Spindles(lg, images_dir):
         v.save(png_file)
         lg.info('![{}]({})'.format('{}'.format(reref),
                 png_file))
+
+
+@with_log
+def Cooccurrence_Percentile(lg, images_dir):
+
+    lg.info('## Compare Top v Bottom Percentile of Co-occurrence of Spindles')
+
+    for reref in ALL_REREF:
+        lg.info('### reref {}'.format(reref))
+
+        for subj in HEMI_SUBJ:
+            get_cooccur_percent(subj, reref, lg)
+

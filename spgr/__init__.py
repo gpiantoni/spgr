@@ -5,5 +5,6 @@ from .spindle_detection_method import Spindle_Detection_Method
 from .single_channel import Single_Channel_Statistics
 from .cooccurrence_of_spindles import (Cooccurrence_Histogram,
                                        Cooccurrence_of_Spindles,
+                                       Cooccurrence_Percentile,
                                        )
 from .spindle_direction import Direction_of_Spindles
