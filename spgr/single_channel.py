@@ -1,4 +1,4 @@
-from numpy import concatenate, linspace, uint8
+from numpy import concatenate, expand_dims, linspace, uint8
 from vispy.color import get_colormap
 from vispy.io.image import write_png
 
@@ -91,8 +91,7 @@ def make_colorbar(lg, images_dir):
 
     c = cm[linspace(1., 0., DPI)].rgb
     c = (c * 255).astype(uint8)
-    c = c[None, ]  # add extra dimension
-    c.resize((c.shape[1], c.shape[0], c.shape[2]))
+    c = expand_dims(c, 1)
     c = concatenate((c, ) * DPI, axis=1)
 
     png_file = str(images_dir.joinpath('colorbar.png'))
