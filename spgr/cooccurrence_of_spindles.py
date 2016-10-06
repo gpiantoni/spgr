@@ -100,8 +100,6 @@ def Cooccurrence_Percentile(lg, images_dir):
         df_i = []
         df_c = []
         for subj in HEMI_SUBJ:
-            if len(df_i) == 2:
-                break
             i, c = get_cooccur_percent(subj, reref, lg)
             df_i.append(i)
             df_c.append(c)

@@ -18,6 +18,7 @@ from .read_data import get_data
 
 lg = getLogger('spgr')
 PERCENT = PARAMETERS['PERCENTILE']
+S_FREQ = DATA_OPTIONS['resample_freq']
 
 
 def count_sp_at_any_time(sp, t_range):
@@ -95,12 +96,31 @@ def count_cooccur_per_chan(subj, reref, summarize='mean'):
 
 
 def get_cooccur_percent(subj, reref, lg):
+    """Get values for different spindle parameters for most isolated and most
+    cooccurring spindles.
+
+    Parameters
+    ----------
+    subj : str
+        subject code
+    reref : str
+        re-reference type
+    lg : Logger
+        logger to write to
+
+    Returns
+    -------
+    dict
+        summary parameters for isolated spindles
+    dict
+        summary parameters for cooccurring spindles
+    """
     spindles = get_spindles(subj, reref=reref, **SPINDLE_OPTIONS)
     t = [x['start_time'] for x in spindles.spindle]
-    s_freq = 256
-    t_range = arange(min(t), max(t), 1 / s_freq)
+    t_range = arange(min(t), max(t), 1 / S_FREQ)
     p = count_sp_at_any_time(spindles, t_range)
 
+    lg.info('{}'.format(subj))
     df_i = _compute_percent(lg, spindles, t_range, p, 'isolated')
     df_c = _compute_percent(lg, spindles, t_range, p, 'cooccurring')
 
@@ -108,7 +128,21 @@ def get_cooccur_percent(subj, reref, lg):
 
 
 def _compute_percent(lg, spindles, t_range, p, sp_type):
+    """Compute summary parameters for isolated and cooccurring spindles
 
+    Parameters
+    ----------
+    spindles : instance of Spindles
+        spindles for one specific subject
+    lg : Logger
+        logger to write to
+    Returns
+    -------
+    dict
+        summary parameters for isolated spindles
+    dict
+        summary parameters for cooccurring spindles
+    """
     p_with = p[p >= 1]
     if sp_type == 'isolated':
         p_pool = where((p <= percentile(p_with, PERCENT)) & p >= 1)[0]
@@ -132,7 +166,21 @@ def _compute_percent(lg, spindles, t_range, p, sp_type):
 
 
 def print_table_percent(lg, df_i, df_c):
-    params = 'ampl', 'dur', 'freq'
+    """Print summary tables for statistics on the top and bottom cooccurring
+    spindles.
+
+    Parameters
+    ----------
+    lg : Logger
+        logger to write to
+    df_i : list of dict
+        list of summary statistics for each subjects in the parameters of
+        interest for the most isolated spindles
+    df_c : list of dict
+        list of summary statistics for each subjects in the parameters of
+        interest for the most cooccurring spindles
+    """
+    params = 'freq', 'ampl', 'dur'
 
     for param in params:
         i_val = [x[param] for x in df_i]
@@ -143,4 +191,3 @@ def print_table_percent(lg, df_i, df_c):
                 'paired t({:d}) = {:.3f}, p-value = {:.3f}'
                 ''.format(param, PERCENT, mean(i_val), PERCENT, mean(c_val),
                           len(i_val) - 1, tstat, pvalue))
-
