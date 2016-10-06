@@ -132,10 +132,18 @@ def _compute_percent(lg, spindles, t_range, p, sp_type):
 
     Parameters
     ----------
-    spindles : instance of Spindles
-        spindles for one specific subject
     lg : Logger
         logger to write to
+    spindles : instance of Spindles
+        spindles for one specific subject
+    t_range : ndarray
+        vector with all the possible time points (even those with no spindles,
+        it doesn't matter)
+    p : ndarray (same length as t_range)
+        number of spindles in each time point
+    sp_type : str
+        'isolated' or 'cooccurring'
+
     Returns
     -------
     dict
