@@ -7,6 +7,7 @@ from numpy import (arange,
                    percentile,
                    where,
                    zeros)
+from scipy.stats import ttest_rel
 
 from .constants import (CHAN_TYPE,
                         DATA_OPTIONS,
@@ -17,6 +18,7 @@ from .read_data import get_data
 
 lg = getLogger('spgr')
 PERCENT = PARAMETERS['PERCENTILE']
+
 
 def count_sp_at_any_time(sp, t_range):
     """At any given time point, check how many spindles you observe in all the
@@ -127,3 +129,18 @@ def _compute_percent(lg, spindles, t_range, p, sp_type):
           }
 
     return df
+
+
+def print_table_percent(lg, df_i, df_c):
+    params = 'ampl', 'dur', 'freq'
+
+    for param in params:
+        i_val = [x[param] for x in df_i]
+        c_val = [x[param] for x in df_c]
+        tstat, pvalue = ttest_rel(i_val, c_val)
+        lg.info('with param{:>5}, {:d}% most isolated spindles: {:.3f}, '
+                '{:d}% most cooccurring spindles: {:.3f}\n'
+                'paired t({:d}) = {:.3f}, p-value = {:.3f}'
+                ''.format(param, PERCENT, mean(i_val), PERCENT, mean(c_val),
+                          len(i_val) - 1, tstat, pvalue))
+
