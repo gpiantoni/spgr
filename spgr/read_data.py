@@ -423,6 +423,6 @@ def keep_time_chan(subj, ref):
         with time_file.open('wb') as f:
             dump(time, f)
         with chan_file.open('wb') as f:
-            dump(time, f)
+            dump(chan, f)
 
     return time, chan
