@@ -4,9 +4,7 @@ from vispy.scene.visuals import Rectangle
 
 from phypno.viz import Viz1
 
-from .constants import (CHAN_TYPE,
-                        DATA_OPTIONS,
-                        DPI,
+from .constants import (DPI,
                         HIST_FIG_SIZE,
                         HIST_WIDTH,
                         HIST_BAR_COLOR,
@@ -15,7 +13,7 @@ from .constants import (CHAN_TYPE,
                         SPINDLE_OPTIONS,
                         TICKS_FONT_SIZE)
 from .detect_spindles import get_spindles
-from .read_data import get_data
+from .read_data import keep_time_chan
 from .stats_on_spindles import count_sp_at_any_time
 
 
@@ -33,9 +31,8 @@ def make_hist_overlap(subj, reref='avg'):
     width = HIST_WIDTH
 
     spindles = get_spindles(subj, reref=reref, **SPINDLE_OPTIONS)
-    data = get_data(subj, period_name='sleep', chan_type=CHAN_TYPE,
-                    reref=reref, **DATA_OPTIONS)
-    t_range = concatenate(data.axis['time'][:])
+    time = keep_time_chan(subj, reref)[0]
+    t_range = concatenate(time[:])
 
     p = count_sp_at_any_time(spindles, t_range)
     p_with_sp = p[p >= 1]
