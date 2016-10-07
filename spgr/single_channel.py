@@ -17,7 +17,7 @@ from .constants import (ALL_REREF,
 from .detect_spindles import get_spindles
 from .lmer_stats import add_to_dataframe, lmer
 from .plot_spindles import plot_lmer
-from .read_data import get_data
+from .read_data import keep_time_chan
 from .spindle_source import get_chan_with_regions
 
 from .log import with_log
@@ -40,12 +40,11 @@ def get_spindle_param(subj, param, ref):
                             **SPINDLE_OPTIONS)
 
     if param == 'density':
-        data = get_data(subj, 'sleep', chan_type=CHAN_TYPE, reref=ref,
-                        **DATA_OPTIONS)
-
         dat_count = spindles.to_data('count')
-        n_min = (data.number_of('trial') *
-                 (data.axis['time'][0][-1] - data.axis['time'][0][0])) / 60
+
+        time = keep_time_chan(subj, ref)[0]
+        n_trl = len(time)
+        n_min = (n_trl * (time[0][-1] - time[0][0])) / 60
         values = dat_count.data[0] / n_min
 
     elif param == 'duration':
