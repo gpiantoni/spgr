@@ -11,7 +11,8 @@ from phypno.attr import Annotations, Channels
 from phypno.trans import Filter, Montage, Resample
 from phypno.trans.montage import create_bipolar_chan
 
-from .constants import (DATA_PATH,
+from .constants import (CHAN_TYPE,
+                        DATA_PATH,
                         DATA_OPTIONS,
                         REC_PATH,
                         SCORES_PATH,
@@ -390,3 +391,31 @@ def _select_channels(chan_file, chan_type):
         raise ValueError(', '.join(chan_type) + ' not in selection')
 
     return chan
+
+
+def keep_time(subj, ref):
+    period_name = 'sleep'
+
+    subj_dir = DATA_PATH / subj / REC_FOLDER
+    data_name = REC_NAME.format(subj=subj, period=period_name,
+                                hp=int(10 * DATA_OPTIONS['hp_filter']),
+                                lp=int(10 * DATA_OPTIONS['lp_filter']),
+                                resample=DATA_OPTIONS['resample_freq'],
+                                chan_types='-'.join(CHAN_TYPE))
+
+    data_file = subj_dir / data_name
+    time_file = data_file.parent / (data_file.stem + '_time.pkl')
+
+    if time_file.exists():
+        with (subj_dir / time_file).open('rb') as f:
+            time = load(f)
+
+    else:
+        data = get_data(subj, 'sleep', chan_type=CHAN_TYPE, reref=ref,
+                        **DATA_OPTIONS)
+        time = data.axis['time']
+
+        with (subj_dir / time_file).open('wb') as f:
+            dump(time, f)
+
+    return time
