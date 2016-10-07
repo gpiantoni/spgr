@@ -9,12 +9,11 @@ from numpy import (arange,
                    zeros)
 from scipy.stats import ttest_rel
 
-from .constants import (CHAN_TYPE,
-                        DATA_OPTIONS,
+from .constants import (DATA_OPTIONS,
                         PARAMETERS,
                         SPINDLE_OPTIONS)
 from .detect_spindles import get_spindles
-from .read_data import get_data
+from .read_data import keep_time_chan
 
 lg = getLogger('spgr')
 PERCENT = PARAMETERS['PERCENTILE']
@@ -68,10 +67,9 @@ def count_cooccur_per_chan(subj, reref, summarize='mean'):
     """
     spindles = get_spindles(subj, reref=reref, **SPINDLE_OPTIONS)
 
-    data = get_data(subj, period_name='sleep', chan_type=CHAN_TYPE,
-                    reref=reref, **DATA_OPTIONS)
-    t_range = concatenate(data.axis['time'][:])
-    chan_list = data.axis['chan'][0]
+    time, chan = keep_time_chan(subj, reref)
+    t_range = concatenate(time[:])
+    chan_list = chan[0]
 
     p = count_sp_at_any_time(spindles, t_range)
     t_range_with_sp = t_range[p >= 1]

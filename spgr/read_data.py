@@ -393,7 +393,7 @@ def _select_channels(chan_file, chan_type):
     return chan
 
 
-def keep_time(subj, ref):
+def keep_time_chan(subj, ref):
     period_name = 'sleep'
 
     subj_dir = DATA_PATH / subj / REC_FOLDER
@@ -405,17 +405,24 @@ def keep_time(subj, ref):
 
     data_file = subj_dir / data_name
     time_file = data_file.parent / (data_file.stem + '_time.pkl')
+    chan_file = data_file.parent / (data_file.stem + '_chan.pkl')
 
-    if time_file.exists():
-        with (subj_dir / time_file).open('rb') as f:
+    if time_file.exists() and chan_file.exists():
+        with time_file.open('rb') as f:
             time = load(f)
+
+        with chan_file.open('rb') as f:
+            chan = load(f)
 
     else:
         data = get_data(subj, 'sleep', chan_type=CHAN_TYPE, reref=ref,
                         **DATA_OPTIONS)
         time = data.axis['time']
+        chan = data.axis['chan']
 
-        with (subj_dir / time_file).open('wb') as f:
+        with time_file.open('wb') as f:
+            dump(time, f)
+        with chan_file.open('wb') as f:
             dump(time, f)
 
-    return time
+    return time, chan
